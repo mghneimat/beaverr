@@ -1,0 +1,813 @@
+{
+  "app": {
+    "name": "PocketOS",
+    "tagline": "Your pocket. Upgraded.",
+    "description": "A smart household budgeting tool that helps you track income, manage costs, and take control of your finances — all in one place."
+  },
+  "common": {
+    "continue": "Continue",
+    "back": "Back",
+    "skip": "Skip for now",
+    "skipped": "Skipped",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "add": "Add",
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "yes": "Yes",
+    "no": "No",
+    "menu": "Menu",
+    "language": "Language",
+    "daily": "Daily",
+    "weekly": "Weekly",
+    "monthly": "Monthly",
+    "quarterly": "Quarterly",
+    "annual": "Annual",
+    "frequency": "Frequency",
+    "custom": "Custom",
+    "datePicker": {
+      "day": "Day",
+      "month": "Month",
+      "year": "Year"
+    },
+    "months": {
+      "january": "January",
+      "february": "February",
+      "march": "March",
+      "april": "April",
+      "may": "May",
+      "june": "June",
+      "july": "July",
+      "august": "August",
+      "september": "September",
+      "october": "October",
+      "november": "November",
+      "december": "December"
+    }
+  },
+  "onboarding": {
+    "welcome": {
+      "title": "PocketOS",
+      "subtitle": "Your household finances, finally clear.",
+      "cta": "Get started"
+    },
+    "consent": {
+      "title": "Your Data, Your Privacy",
+      "body": "Everything you enter stays with you. We never sell your data or share it with anyone. You can delete all your data from Settings at any time.",
+      "checkbox": "I understand and agree to proceed"
+    },
+    "household": {
+      "chapter": "Household Setup",
+      "type": {
+        "title": "Who are we budgeting for?",
+        "helper": "This helps us set up income and cost fields for your whole household.",
+        "solo": "Just me",
+        "partner": "Me + partner",
+        "singleParent": "Single parent",
+        "validation": "Please select your household type"
+      },
+      "partnerName": {
+        "title": "What should we call your partner?",
+        "helper": "Used only to personalise labels like 'Sarah's income'. Nothing else.",
+        "placeholder": "Partner's name",
+        "validation": "Please enter your partner's name"
+      },
+      "children": {
+        "title": "Do you have any children?",
+        "helper": "This unlocks a dedicated section for children's costs.",
+        "validation": "Please select yes or no"
+      },
+      "numChildren": {
+        "title": "How many children do you have?",
+        "helper": "Each child gets their own cost section later in the setup."
+      },
+      "childDetails": {
+        "title": "Child {{n}} — a couple of quick details",
+        "helper": "The name is just for display. The age group shows the right cost fields.",
+        "nameLabel": "Name (optional)",
+        "namePlaceholder": "Child's name",
+        "ageLabel": "Age group",
+        "age0": "Under 3",
+        "age3": "3–5 years",
+        "age6": "6–15 years",
+        "age16": "16–18 years",
+        "age18": "18+ years",
+        "validation": "Please select an age group"
+      }
+    },
+    "s2": {
+      "eyebrow": "Section 2 — Location & Occupation",
+      "heading": "Where you live and what you do",
+      "body": "Shapes what you pay. Let's get that right."
+    },
+    "location": {
+      "chapter": "Location & Occupation",
+      "title": "Where are you living?",
+      "helper": "We use this to pre-fill local costs and show relevant financial context.",
+      "countryLabel": "Country",
+      "countryPlaceholder": "Select your country",
+      "cityLabel": "City / Region (optional)",
+      "cityPlaceholder": "e.g. Prague",
+      "currencyLabel": "Currency",
+      "validation": "Please select your country"
+    },
+    "occupation": {
+      "title": "What best describes your work situation?",
+      "helper": "This affects your income section and some cost fields — for example, health insurance.",
+      "employee": "Employee",
+      "selfEmployed": "Self-employed / Freelancer",
+      "student": "Student",
+      "notWorking": "Not currently working",
+      "other": "Other",
+      "otherPlaceholder": "Tell us briefly (optional)",
+      "validation": "Please select your occupation",
+      "partnerTitle": "What about {{name}}'s work situation?",
+      "partnerHelper": "Affects income fields and insurance context."
+    },
+    "s3": {
+      "eyebrow": "Section 3 — Income",
+      "heading": "Now the numbers",
+      "body": "Enter net amounts — what actually lands in your account. This is the number everything else is measured against."
+    },
+    "income": {
+      "chapter": "Income & Savings",
+      "q5": {
+        "titleEmployee": "Net monthly salary",
+        "titleSelfEmployed": "Average monthly net income",
+        "titleStudent": "Monthly stipend or scholarship",
+        "titleNotWorking": "Not currently working",
+        "titleOther": "What's your average monthly income?",
+        "helperEmployee": "After tax and social contributions.",
+        "helperSelfEmployed": "After business expenses and tax — your take-home average.",
+        "helperStudent": "Your regular stipend or scholarship amount.",
+        "helperNotWorking": "We'll skip income — you can add other sources below if you have any.",
+        "helperOther": "Your best estimate of average monthly take-home.",
+        "notWorkingNote": "No income to enter — you can add other sources below.",
+        "frequencyDaily": "Daily",
+        "frequencyWeekly": "Weekly",
+        "frequencyFortnightly": "Fortnightly",
+        "frequencyMonthly": "Monthly",
+        "monthlyEquivalent": "= approx. {{amount}}/month",
+        "validation": "Please enter your income"
+      },
+      "q5a": {
+        "title": "What's {{name}}'s monthly take-home?",
+        "helper": "Net amount, after tax.",
+        "validation": "Please enter {{name}}'s income"
+      },
+      "q5b": {
+        "title": "Any other sources of income?",
+        "helper": "Rental income, dividends, financial support — anything regular.",
+        "yes": "Yes",
+        "no": "No",
+        "amountLabel": "Amount",
+        "amountPlaceholder": "0",
+        "frequencyLabel": "Frequency",
+        "descriptionLabel": "Description",
+        "labelPlaceholder": "Label (optional)",
+        "addAnother": "Add another source"
+      },
+      "q5c": {
+        "title": "Do you have savings?",
+        "helper": "Your balance shows how many months of expenses you have covered. Your monthly target is treated as a committed budget item.",
+        "balanceLabel": "Current savings balance",
+        "balancePlaceholder": "0",
+        "monthlyTargetLabel": "Monthly savings target",
+        "monthlyTargetPlaceholder": "0"
+      },
+      "q5d": {
+        "title": "Do you have a financial goal?",
+        "helper": "A target amount and date — holiday, car, wedding, emergency fund. The AI will factor this into its advice.",
+        "yes": "Yes",
+        "no": "No",
+        "descriptionLabel": "Goal description (optional)",
+        "descriptionPlaceholder": "e.g. Holiday to Thailand",
+        "amountLabel": "Target amount",
+        "amountPlaceholder": "0",
+        "dateLabel": "Target date",
+        "validation": "Please enter a target amount"
+      }
+    },
+    "s4": {
+      "eyebrow": "Section 4 — Housing",
+      "heading": "Housing",
+      "body": "Housing is usually the biggest monthly expense. Let's get a clear picture."
+    },
+    "housing": {
+      "chapter": "Housing",
+      "q6": {
+        "title": "Do you rent, own, or live with family?",
+        "helper": "Choose what best describes your current situation.",
+        "renting": "Renting",
+        "own": "Own my home",
+        "family": "Living with family / rent-free",
+        "validation": "Please select your housing type"
+      },
+      "q6a": {
+        "title": "How much is your monthly rent?",
+        "helper": "If utilities are included in your rent and you know the amount, enter base rent only — you'll enter utilities separately next. If you don't know the split (dorm, all-inclusive, etc.), just enter the total and skip utilities.",
+        "validation": "Please enter your monthly rent"
+      },
+      "q6b": {
+        "title": "How much do you pay for utilities?",
+        "helper": "Gas, electricity, water — combined. An estimate is fine. Skip if you don't know or prefer not to separate.",
+        "skip": "Skip — I don't know or it's included"
+      },
+      "q6c": {
+        "title": "Do you pay for internet separately?",
+        "helper": "Skip if internet is included in your rent or utilities.",
+        "no": "No / Included",
+        "yes": "Yes",
+        "amountPlaceholder": "0",
+        "frequencyMonthly": "Monthly",
+        "frequencyAnnual": "Annual",
+        "validation": "Please enter the internet amount"
+      },
+      "q6d": {
+        "title": "Do you have a mortgage?",
+        "helper": "Select 'No' if you own the property outright.",
+        "yes": "Yes",
+        "no": "No (owned outright)",
+        "validation": "Please select an option"
+      },
+      "q6e": {
+        "title": "How much is your monthly mortgage payment?",
+        "helper": "Total monthly amount including principal and interest.",
+        "amountLabel": "Monthly payment",
+        "endDateLabel": "Mortgage end date (optional)",
+        "endDatePlaceholder": "MM/YYYY",
+        "validation": "Please enter your mortgage payment"
+      },
+      "q6f": {
+        "title": "Any other regular home ownership costs?",
+        "helper": "Maintenance fund, building insurance, service charge, property tax — anything recurring.",
+        "yes": "Yes",
+        "no": "No",
+        "amountPlaceholder": "0",
+        "descriptionPlaceholder": "Description (optional)",
+        "dueDateLabel": "Due date",
+        "dueDatePlaceholder": "Due date (optional)",
+        "addAnother": "Add another cost"
+      },
+      "q6h": {
+        "title": "Do you contribute to household costs?",
+        "helper": "Contributing to rent, groceries, bills — add any regular support.",
+        "yes": "Yes",
+        "no": "No",
+        "amountPlaceholder": "0",
+        "descriptionPlaceholder": "Description (optional)",
+        "dueDateLabel": "Due date",
+        "dueDatePlaceholder": "Due date (optional)",
+        "addAnother": "Add another contribution"
+      },
+      "q6g": {
+        "title": "Government and city charges",
+        "helper": "Most households pay fixed statutory charges. We've pre-filled the most common ones — confirm or adjust.",
+        "wasteTax": "Waste tax",
+        "wasteTaxNote": "1 080 Kč/yr — municipal waste collection",
+        "tvLicence": "TV licence",
+        "tvLicenceNote": "1 620 Kč/yr — Czech Television",
+        "radioLicence": "Radio licence",
+        "radioLicenceNote": "540 Kč/yr — Czech Radio",
+        "addCustom": "Add custom item",
+        "customPlaceholder": "Item name",
+        "customAmountPlaceholder": "0",
+        "frequencyMonthly": "Monthly",
+        "frequencyAnnual": "Annual"
+      }
+    },
+    "s5": {
+      "eyebrow": "Section 5 — Transport",
+      "heading": "Transport",
+      "body": "Cars, fuel, parking, public transport — let's see what you spend on getting around."
+    },
+    "transport": {
+      "chapter": "Transport",
+      "q7": {
+        "title": "Do you have a car or other vehicle?",
+        "helper": "Motorcycle, scooter, van — anything with an engine that you use regularly.",
+        "yes": "Yes",
+        "no": "No",
+        "validation": "Please select yes or no"
+      },
+      "q7Count": {
+        "title": "How many vehicles do you have?",
+        "helper": "Tell us how many vehicles you own across each category.",
+        "passenger": "Passenger vehicles",
+        "motorcycle": "Motorcycles / Scooters",
+        "bicycle": "Bicycles",
+        "validation": "Please add at least one vehicle"
+      },
+      "q7a": {
+        "title": "Fuel and running costs",
+        "helper": "What type of fuel does your vehicle use, and roughly how much do you spend per month?",
+        "vehicleLabel": "Vehicle {{n}} of {{total}} — {{category}}",
+        "fuelLabel": "Fuel type",
+        "petrol": "Petrol",
+        "diesel": "Diesel",
+        "electric": "Electric",
+        "hybrid": "Hybrid",
+        "lpg": "LPG",
+        "cng": "CNG",
+        "costLabel": "Estimated monthly fuel cost",
+        "costLabelElectric": "Estimated monthly charging cost",
+        "costPlaceholder": "0",
+        "validation": "Please enter your monthly fuel cost"
+      },
+      "q7b": {
+        "title": "Vehicle insurance",
+        "helper": "Enter your insurance details — skip if you don't have separate vehicle insurance.",
+        "vehicleLabel": "Vehicle {{n}} of {{total}} — {{category}}",
+        "premiumLabel": "Insurance premium",
+        "premiumPlaceholder": "0",
+        "frequencyLabel": "Frequency",
+        "frequencyMonthly": "Monthly",
+        "frequencyAnnual": "Annual",
+        "renewalLabel": "Next renewal date (optional)",
+        "renewalPlaceholder": "MM/YYYY",
+        "skip": "Skip — no separate insurance",
+        "validation": "Please enter the insurance premium"
+      },
+      "q7c": {
+        "title": "Zone parking or resident permits",
+        "helper": "If you pay for zone parking or a resident permit in your city, enter the cost here.",
+        "vehicleLabel": "Vehicle {{n}} of {{total}} — {{category}}",
+        "amountLabel": "Parking cost",
+        "amountPlaceholder": "0",
+        "frequencyLabel": "Frequency",
+        "frequencyMonthly": "Monthly",
+        "frequencyAnnual": "Annual",
+        "skip": "Skip — no parking costs",
+        "validation": "Please enter the parking cost"
+      },
+      "q7d": {
+        "title": "MOT / STK and maintenance",
+        "helper": "When does your MOT/STK expire? Add any planned maintenance items you're saving for.",
+        "vehicleLabel": "Vehicle {{n}} of {{total}} — {{category}}",
+        "motLabel": "MOT / STK expiry date (optional)",
+        "motPlaceholder": "MM/YYYY",
+        "maintenanceLabel": "Planned maintenance items",
+        "maintenanceDescPlaceholder": "What needs doing?",
+        "maintenanceCostPlaceholder": "Cost",
+        "maintenanceDateLabel": "Date",
+        "maintenanceDatePlaceholder": "Date (optional)",
+        "addItem": "Add item",
+        "skip": "Skip — no upcoming maintenance"
+      },
+      "q7bicycle": {
+        "title": "Bicycle maintenance",
+        "helper": "Add any planned bicycle maintenance or repairs you're saving for — like a new chain, brake pads, or a flat tyre fix.",
+        "maintenanceLabel": "Planned maintenance items",
+        "maintenanceDescPlaceholder": "What needs doing?",
+        "maintenanceCostPlaceholder": "Cost",
+        "maintenanceDateLabel": "Date",
+        "maintenanceDatePlaceholder": "Date (optional)",
+        "addItem": "Add item",
+        "skip": "Skip — no upcoming maintenance"
+      },
+      "q7e": {
+        "title": "Public transport",
+        "helper": "Enter your regular public transport costs — skip if you don't use public transport.",
+        "amountLabel": "Monthly / annual pass cost",
+        "amountPlaceholder": "0",
+        "frequencyLabel": "Frequency",
+        "frequencyMonthly": "Monthly",
+        "frequencyAnnual": "Annual",
+        "passLabel": "Pass type (optional)",
+        "passPlaceholder": "e.g. Prague annual pass",
+        "validUntilLabel": "Pass valid until (optional)",
+        "skip": "Skip — I don't use public transport",
+        "validation": "Please enter the public transport cost"
+      }
+    },
+    "s6": {
+      "eyebrow": "Section 6 — Health Insurance",
+      "heading": "Health Insurance",
+      "body": "Health insurance varies by situation. Let's make sure everyone in your household is covered."
+    },
+    "health": {
+      "chapter": "Health Insurance",
+      "title": "Health insurance for {{name}}",
+      "helper": "Confirm how {{name}}'s health insurance is handled.",
+      "you": "You",
+      "child": "Child",
+      "coveredByEmployer": "Covered by employer",
+      "coveredByEmployerNote": "In the Czech Republic, employers pay health insurance for their employees. No action needed.",
+      "confirmCoverage": "Confirm coverage",
+      "confirmed": "Confirmed",
+      "coverageType": "Coverage type",
+      "payPrivately": "Pay privately",
+      "premiumLabel": "Monthly premium",
+      "premiumPlaceholder": "0",
+      "premiumRequired": "Please enter the premium amount",
+      "frequencyLabel": "Frequency",
+      "startDateLabel": "Start date",
+      "endDateLabel": "End date",
+      "contractTypeLabel": "Contract Type",
+      "ongoing": "Ongoing",
+      "fixed": "Fixed end date",
+      "notesLabel": "Notes (optional)",
+      "notesPlaceholder": "e.g. Additional private insurance",
+      "customFrequencyLabel": "How many months?",
+      "customFrequencyPlaceholder": "e.g. 3",
+      "validation": "Please confirm this member's insurance details",
+      "q8": {
+        "title": "Health insurance for {{name}}",
+        "helper": "Confirm how {{name}}'s health insurance is handled.",
+        "coveredByEmployer": "Covered by employer",
+        "coveredByEmployerNote": "In the Czech Republic, employers pay health insurance for their employees. No action needed.",
+        "premiumLabel": "Monthly premium",
+        "premiumPlaceholder": "e.g. 2 360",
+        "frequencyLabel": "Frequency",
+        "frequencyMonthly": "Monthly",
+        "frequencyQuarterly": "Quarterly",
+        "frequencyAnnual": "Annual",
+        "startDateLabel": "Start date",
+        "startDatePlaceholder": "MM/YYYY",
+        "endDateLabel": "End date",
+        "endDatePlaceholder": "MM/YYYY",
+        "openEnded": "Open-ended / no fixed end",
+        "notesLabel": "Notes (optional)",
+        "notesPlaceholder": "e.g. Additional private insurance",
+        "validation": "Please confirm this member's insurance details",
+        "confirm": "Confirmed"
+      }
+    },
+    "s7": {
+      "eyebrow": "Section 7 — Children's Costs",
+      "heading": "Children's Costs",
+      "body": "Let's track the regular costs for each child — from nursery to school supplies."
+    },
+    "childrenCosts": {
+      "chapter": "Children's Costs",
+      "q9": {
+        "title": "Costs for {{name}}",
+        "helper": "These fields are based on {{name}}'s age group ({{ageGroup}}).",
+        "age0_2": "Under 3",
+        "age3_5": "3–5 years",
+        "age6_15": "6–15 years",
+        "age16_18": "16–18 years",
+        "field": {
+          "nursery": "Nursery / daycare",
+          "nurseryHelper": "Monthly nursery or daycare fees",
+          "nanny": "Nanny",
+          "nannyHelper": "Monthly nanny costs",
+          "diapers": "Diapers & wipes",
+          "diapersHelper": "Monthly cost of diapers, wipes, creams",
+          "formula": "Formula & baby food",
+          "formulaHelper": "Monthly cost of formula and baby food",
+          "clothing": "Clothing & shoes",
+          "clothingHelper": "Monthly average for clothing and shoes",
+          "kindergarten": "Kindergarten",
+          "kindergartenHelper": "Monthly kindergarten fees",
+          "toys": "Toys & activities",
+          "toysHelper": "Monthly average for toys, playgroups, activities",
+          "schoolSupplies": "School supplies",
+          "schoolSuppliesHelper": "Monthly average for school supplies and materials",
+          "afterSchool": "After-school club",
+          "afterSchoolHelper": "Monthly after-school club fees",
+          "allowance": "Pocket money / allowance",
+          "allowanceHelper": "Monthly allowance given to the child",
+          "phone": "Phone & data",
+          "phoneHelper": "Monthly phone and data costs",
+          "transport": "School transport",
+          "transportHelper": "Monthly school transport or bus pass costs",
+          "extracurricular": "Extracurricular activities",
+          "extracurricularHelper": "Sports, music lessons, tutoring — monthly average",
+          "savings": "Savings for child",
+          "savingsHelper": "Monthly savings set aside for the child",
+          "other": "Other"
+        },
+        "suggestions": "Suggestions — tap to add",
+        "amountPlaceholder": "0",
+        "frequencyMonthly": "Monthly",
+        "frequencyAnnual": "Annual",
+        "addAnother": "Add other cost"
+      }
+    },
+    "s8": {
+      "eyebrow": "Section 8 — Pets",
+      "heading": "Pets",
+      "body": "Our furry (and not-so-furry) friends come with costs. Let's track them."
+    },
+    "pets": {
+      "chapter": "Pets",
+      "q10": {
+        "title": "Do you have any pets?",
+        "helper": "Dogs, cats, birds, fish, rabbits — any animal you care for regularly.",
+        "yes": "Yes",
+        "no": "No"
+      },
+      "q10a": {
+        "heading": "Your pets",
+        "title": "Pet {{n}}",
+        "helper": "Enter the regular costs.",
+        "costsLabel": "Costs",
+        "typeLabel": "Pet type",
+        "dog": "Dog",
+        "cat": "Cat",
+        "bird": "Bird",
+        "other": "Other",
+        "nameLabel": "Name (optional)",
+        "namePlaceholder": "Pet's name",
+        "foodLabel": "Food cost",
+        "foodPlaceholder": "0",
+        "vetLabel": "Vet cost",
+        "vetPlaceholder": "0",
+        "insuranceLabel": "Has insurance",
+        "insurancePremiumLabel": "Insurance premium",
+        "insurancePremiumPlaceholder": "0",
+        "insuranceFrequencyLabel": "Frequency",
+        "insuranceRenewalLabel": "Renewal date",
+        "groomingLabel": "Grooming cost",
+        "groomingPlaceholder": "0",
+        "otherCostLabel": "Other cost",
+        "otherCostPlaceholder": "0",
+        "dogTaxLabel": "Dog tax (CZ)",
+        "dogTaxHelper": "In the Czech Republic, dog owners pay an annual dog tax. Pre-filled at 1 500 Kč.",
+        "addPet": "Add another pet",
+        "validation": "Please select a pet type"
+      }
+    },
+    "s9": {
+      "eyebrow": "Section 9 — Subscriptions",
+      "heading": "Subscriptions",
+      "body": "Streaming, cloud storage, fitness apps — the small monthly costs that add up."
+    },
+    "subscriptions": {
+      "chapter": "Subscriptions",
+      "q11": {
+        "title": "What subscriptions do you have?",
+        "helper": "Tap to add common subscriptions, or enter custom ones below.",
+        "quickAdd": "Quick add",
+        "customAdd": "Add custom subscription",
+        "customLabel": "Service name",
+        "customPlaceholder": "e.g. Adobe Creative Cloud",
+        "amountLabel": "Cost",
+        "amountPlaceholder": "0",
+        "frequencyLabel": "Frequency",
+        "frequencyMonthly": "Monthly",
+        "frequencyQuarterly": "Quarterly",
+        "frequencyAnnual": "Annual",
+        "autoRenewLabel": "Auto-renew",
+        "renewalLabel": "Next renewal date (optional)",
+        "renewalPlaceholder": "MM/YYYY",
+        "validation": "Please enter the cost for each subscription",
+        "streamingFlag": "You have {{count}} streaming subscriptions costing {{total}}/month total.",
+        "services": {
+          "netflix": "Netflix",
+          "primeVideo": "Prime Video",
+          "disneyPlus": "Disney+",
+          "appleTvPlus": "Apple TV+",
+          "hboMax": "HBO Max",
+          "spotify": "Spotify",
+          "appleMusic": "Apple Music",
+          "youtubePremium": "YouTube Premium",
+          "deezer": "Deezer",
+          "revolut": "Revolut",
+          "wise": "Wise",
+          "icloudPlus": "iCloud+",
+          "googleOne": "Google One",
+          "microsoft365": "Microsoft 365",
+          "adobeCC": "Adobe Creative Cloud",
+          "playstationPlus": "PlayStation Plus",
+          "xboxGamePass": "Xbox Game Pass",
+          "other": "Other",
+          "hulu": "Hulu",
+          "twitch": "Twitch",
+          "dropbox": "Dropbox",
+          "googleDrive": "Google Drive",
+          "icloud": "iCloud",
+          "notion": "Notion",
+          "chatgpt": "ChatGPT Plus",
+          "github": "GitHub",
+          "medium": "Medium",
+          "nytimes": "NY Times",
+          "theEconomist": "The Economist"
+        }
+      }
+    },
+    "s10": {
+      "eyebrow": "Section 10 — Other Costs",
+      "heading": "Other Regular Costs",
+      "body": "The rest of your regular outgoings — groceries, mobile, insurance, and more."
+    },
+    "otherCosts": {
+      "chapter": "Other Regular Costs",
+      "q12": {
+        "title": "What other regular costs do you have?",
+        "helper": "Tap to add common costs, or enter custom ones below.",
+        "quickAdd": "Quick add",
+        "customAdd": "Add custom cost",
+        "customLabel": "Cost name",
+        "customPlaceholder": "e.g. Gym membership",
+        "amountLabel": "Amount",
+        "amountPlaceholder": "0",
+        "frequencyLabel": "Frequency",
+        "frequencyMonthly": "Monthly",
+        "frequencyQuarterly": "Quarterly",
+        "frequencyAnnual": "Annual",
+        "dueDateLabel": "Due date (optional)",
+        "dueDatePlaceholder": "MM/YYYY",
+        "validation": "Please enter the amount for each cost",
+        "osvcNote": "As a self-employed person (OSVČ), don't forget to include your social and health insurance contributions.",
+        "costs": {
+          "groceries": "Groceries",
+          "mobilePhone": "Mobile phone",
+          "lifeInsurance": "Life insurance",
+          "homeInsurance": "Home insurance",
+          "gym": "Gym / Fitness",
+          "hairSalon": "Hair salon / Barber",
+          "laundry": "Laundry / Dry cleaning",
+          "charity": "Charity / Donations",
+          "education": "Education / Courses",
+          "pension": "Pension contribution",
+          "osvcSocial": "OSVČ — Social insurance",
+          "osvcHealth": "OSVČ — Health insurance",
+          "other": "Other"
+        }
+      }
+    },
+    "s11": {
+      "eyebrow": "Section 11 — Debts & Loans",
+      "heading": "Debts & Loans",
+      "body": "Understanding your debts is the first step to managing them. Let's get a clear picture."
+    },
+    "debts": {
+      "chapter": "Debts & Loans",
+      "q13": {
+        "title": "Do you have any debts or loans?",
+        "helper": "Credit cards, personal loans, student loans, BNPL — anything you're currently paying off.",
+        "yes": "Yes",
+        "no": "No"
+      },
+      "q13a": {
+        "title": "Your debts",
+        "debtLabel": "Debt {{n}}",
+        "helper": "Enter the details of this debt.",
+        "typeLabel": "Debt type",
+        "creditCard": "Credit card",
+        "personalLoan": "Personal loan",
+        "carLoan": "Car loan / Leasing",
+        "studentLoan": "Student loan",
+        "medical": "Medical debt",
+        "family": "Family / Friend loan",
+        "bnpl": "Buy Now Pay Later",
+        "other": "Other",
+        "creditorLabel": "Creditor (optional)",
+        "creditorPlaceholder": "e.g. Moneta, Home Credit",
+        "balanceLabel": "Current balance",
+        "balancePlaceholder": "0",
+        "minPaymentLabel": "Minimum monthly payment",
+        "minPaymentPlaceholder": "0",
+        "minPaymentHelper": "The minimum amount you need to pay each month to stay in good standing.",
+        "aprLabel": "APR (%)",
+        "aprPlaceholder": "e.g. 14.9",
+        "aprHelper": "Annual Percentage Rate — the yearly interest rate on this debt.",
+        "promoEndLabel": "Promo rate ends (optional)",
+        "promoEndPlaceholder": "MM/YYYY",
+        "highAprWarning": "⚠️ This APR is above 20%. Consider prioritising this debt.",
+        "dueDayLabel": "Payment due day (optional)",
+        "dueDayPlaceholder": "e.g. 15",
+        "notesLabel": "Notes (optional)",
+        "notesPlaceholder": "e.g. Final payment expected Dec 2026",
+        "addDebt": "Add another debt",
+        "validation": "Please select a debt type"
+      }
+    },
+    "s12": {
+      "eyebrow": "Section 12 — Budget",
+      "heading": "Budget & Strategy",
+      "body": "Now let's set your flexible spending budget and decide how unspent money rolls over."
+    },
+    "budget": {
+      "chapter": "Budget & Strategy",
+      "q14": {
+        "title": "Your flexible spending budget",
+        "summaryTitle": "Description",
+        "helper": "This is what's left after fixed costs, debt payments, and savings. You can adjust it if needed.",
+        "income": "Total monthly income",
+        "fixedCosts": "Fixed monthly costs",
+        "debtPayments": "Debt payments",
+        "savings": "Savings target",
+        "available": "Available for flexible spending",
+        "budgetLabel": "Your monthly flexible budget",
+        "amount": "Amount",
+        "currency": "Currency",
+        "incomeUser": "Your income",
+        "incomePartner": "Partner's income",
+        "incomeOther": "Other income",
+        "cat": {
+          "housing": "Housing",
+          "transport": "Transport",
+          "health": "Health insurance",
+          "children": "Children",
+          "pets": "Pets",
+          "subscriptions": "Subscriptions",
+          "other": "Other"
+        },
+        "placeholder": "e.g. 15 000",
+        "validation": "Please enter your flexible budget amount"
+      },
+      "q14a": {
+        "title": "What happens to unspent budget?",
+        "helper": "Choose how unspent money from your flexible budget carries over to the next month.",
+        "free": "Free rollover",
+        "freeDesc": "All unspent budget carries over to next month with no limit.",
+        "capped": "Capped rollover",
+        "cappedDesc": "Unspent budget carries over up to a multiplier of your monthly budget.",
+        "reset": "Reset each month",
+        "resetDesc": "Any unspent budget is forfeited at the end of each month.",
+        "multiplierLabel": "Rollover cap",
+        "multiplier2": "×2 (two months)",
+        "multiplier3": "×3 (three months)",
+        "multiplier4": "×4 (four months)",
+        "validation": "Please select a rollover strategy"
+      }
+    },
+    "s13": {
+      "eyebrow": "Almost done",
+      "heading": "Review & Confirm",
+      "body": "Let's review everything before we start. You can always come back and edit later."
+    },
+    "review": {
+      "chapter": "Review & Confirm",
+      "q15": {
+        "title": "Review your information",
+        "helper": "Check everything looks right. Tap any section to expand and review the details.",
+        "sections": {
+          "household": "Household",
+          "location": "Location & Occupation",
+          "income": "Income & Savings",
+          "transport": "Transport",
+          "health": "Health Insurance",
+          "childrenCosts": "Children's Costs",
+          "pets": "Pets",
+          "subscriptions": "Subscriptions",
+          "otherCosts": "Other Regular Costs",
+          "debts": "Debts & Loans",
+          "budget": "Budget & Strategy"
+        },
+        "labels": {
+          "type": "Household type",
+          "partner": "Partner",
+          "children": "Children",
+          "country": "Country",
+          "city": "City / Region",
+          "currency": "Currency",
+          "occupation": "Occupation",
+          "partnerOccupation": "Partner's occupation",
+          "yourIncome": "Your income",
+          "partnerIncome": "Partner's income",
+          "otherIncome": "Other income",
+          "totalIncome": "Total income",
+          "savingsBalance": "Savings balance",
+          "savingsTarget": "Savings target",
+          "goal": "Goal",
+          "by": "by",
+          "fuel": "Fuel",
+          "insurance": "Insurance",
+          "parking": "Parking",
+          "noVehicle": "No vehicle",
+          "publicTransport": "Public transport",
+          "covered": "Covered by employer",
+          "private": "Private",
+          "notConfirmed": "Not confirmed",
+          "none": "None",
+          "food": "Food",
+          "vet": "Vet",
+          "minPayment": "Minimum payment",
+          "apr": "APR",
+          "monthlyBudget": "Monthly flexible budget",
+          "rollover": "Rollover strategy",
+          "multiplier": "Rollover multiplier"
+        },
+        "cta": "Looks good — take me to my dashboard",
+        "skip": "I'll finish this later"
+      }
+    },
+    "progress": "{{percent}}% complete"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "income": "Income",
+    "costs": "Costs",
+    "budget": "Budget",
+    "goals": "Goals",
+    "alerts": "Alerts",
+    "summary": "Summary",
+    "placeholder": {
+      "title": "Welcome to PocketOS",
+      "subtitle": "Your financial clarity starts here"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "redoSetup": "Redo Setup",
+    "language": "Language",
+    "theme": "Theme",
+    "currency": "Currency"
+  }
+}

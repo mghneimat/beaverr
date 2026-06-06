@@ -1,8 +1,12 @@
 {
-  "name": "pocket-os-temp",
+  "name": "pocket-os",
   "main": "expo-router/entry",
   "version": "1.0.0",
   "dependencies": {
+    "@expo-google-fonts/dm-mono": "^0.4.2",
+    "@expo-google-fonts/dm-serif-display": "^0.4.2",
+    "@expo-google-fonts/inter": "^0.4.2",
+    "@gluestack-ui/themed": "^1.1.73",
     "expo": "~56.0.8",
     "expo-constants": "~56.0.16",
     "expo-font": "~56.0.5",
@@ -12,6 +16,7 @@
     "expo-status-bar": "~56.0.4",
     "expo-symbols": "~56.0.5",
     "expo-web-browser": "~56.0.5",
+    "nativewind": "^4.2.4",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-native": "0.85.3",
@@ -19,17 +24,22 @@
     "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "4.25.2",
     "react-native-web": "~0.21.0",
-    "react-native-worklets": "0.8.3"
+    "react-native-worklets": "0.8.3",
+    "tailwindcss": "^3.3.2"
   },
   "devDependencies": {
     "@types/react": "~19.2.2",
+    "jest": "^29.7.0",
+    "react-native-svg": "^13.9.0",
     "typescript": "~6.0.3"
   },
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "test": "jest",
+    "test:watch": "jest --watch"
   },
   "private": true
 }

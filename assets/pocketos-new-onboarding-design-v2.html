@@ -1,0 +1,3305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PocketOS — Setup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #F4F3EF;
+    --surface:   #FDFCFA;
+    --border:    #E4E2DC;
+    --primary:   #1D3557;
+    --accent:    #E8825A;
+    --positive:  #3A8C6E;
+    --text:      #1A1A1A;
+    --muted:     #7A7770;
+    --debt:      #6B4FA0;
+    --divider:   #D8D5CE;
+    --panel-w:   300px;
+  }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  /* ── SHELL ── */
+  .shell { display: flex; height: 100vh; overflow: hidden; }
+
+  /* ── LEFT PANEL ── */
+  .left-panel {
+    width: var(--panel-w);
+    min-width: var(--panel-w);
+    background: var(--surface);
+    border-right: 1px solid var(--divider);
+    display: flex;
+    flex-direction: column;
+    padding: 40px 32px;
+    position: relative;
+    overflow: hidden;
+  }
+  .left-panel::before {
+    content: '';
+    position: absolute;
+    bottom: -60px; left: -60px;
+    width: 240px; height: 240px;
+    background: radial-gradient(circle, rgba(232,130,90,0.10) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .logo { display: flex; align-items: center; gap: 9px; margin-bottom: 52px; }
+  .logo-icon { width: 28px; height: 28px; flex-shrink: 0; }
+  .logo-text {
+    font-family: 'DM Serif Display', serif;
+    font-size: 16px; color: var(--primary); letter-spacing: -0.3px;
+  }
+
+  /* ── SECTIONS NAV ── */
+  .sections-nav {
+    flex: 1; display: flex; flex-direction: column; gap: 0; position: relative;
+  }
+  .sections-nav::before {
+    content: ''; position: absolute;
+    left: 10px; top: 14px; bottom: 14px;
+    width: 1px; background: var(--border);
+  }
+  .section-item {
+    display: flex; align-items: flex-start; gap: 16px;
+    padding: 10px 0; cursor: default; position: relative;
+  }
+  .section-dot-wrap {
+    position: relative; width: 21px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; padding-top: 2px;
+  }
+  .section-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--border); transition: all 0.3s ease;
+    position: relative; z-index: 1;
+  }
+  .section-item.active .section-dot {
+    background: var(--accent);
+    box-shadow: 0 0 0 3px rgba(232,130,90,0.18);
+    width: 10px; height: 10px;
+  }
+  .section-item.done .section-dot { background: var(--positive); }
+  .section-item.done .section-dot::after {
+    content: ''; position: absolute; inset: -1px;
+    border-radius: 50%; border: 1.5px solid var(--positive);
+  }
+  .section-label { display: flex; flex-direction: column; gap: 1px; }
+  .section-name {
+    font-size: 12.5px; font-weight: 500; color: var(--muted);
+    letter-spacing: 0.01em; transition: color 0.3s; line-height: 1.4;
+  }
+  .section-item.active .section-name { color: var(--text); font-weight: 500; }
+  .section-item.done  .section-name  { color: var(--positive); }
+  .section-substeps {
+    font-size: 11px; color: var(--muted); opacity: 0; transition: opacity 0.3s;
+  }
+  .section-item.active .section-substeps { opacity: 1; color: var(--accent); font-weight: 500; }
+
+  .left-footer {
+    margin-top: 32px; font-size: 11.5px; color: var(--muted); line-height: 1.5;
+    border-top: 1px solid var(--border); padding-top: 20px;
+  }
+
+  /* ── RIGHT PANEL ── */
+  .right-panel {
+    flex: 1; overflow-y: auto; display: flex;
+    align-items: center; justify-content: center; padding: 40px 48px;
+  }
+  .screen { display: none; width: 100%; max-width: 480px; animation: fadeUp 0.35s ease both; }
+  .screen.active { display: block; }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── PROGRESS BAR ── */
+  .progress-bar-wrap {
+    margin-bottom: 40px; display: flex; align-items: center; gap: 12px;
+  }
+  .progress-bar-track {
+    flex: 1; height: 3px; background: var(--border); border-radius: 99px; overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--primary));
+    border-radius: 99px;
+    transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+  }
+  .progress-text { font-size: 11.5px; color: var(--muted); white-space: nowrap; font-weight: 500; }
+
+  /* ── WELCOME ── */
+  .welcome-eyebrow {
+    font-size: 11px; font-weight: 500; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--accent); margin-bottom: 20px;
+  }
+  .welcome-heading {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(34px,5vw,48px); color: var(--primary);
+    line-height: 1.12; letter-spacing: -0.5px; margin-bottom: 16px;
+  }
+  .welcome-heading em { font-style: italic; color: var(--accent); }
+  .welcome-body {
+    font-size: 15.5px; color: var(--muted); line-height: 1.65;
+    margin-bottom: 40px; max-width: 380px;
+  }
+  .welcome-illustration { margin-bottom: 40px; }
+
+  /* ── CONSENT ── */
+  .consent-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 24px; margin-bottom: 24px;
+  }
+  .consent-points { list-style: none; display: flex; flex-direction: column; gap: 14px; }
+  .consent-points li {
+    display: flex; gap: 12px; align-items: flex-start;
+    font-size: 14px; color: var(--text); line-height: 1.55;
+  }
+  .consent-points li .icon { width: 20px; height: 20px; flex-shrink: 0; margin-top: 1px; color: var(--positive); }
+  .checkbox-row {
+    display: flex; align-items: center; gap: 12px; margin-bottom: 28px;
+    cursor: pointer; padding: 14px 16px; border-radius: 10px;
+    border: 1.5px solid var(--border); background: var(--surface);
+    transition: border-color 0.2s, background 0.2s; user-select: none;
+  }
+  .checkbox-row:hover { border-color: var(--accent); background: rgba(232,130,90,0.03); }
+  .checkbox-row.checked { border-color: var(--positive); background: rgba(58,140,110,0.04); }
+  .checkbox-box {
+    width: 20px; height: 20px; border-radius: 5px; border: 2px solid var(--border);
+    flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s; background: white;
+  }
+  .checkbox-row.checked .checkbox-box { background: var(--positive); border-color: var(--positive); }
+  .checkbox-check { display: none; width: 11px; height: 11px; }
+  .checkbox-row.checked .checkbox-check { display: block; }
+  .checkbox-label { font-size: 14px; color: var(--text); line-height: 1.45; }
+
+  /* ── SHARED QUESTION STYLES ── */
+  .question-label {
+    font-size: 12px; font-weight: 500; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--accent); margin-bottom: 10px;
+  }
+  .question-heading {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(24px,3.5vw,32px); color: var(--primary);
+    line-height: 1.2; letter-spacing: -0.3px; margin-bottom: 6px;
+  }
+  .question-hint {
+    font-size: 13.5px; color: var(--muted); margin-bottom: 28px; line-height: 1.55;
+  }
+  .screen-heading {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(26px,4vw,34px); color: var(--primary);
+    line-height: 1.2; letter-spacing: -0.3px; margin-bottom: 8px;
+  }
+  .screen-subheading { font-size: 14.5px; color: var(--muted); margin-bottom: 32px; line-height: 1.6; }
+
+  /* ── FIELDS ── */
+  .field-group { margin-bottom: 20px; }
+  .field-label {
+    font-size: 12.5px; font-weight: 500; color: var(--muted);
+    letter-spacing: 0.02em; margin-bottom: 7px; display: block;
+  }
+  .field-required { color: var(--accent); margin-left: 3px; }
+  .field-optional { font-weight: 400; font-size: 11px; color: var(--muted); margin-left: 6px; }
+  .text-input {
+    width: 100%; font-family: 'DM Sans', sans-serif; font-size: 17px;
+    font-weight: 300; color: var(--text); background: var(--surface);
+    border: 1.5px solid var(--border); border-radius: 10px;
+    padding: 14px 16px; outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s; letter-spacing: -0.1px;
+  }
+  .text-input::placeholder { color: #C4C2BC; }
+  .text-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(29,53,87,0.08); }
+  .text-input.error { border-color: #D14040; box-shadow: 0 0 0 3px rgba(209,64,64,0.08); }
+  .field-error { font-size: 12.5px; color: #D14040; margin-top: 6px; display: none; }
+  .field-error.visible { display: block; }
+  .char-count { font-size: 11.5px; color: var(--muted); text-align: right; margin-top: 5px; transition: color 0.2s; }
+  .char-count.warn { color: var(--accent); }
+
+  /* ── DOB SELECT GROUP ── */
+  .dob-row { display: grid; grid-template-columns: 1fr 2fr 1.4fr; gap: 10px; }
+  .select-wrap { position: relative; }
+  .select-wrap select {
+    width: 100%; font-family: 'DM Sans', sans-serif; font-size: 15px;
+    font-weight: 300; color: var(--text); background: var(--surface);
+    border: 1.5px solid var(--border); border-radius: 10px;
+    padding: 13px 36px 13px 14px; outline: none; appearance: none;
+    transition: border-color 0.2s, box-shadow 0.2s; cursor: pointer;
+  }
+  .select-wrap select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(29,53,87,0.08); }
+  .select-wrap select.error { border-color: #D14040; }
+  .select-wrap::after {
+    content: ''; position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+    width: 0; height: 0;
+    border-left: 4px solid transparent; border-right: 4px solid transparent;
+    border-top: 5px solid var(--muted); pointer-events: none;
+  }
+  .dob-hint { font-size: 12px; color: var(--muted); margin-top: 8px; }
+
+  /* ── TOGGLE PILLS ── */
+  .toggle-group { display: flex; gap: 10px; margin-bottom: 4px; flex-wrap: wrap; }
+  .toggle-pill {
+    display: flex; align-items: center; gap: 8px;
+    padding: 12px 20px; border-radius: 10px;
+    border: 1.5px solid var(--border); background: var(--surface);
+    font-family: 'DM Sans', sans-serif; font-size: 14.5px; font-weight: 400;
+    color: var(--text); cursor: pointer; transition: all 0.18s; user-select: none;
+    flex: 1; min-width: 120px; justify-content: center;
+  }
+  .toggle-pill:hover { border-color: var(--accent); background: rgba(232,130,90,0.04); }
+  .toggle-pill.selected {
+    border-color: var(--primary); background: rgba(29,53,87,0.05);
+    color: var(--primary); font-weight: 500;
+  }
+  .toggle-pill .pill-emoji { font-size: 17px; line-height: 1; }
+
+  /* ── STEPPER ── */
+  .stepper-wrap {
+    display: inline-flex; align-items: center; gap: 0;
+    border: 1.5px solid var(--border); border-radius: 10px;
+    overflow: hidden; background: var(--surface);
+  }
+  .stepper-btn {
+    width: 46px; height: 50px; background: none; border: none;
+    font-size: 20px; font-weight: 300; color: var(--muted);
+    cursor: pointer; transition: background 0.15s, color 0.15s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .stepper-btn:hover { background: rgba(232,130,90,0.08); color: var(--accent); }
+  .stepper-val {
+    min-width: 60px; text-align: center; font-size: 22px;
+    font-weight: 300; color: var(--text); letter-spacing: -0.5px;
+    font-family: 'DM Serif Display', serif;
+    border-left: 1px solid var(--border); border-right: 1px solid var(--border);
+    padding: 0 8px; line-height: 50px;
+  }
+
+  /* ── SAVE INDICATOR ── */
+  .save-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11px; color: var(--positive); opacity: 0;
+    transition: opacity 0.4s; margin-left: 10px;
+  }
+  .save-badge.visible { opacity: 1; }
+
+  /* ── BUTTONS ── */
+  .btn-primary {
+    width: 100%; padding: 15px 24px; background: var(--primary);
+    color: white; border: none; border-radius: 10px;
+    font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 500;
+    cursor: pointer; letter-spacing: 0.01em;
+    transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+    position: relative; overflow: hidden;
+  }
+  .btn-primary:hover:not(:disabled) { background: #162b45; box-shadow: 0 4px 16px rgba(29,53,87,0.22); }
+  .btn-primary:active:not(:disabled) { transform: translateY(1px); }
+  .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
+  .btn-primary::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .btn-skip {
+    display: block; width: 100%; text-align: center; margin-top: 14px;
+    font-size: 13.5px; color: var(--muted); cursor: pointer;
+    background: none; border: none; font-family: 'DM Sans', sans-serif;
+    transition: color 0.2s; padding: 6px;
+  }
+  .btn-skip:hover { color: var(--text); }
+  .btn-actions { margin-top: 32px; }
+
+
+  /* ── INFO SPLASH ── */
+  .info-splash {
+    background: linear-gradient(135deg, rgba(29,53,87,0.04) 0%, rgba(232,130,90,0.05) 100%);
+    border: 1px solid var(--border); border-radius: 16px;
+    padding: 28px 28px 24px; margin-bottom: 32px; text-align: center;
+  }
+  .info-splash-icon { font-size: 36px; line-height: 1; margin-bottom: 14px; display: block; }
+  .info-splash-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px; color: var(--primary); margin-bottom: 8px; letter-spacing: -0.2px;
+  }
+  .info-splash-body { font-size: 14px; color: var(--muted); line-height: 1.6; max-width: 340px; margin: 0 auto; }
+
+  /* ── CHILD / PER-ITEM TABS ── */
+  .item-tabs {
+    display: flex; gap: 6px; flex-wrap: wrap;
+    margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 14px;
+  }
+  .item-tab {
+    padding: 6px 14px; border-radius: 8px; font-size: 13px; font-weight: 500;
+    color: var(--muted); background: none; border: 1.5px solid transparent;
+    cursor: pointer; transition: all 0.18s; font-family: 'DM Sans', sans-serif;
+  }
+  .item-tab:hover { color: var(--text); border-color: var(--border); }
+  .item-tab.active { color: var(--primary); border-color: var(--primary); background: rgba(29,53,87,0.05); }
+  .item-tab.done   { color: var(--positive); border-color: var(--positive); background: rgba(58,140,110,0.06); }
+
+  /* ── OCCUPATION CARDS ── */
+  .occ-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 4px; }
+  .occ-card {
+    display: flex; flex-direction: column; align-items: flex-start; gap: 6px;
+    padding: 16px 18px; border-radius: 12px;
+    border: 1.5px solid var(--border); background: var(--surface);
+    cursor: pointer; transition: all 0.18s; user-select: none;
+  }
+  .occ-card:hover { border-color: var(--accent); background: rgba(232,130,90,0.03); }
+  .occ-card.selected { border-color: var(--primary); background: rgba(29,53,87,0.05); }
+  .occ-card .occ-emoji { font-size: 22px; line-height: 1; }
+  .occ-card .occ-title { font-size: 13.5px; font-weight: 500; color: var(--text); line-height: 1.3; }
+  .occ-card .occ-desc  { font-size: 11.5px; color: var(--muted); line-height: 1.4; }
+  .occ-card.selected .occ-title { color: var(--primary); }
+
+  /* ── COUNTRY SELECT (full width) ── */
+  .select-full { position: relative; }
+  .select-full select {
+    width: 100%; font-family: 'DM Sans', sans-serif; font-size: 15px;
+    font-weight: 300; color: var(--text); background: var(--surface);
+    border: 1.5px solid var(--border); border-radius: 10px;
+    padding: 13px 36px 13px 14px; outline: none; appearance: none;
+    transition: border-color 0.2s, box-shadow 0.2s; cursor: pointer;
+  }
+  .select-full select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(29,53,87,0.08); }
+  .select-full select.error { border-color: #D14040; }
+  .select-full::after {
+    content: ''; position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+    width: 0; height: 0;
+    border-left: 4px solid transparent; border-right: 4px solid transparent;
+    border-top: 5px solid var(--muted); pointer-events: none;
+  }
+
+  /* ── CURRENCY BADGE ── */
+  .currency-row { display: flex; gap: 10px; align-items: center; margin-top: 12px; }
+  .currency-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(29,53,87,0.06); border: 1px solid var(--border);
+    border-radius: 8px; padding: 8px 14px; font-size: 13px; font-weight: 500; color: var(--primary);
+  }
+  .currency-label { font-size: 12.5px; color: var(--muted); }
+
+
+  /* ── TABS (income per-person) ── */
+  .person-tabs {
+    display: flex; gap: 0; margin-bottom: 28px;
+    border-bottom: 2px solid var(--border);
+  }
+  .person-tab {
+    padding: 10px 20px; font-size: 13.5px; font-weight: 500;
+    color: var(--muted); background: none; border: none;
+    cursor: pointer; font-family: 'DM Sans', sans-serif;
+    border-bottom: 2px solid transparent; margin-bottom: -2px;
+    transition: all 0.18s;
+  }
+  .person-tab:hover { color: var(--text); }
+  .person-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ── AMOUNT INPUT WITH CURRENCY PREFIX ── */
+  .amount-wrap { position: relative; }
+  .amount-prefix {
+    position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+    font-size: 13px; font-weight: 500; color: var(--muted); pointer-events: none;
+    letter-spacing: 0.02em;
+  }
+  .amount-input {
+    width: 100%; font-family: 'DM Serif Display', serif;
+    font-size: 28px; font-weight: 400; color: var(--text);
+    background: var(--surface); border: 1.5px solid var(--border);
+    border-radius: 10px; padding: 16px 16px 16px 56px;
+    outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+    letter-spacing: -0.5px;
+  }
+  .amount-input::placeholder { color: #D0CEC8; }
+  .amount-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(29,53,87,0.08); }
+  .amount-input.error { border-color: #D14040; }
+  .amount-hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
+
+  /* ── PAY FREQUENCY PILLS (compact row) ── */
+  .freq-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+  .freq-pill {
+    padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 400;
+    color: var(--muted); background: var(--surface);
+    border: 1.5px solid var(--border); cursor: pointer;
+    transition: all 0.15s; font-family: 'DM Sans', sans-serif; user-select: none;
+  }
+  .freq-pill:hover { border-color: var(--accent); color: var(--text); }
+  .freq-pill.selected { border-color: var(--primary); color: var(--primary); background: rgba(29,53,87,0.05); font-weight: 500; }
+
+  /* ── OTHER SOURCES REPEATING ROWS ── */
+  .source-rows { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+  .source-row {
+    display: grid; grid-template-columns: 1fr 140px 36px; gap: 8px; align-items: center;
+  }
+  .source-row .text-input { font-size: 14px; padding: 11px 14px; }
+  .source-row .amount-input { font-size: 18px; padding: 11px 14px 11px 52px; }
+  .source-row .amount-prefix { font-size: 12px; }
+  .btn-add-row {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 13px; color: var(--accent); background: none; border: none;
+    cursor: pointer; font-family: 'DM Sans', sans-serif; padding: 4px 0;
+    transition: opacity 0.15s;
+  }
+  .btn-add-row:hover { opacity: 0.75; }
+  .btn-remove-row {
+    width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--border);
+    background: none; cursor: pointer; color: var(--muted); font-size: 18px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s; font-family: sans-serif;
+  }
+  .btn-remove-row:hover { border-color: #D14040; color: #D14040; background: rgba(209,64,64,0.05); }
+
+  /* ── CONVERTED AMOUNT HINT ── */
+  .converted-hint {
+    font-size: 12.5px; color: var(--positive); margin-top: 5px;
+    min-height: 18px; transition: opacity 0.2s;
+  }
+
+
+  /* ── INLINE NOTICE CARD ── */
+  .notice-card {
+    display:flex; gap:10px; align-items:flex-start;
+    padding:12px 16px; border-radius:10px; font-size:13px; line-height:1.55;
+    margin-top:10px;
+  }
+  .notice-card.green  { background:rgba(58,140,110,0.08);  border:1px solid rgba(58,140,110,0.2);  color:var(--positive); }
+  .notice-card.amber  { background:rgba(232,130,90,0.08);  border:1px solid rgba(232,130,90,0.25); color:#B05C2A; }
+  .notice-card.blue   { background:rgba(29,53,87,0.06);    border:1px solid rgba(29,53,87,0.15);   color:var(--primary); }
+  .notice-card .ni    { font-size:16px; line-height:1; flex-shrink:0; margin-top:1px; }
+
+  /* ── VEHICLE CARD ── */
+  .vehicle-card {
+    border:1.5px solid var(--border); border-radius:12px;
+    padding:18px 20px; background:var(--surface); margin-bottom:12px;
+  }
+  .vehicle-card-header {
+    display:flex; justify-content:space-between; align-items:center;
+    margin-bottom:14px;
+  }
+  .vehicle-card-title { font-size:14px; font-weight:500; color:var(--text); }
+  .vehicle-card-remove {
+    font-size:12px; color:var(--muted); cursor:pointer; background:none;
+    border:none; font-family:'DM Sans',sans-serif; padding:2px 6px;
+    border-radius:6px; transition:all 0.15s;
+  }
+  .vehicle-card-remove:hover { color:#D14040; background:rgba(209,64,64,0.07); }
+
+  /* ── HEALTH MEMBER TABS ── */
+  .member-tabs-scroll {
+    display:flex; gap:6px; overflow-x:auto; padding-bottom:2px;
+    margin-bottom:24px; scrollbar-width:none;
+  }
+  .member-tabs-scroll::-webkit-scrollbar { display:none; }
+
+  /* ── DATE PAIR (start / end) ── */
+  .date-pair { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+
+  /* ── SMALL SELECT ── */
+  .select-sm { position:relative; }
+  .select-sm select {
+    width:100%; font-family:'DM Sans',sans-serif; font-size:14px;
+    font-weight:300; color:var(--text); background:var(--surface);
+    border:1.5px solid var(--border); border-radius:10px;
+    padding:11px 32px 11px 12px; outline:none; appearance:none;
+    transition:border-color 0.2s; cursor:pointer;
+  }
+  .select-sm select:focus { border-color:var(--primary); box-shadow:0 0 0 3px rgba(29,53,87,0.08); }
+  .select-sm::after {
+    content:''; position:absolute; right:10px; top:50%; transform:translateY(-50%);
+    width:0; height:0; border-left:4px solid transparent;
+    border-right:4px solid transparent; border-top:5px solid var(--muted); pointer-events:none;
+  }
+
+  /* ── DATE INPUT ── */
+  input[type="date"] {
+    width:100%; font-family:'DM Sans',sans-serif; font-size:14px; font-weight:300;
+    color:var(--text); background:var(--surface); border:1.5px solid var(--border);
+    border-radius:10px; padding:11px 14px; outline:none;
+    transition:border-color 0.2s; cursor:pointer; appearance:none;
+  }
+  input[type="date"]:focus { border-color:var(--primary); box-shadow:0 0 0 3px rgba(29,53,87,0.08); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 680px) {
+    .left-panel { display: none; }
+    .right-panel { padding: 28px 20px; }
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- ═══════════════ LEFT PANEL ═══════════════ -->
+  <aside class="left-panel">
+    <div class="logo">
+      <svg class="logo-icon" viewBox="0 0 28 28" fill="none">
+        <rect width="28" height="28" rx="7" fill="#1D3557"/>
+        <path d="M7 16.5L14 9L21 16.5" stroke="#E8825A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M10 20V16.5H18V20" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M14 20V17.5" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      <span class="logo-text">PocketOS</span>
+    </div>
+    <nav class="sections-nav" id="sectionsNav"></nav>
+    <div class="left-footer">Your data stays on your device.<br>Private by design.</div>
+  </aside>
+
+  <!-- ═══════════════ RIGHT PANEL ═══════════════ -->
+  <main class="right-panel">
+
+    <!-- ─── WELCOME ─── -->
+    <div class="screen active" id="screen-welcome">
+      <div class="welcome-eyebrow">Welcome to PocketOS</div>
+      <h1 class="welcome-heading">Your household finances,<br><em>finally clear.</em></h1>
+      <p class="welcome-body">A 10-minute setup walks you through your income, costs, debts, and daily budget — giving you a clear picture of where your money goes and how to keep more of it.</p>
+      <div class="welcome-illustration">
+        <svg width="100%" viewBox="0 0 440 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="0" y="60" width="440" height="2" rx="1" fill="#E4E2DC"/>
+          <rect x="20" y="20" width="80" height="40" rx="6" fill="#1D3557" opacity="0.9"/>
+          <text x="60" y="45" text-anchor="middle" font-family="DM Sans" font-size="11" fill="white" font-weight="500">Income</text>
+          <path d="M100 40 Q140 40 150 62" stroke="#1D3557" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.4"/>
+          <circle cx="170" cy="90" r="22" fill="#E8825A" opacity="0.15"/>
+          <circle cx="170" cy="90" r="14" fill="#E8825A" opacity="0.3"/>
+          <text x="170" y="94" text-anchor="middle" font-family="DM Sans" font-size="9" fill="#C05C30" font-weight="500">Rent</text>
+          <circle cx="230" cy="95" r="18" fill="#E8825A" opacity="0.12"/>
+          <circle cx="230" cy="95" r="11" fill="#E8825A" opacity="0.25"/>
+          <text x="230" y="99" text-anchor="middle" font-family="DM Sans" font-size="8" fill="#C05C30" font-weight="500">Bills</text>
+          <circle cx="285" cy="88" r="26" fill="#6B4FA0" opacity="0.10"/>
+          <circle cx="285" cy="88" r="16" fill="#6B4FA0" opacity="0.2"/>
+          <text x="285" y="92" text-anchor="middle" font-family="DM Sans" font-size="9" fill="#4A2D80" font-weight="500">Debt</text>
+          <circle cx="345" cy="93" r="15" fill="#3A8C6E" opacity="0.15"/>
+          <circle cx="345" cy="93" r="9" fill="#3A8C6E" opacity="0.3"/>
+          <text x="345" y="97" text-anchor="middle" font-family="DM Sans" font-size="8" fill="#2A6B52" font-weight="500">Save</text>
+          <rect x="380" y="45" width="52" height="28" rx="6" fill="#3A8C6E" opacity="0.9"/>
+          <text x="406" y="63" text-anchor="middle" font-family="DM Sans" font-size="10" fill="white" font-weight="500">+left</text>
+          <path d="M192 90 Q210 90 212 95" stroke="#E8825A" stroke-width="1" opacity="0.3"/>
+          <path d="M248 92 Q265 90 269 88" stroke="#6B4FA0" stroke-width="1" opacity="0.25"/>
+          <path d="M301 88 Q320 90 330 93" stroke="#3A8C6E" stroke-width="1" opacity="0.25"/>
+          <path d="M354 91 Q368 80 380 59" stroke="#3A8C6E" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.4"/>
+          <line x1="200" y1="55" x2="200" y2="125" stroke="#E8825A" stroke-width="1" stroke-dasharray="3 3" opacity="0.5"/>
+          <text x="200" y="138" text-anchor="middle" font-family="DM Sans" font-size="9" fill="#E8825A" font-weight="500" opacity="0.8">TODAY</text>
+        </svg>
+      </div>
+      <button class="btn-primary" onclick="goTo('consent')">Let's get started →</button>
+    </div>
+
+    <!-- ─── CONSENT ─── -->
+    <div class="screen" id="screen-consent">
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-track"><div class="progress-bar-fill" style="width:4%"></div></div>
+        <span class="progress-text">Getting started</span>
+      </div>
+      <p class="question-label">Before we begin</p>
+      <h2 class="screen-heading">Your privacy matters</h2>
+      <p class="screen-subheading">We need your permission before collecting any information.</p>
+      <div class="consent-card">
+        <ul class="consent-points">
+          <li>
+            <svg class="icon" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M6.5 10.5L9 13L13.5 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span>Everything you enter <strong>stays on your device</strong>. Nothing is sent to any server.</span>
+          </li>
+          <li>
+            <svg class="icon" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M6.5 10.5L9 13L13.5 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span>We <strong>never sell your data</strong> or share it with anyone, ever.</span>
+          </li>
+          <li>
+            <svg class="icon" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M6.5 10.5L9 13L13.5 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span>You can <strong>delete everything</strong> from Settings at any time.</span>
+          </li>
+        </ul>
+      </div>
+      <label class="checkbox-row" id="consentRow" onclick="toggleConsent()">
+        <div class="checkbox-box" id="consentBox">
+          <svg class="checkbox-check" viewBox="0 0 11 11" fill="none"><path d="M1.5 5.5L4.5 8.5L9.5 2.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <span class="checkbox-label">I understand and agree to proceed</span>
+      </label>
+      <div class="btn-actions">
+        <button class="btn-primary" id="consentContinue" disabled onclick="goTo('q1')">Continue</button>
+        <button class="btn-skip" onclick="goTo('welcome')">← Back</button>
+      </div>
+    </div>
+
+    <!-- ─── Q1: FIRST NAME ─── -->
+    <div class="screen" id="screen-q1">
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-track"><div class="progress-bar-fill" style="width:10%"></div></div>
+        <span class="progress-text">About you · 1 of 4</span>
+      </div>
+      <p class="question-label">Section 1 — About you</p>
+      <h2 class="question-heading">What's your first name?</h2>
+      <p class="question-hint">We'll use this to personalise your experience throughout the app.</p>
+      <div class="field-group">
+        <label class="field-label" for="firstName">
+          First name<span class="field-required"> *</span>
+          <span class="field-optional">Required</span>
+        </label>
+        <input class="text-input" type="text" id="firstName" placeholder="e.g. Jan"
+          maxlength="50" autocomplete="given-name"
+          oninput="onCharInput('firstName','charCount1',50)"
+          onkeydown="if(event.key==='Enter')advance('q1')">
+        <div class="char-count" id="charCount1">0 / 50</div>
+        <div class="field-error" id="err-q1">Please enter your first name to continue.</div>
+      </div>
+      <div class="btn-actions">
+        <button class="btn-primary" onclick="advance('q1')">Continue →</button>
+        <button class="btn-skip" onclick="goTo('consent')">← Back</button>
+      </div>
+    </div>
+
+    <!-- ─── Q1a: DATE OF BIRTH ─── -->
+    <div class="screen" id="screen-q1a">
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-track"><div class="progress-bar-fill" style="width:16%"></div></div>
+        <span class="progress-text">About you · 2 of 4</span>
+      </div>
+      <p class="question-label">Section 1 — About you</p>
+      <h2 class="question-heading" id="q1a-heading">What's your date of birth?</h2>
+      <p class="question-hint">We use this for age-based insights and to personalise your experience. Not shared with anyone.</p>
+      <div class="field-group">
+        <label class="field-label">
+          Date of birth<span class="field-required"> *</span>
+          <span class="field-optional">Required · Age must be 16–100</span>
+        </label>
+        <div class="dob-row">
+          <div class="select-wrap">
+            <select id="dobDay" onchange="clearDobError()"><option value="">Day</option></select>
+          </div>
+          <div class="select-wrap">
+            <select id="dobMonth" onchange="onMonthChange()">
+              <option value="">Month</option>
+              <option value="1">January</option><option value="2">February</option>
+              <option value="3">March</option><option value="4">April</option>
+              <option value="5">May</option><option value="6">June</option>
+              <option value="7">July</option><option value="8">August</option>
+              <option value="9">September</option><option value="10">October</option>
+              <option value="11">November</option><option value="12">December</option>
+            </select>
+          </div>
+          <div class="select-wrap">
+            <select id="dobYear" onchange="onYearChange()"><option value="">Year</option></select>
+          </div>
+        </div>
+        <div class="dob-hint" id="dobAgeHint"></div>
+        <div class="field-error" id="err-q1a">Please enter a valid date of birth (age 16–100).</div>
+      </div>
+      <div class="btn-actions">
+        <button class="btn-primary" onclick="advance('q1a')">Continue →</button>
+        <button class="btn-skip" onclick="goTo('q1')">← Back</button>
+      </div>
+    </div>
+
+    <!-- ─── Q2: PARTNER? ─── -->
+    <div class="screen" id="screen-q2">
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-track"><div class="progress-bar-fill" style="width:22%"></div></div>
+        <span class="progress-text">About you · 3 of 4</span>
+      </div>
+      <p class="question-label">Section 1 — About you</p>
+      <h2 class="question-heading" id="q2-heading">Who are you budgeting for?</h2>
+      <p class="question-hint">This helps us know whether to ask about a partner's income and costs.</p>
+      <div class="field-group">
+        <label class="field-label">Household type<span class="field-required"> *</span></label>
+        <div class="toggle-group" style="flex-direction:column;gap:8px;">
+          <div class="toggle-pill" id="pill-solo" onclick="selectPill('household','solo')" style="justify-content:flex-start;gap:12px;">
+            <span class="pill-emoji">🧍</span> Just me
+          </div>
+          <div class="toggle-pill" id="pill-partner" onclick="selectPill('household','partner')" style="justify-content:flex-start;gap:12px;">
+            <span class="pill-emoji">👫</span> Me &amp; my partner
+          </div>
+          <div class="toggle-pill" id="pill-singleparent" onclick="selectPill('household','singleparent')" style="justify-content:flex-start;gap:12px;">
+            <span class="pill-emoji">👨‍👧</span> Single parent
+          </div>
+        </div>
+        <div class="field-error" id="err-q2">Please choose your household type.</div>
+      </div>
+      <div class="btn-actions">
+        <button class="btn-primary" onclick="advance('q2')">Continue →</button>
+        <button class="btn-skip" onclick="goTo('q1a')">← Back</button>
+      </div>
+    </div>
+
+    <!-- ─── Q2a: PARTNER NAME ─── -->
+    <div class="screen" id="screen-q2a">
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-track"><div class="progress-bar-fill" style="width:26%"></div></div>
+        <span class="progress-text">About you · Partner details</span>
+      </div>
+      <p class="question-label">Section 1 — About you</p>
+      <h2 class="question-heading">What's your partner's name?</h2>
+      <p class="question-hint">We'll use their name throughout the setup to keep things personal.</p>
+      <div class="field-group">
+        <label class="field-label" for="partnerName">
+          Partner's first name<span class="field-required"> *</span>
+          <span class="field-optional">Required</span>
+        </label>
+        <input class="text-input" type="text" id="partnerName" placeholder="e.g. Jana"
+          maxlength="50" autocomplete="given-name"
+          oninput="onCharInput('partnerName','charCount2a',50)"
+          onkeydown="if(event.key==='Enter')advance('q2a')">
+        <div class="char-count" id="charCount2a">0 / 50</div>
+        <div class="field-error" id="err-q2a">Please enter your partner's first name.</div>
+      </div>
+      <div class="btn-actions">
+        <button class="btn-primary" onclick="advance('q2a')">Continue →</button>
+        <button class="btn-skip" onclick="goTo('q2')">← Back</button>
+      </div>
+    </div>
+
+    <!-- ─── Q2b: PARTNER DOB ─── -->
+    <div class="screen" id="screen-q2b">
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-track"><div class="progress-bar-fill" style="width:30%"></div></div>
+        <span class="progress-text">About you · Partner details</span>
+      </div>
+      <p class="question-label">Section 1 — About you</p>
+      <h2 class="question-heading" id="q2b-heading">And their date of birth?</h2>
+      <p class="question-hint">Used for age-based financial insights relevant to your household.</p>
+      <div class="field-group">
+        <label class="field-label">
+          Date of birth<span class="field-required"> *</span>
+          <span class="field-optional">Required · Age 16–100</span>
+        </label>
+        <div class="dob-row">
+          <div class="select-wrap">
+            <select id="pDobDay" onchange="clearDobError('partner')"><option value="">Day</option></select>
+          </div>
+          <div class="select-wrap">
+            <select id="pDobMonth" onchange="onMonthChange('partner')">
+              <option value="">Month</option>
+              <option value="1">January</option><option value="2">February</option>
+              <option value="3">March</option><option value="4">April</option>
+              <option value="5">May</option><option value="6">June</option>
+              <option value="7">July</option><option value="8">August</option>
+              <option value="9">September</option><option value="10">October</option>
+              <option value="11">November</option><option value="12">December</option>
+            </select>
+          </div>
+          <div class="select-wrap">
+            <select id="pDobYear" onchange="onYearChange('partner')"><option value="">Year</option></select>
+          </div>
+        </div>
+        <div class="dob-hint" id="pDobAgeHint"></div>
+        <div class="field-error" id="err-q2b">Please enter a valid date of birth (age 16–100).</div>
+      </div>
+      <div class="btn-actions">
+        <button class="btn-primary" onclick="advance('q2b')">Continue →</button>
+        <button class="btn-skip" onclick="goTo('q2a')">← Back</button>
+      </div>
+    </div>
+
+    <!-- ─── Q3: CHILDREN? ─── -->
+    <div class="screen" id="screen-q3">
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-track"><div class="progress-bar-fill" style="width:34%"></div></div>
+        <span class="progress-text">About you · 4 of 4</span>
+      </div>
+      <p class="question-label">Section 1 — About you</p>
+      <h2 class="question-heading">Do you have any children?</h2>
+      <p class="question-hint">We'll ask about child-related costs like school fees, daycare, or health insurance — only if relevant.</p>
+      <div class="field-group">
+        <label class="field-label">Children<span class="field-required"> *</span></label>
+        <div class="toggle-group">
+          <div class="toggle-pill" id="pill-nochildren" onclick="selectPill('children','no')">
+            <span class="pill-emoji">🙅</span> No children
+          </div>
+          <div class="toggle-pill" id="pill-yeschildren" onclick="selectPill('children','yes')">
+            <span class="pill-emoji">👶</span> Yes, I have children
+          </div>
+        </div>
+        <div class="field-error" id="err-q3">Please make a selection to continue.</div>
+      </div>
+      <div class="btn-actions">
+        <button class="btn-primary" onclick="advance('q3')">Continue →</button>
+        <button class="btn-skip" id="q3-back" onclick="goTo('q2')">← Back</button>
+      </div>
+    </div>
+
+    <!-- ─── Q3a: HOW MANY CHILDREN ─── -->
+    <div class="screen" id="screen-q3a">
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-track"><div class="progress-bar-fill" style="width:38%"></div></div>
+        <span class="progress-text">About you · Children</span>
+      </div>
+      <p class="question-label">Section 1 — About you</p>
+      <h2 class="question-heading">How many children do you have?</h2>
+      <p class="question-hint">We'll ask for each child's name and age on the next steps.</p>
+      <div class="field-group" style="margin-top:8px;">
+        <label class="field-label" style="margin-bottom:14px;">
+          Number of children<span class="field-required"> *</span>
+        </label>
+        <div class="stepper-wrap">
+          <button class="stepper-btn" onclick="stepChildren(-1)">−</button>
+          <div class="stepper-val" id="childrenCount">1</div>
+          <button class="stepper-btn" onclick="stepChildren(1)">+</button>
+        </div>
+        <div class="dob-hint" style="margin-top:10px;" id="childrenHint">We'll set up 1 child profile</div>
+      </div>
+      <div class="btn-actions">
+        <button class="btn-primary" onclick="advance('q3a')">Continue →</button>
+        <button class="btn-skip" onclick="goTo('q3')">← Back</button>
+      </div>
+    </div>
+
+
+    <!-- ─── INFO: LOCATION ─── -->
+    <div class="screen" id="screen-info-location">
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-track"><div class="progress-bar-fill" style="width:42%"></div></div>
+        <span class="progress-text">Section 2 — Where you live</span>
+      </div>
+      <div class="info-splash">
+        <span class="info-splash-icon">🌍</span>
+        <div class="info-splash-title">Where is your household based?</div>
+        <div class="info-splash-body">Your country unlocks region-specific cost presets, the right currency, and local tax information — so you don't have to look things up.</div>
+      </div>
+      <div class="btn-actions">
+        <button class="btn-primary" onclick="goTo('q4')">Let's go →</button>
+        <button class="btn-skip" id="info-location-back" onclick="goTo('q3')">← Back</button>
+      </div>
+    </div>
+
+    <!-- ─── Q4: COUNTRY / CITY / CURRENCY ─── -->
+    <div class="screen" id="screen-q4">
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-track"><div class="progress-bar-fill" style="width:46%"></div></div>
+        <span class="progress-text">Where you live · 1 of 1</span>
+      </div>
+      <p class="question-label">Section 2 — Where you live</p>
+      <h2 class="question-heading">Where is your household based?</h2>
+      <p class="question-hint">We'll tailor costs, taxes, and currency to your location.</p>
+
+      <div class="field-group">
+        <label class="field-label" for="countrySelect">
+          Country<span class="field-required"> *</span>
+          <span class="field-optional">Required</span>
+        </label>
+        <div class="select-full">
+          <select id="countrySelect" onchange="onCountryChange()">
+            <option value="">Select your country…</option>
+            <optgroup label="Central &amp; Eastern Europe">
+              <option value="CZ">🇨🇿 Czech Republic</option>
+              <option value="SK">🇸🇰 Slovakia</option>
+              <option value="PL">🇵🇱 Poland</option>
+              <option value="HU">🇭🇺 Hungary</option>
+            </optgroup>
+            <optgroup label="Western &amp; Northern Europe">
+              <option value="DE">🇩🇪 Germany</option>
+              <option value="AT">🇦🇹 Austria</option>
+              <option value="NL">🇳🇱 Netherlands</option>
+              <option value="BE">🇧🇪 Belgium</option>
+              <option value="FR">🇫🇷 France</option>
+              <option value="ES">🇪🇸 Spain</option>
+              <option value="IT">🇮🇹 Italy</option>
+              <option value="PT">🇵🇹 Portugal</option>
+            </optgroup>
+            <optgroup label="Other">
+              <option value="OTHER_EU">🇪🇺 Other EU country</option>
+              <option value="OTHER">🌐 Outside EU</option>
+            </optgroup>
+          </select>
+        </div>
+        <div class="field-error" id="err-q4-country">Please select your country.</div>
+
+        <div id="czPresetNote" style="display:none;margin-top:10px;padding:10px 14px;background:rgba(58,140,110,0.07);border-radius:8px;font-size:12.5px;color:var(--positive);">
+          ✓ Czech presets activated — TV licence, waste tax, and more will be pre-filled for you.
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label" for="cityInput">
+          City or region<span class="field-optional"> Optional</span>
+        </label>
+        <input class="text-input" type="text" id="cityInput" placeholder="e.g. Prague, Brno…"
+          maxlength="80" oninput="onCharInput('cityInput','charCountCity',80)"
+          onkeydown="if(event.key==='Enter')advance('q4')">
+        <div class="char-count" id="charCountCity">0 / 80</div>
+      </div>
+
+      <div class="field-group" id="currencyRow">
+        <label class="field-label">Currency<span class="field-optional"> Auto-selected from country</span></label>
+        <div class="currency-row">
+          <div class="currency-badge" id="currencyBadge">— —</div>
+          <span class="currency-label" id="currencyName"></span>
+        </div>
+      </div>
+
+      <div class="btn-actions">
+        <button class="btn-primary" onclick="advance('q4')">Continue →</button>
+        <button class="btn-skip" onclick="goTo('info-location')">← Back</button>
+      </div>
+    </div>
+
+    <!-- ─── INFO: OCCUPATION ─── -->
+    <div class="screen" id="screen-info-occupation">
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-track"><div class="progress-bar-fill" style="width:52%"></div></div>
+        <span class="progress-text">Section 3 — Your money</span>
+      </div>
+      <div class="info-splash">
+        <span class="info-splash-icon">💼</span>
+        <div class="info-splash-title">Let's understand your income</div>
+        <div class="info-splash-body">Your occupation affects health insurance requirements, how income is calculated, and which costs apply to you. It takes less than a minute.</div>
+      </div>
+      <div class="btn-actions">
+        <button class="btn-primary" onclick="goTo('q5')">Continue →</button>
+        <button class="btn-skip" onclick="goTo('q4')">← Back</button>
+      </div>
+    </div>
+
+    <!-- ─── Q5: YOUR OCCUPATION ─── -->
+    <div class="screen" id="screen-q5">
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-track"><div class="progress-bar-fill" style="width:56%"></div></div>
+        <span class="progress-text">Your money · 1 of 2</span>
+      </div>
+      <p class="question-label">Section 3 — Your money</p>
+      <h2 class="question-heading" id="q5-heading">What best describes your work situation?</h2>
+      <p class="question-hint">This affects health insurance and income questions later on.</p>
+
+      <div class="field-group">
+        <label class="field-label">Occupation<span class="field-required"> *</span></label>
+        <div class="occ-grid" id="occGrid">
+          <div class="occ-card" id="occ-employee" onclick="selectOcc('employee','you')">
+            <span class="occ-emoji">💼</span>
+            <span class="occ-title">Employee</span>
+            <span class="occ-desc">Salaried, employer pays your health insurance</span>
+          </div>
+          <div class="occ-card" id="occ-selfemployed" onclick="selectOcc('selfemployed','you')">
+            <span class="occ-emoji">🧾</span>
+            <span class="occ-title">Self-employed / Freelancer</span>
+            <span class="occ-desc">You pay your own health &amp; social insurance</span>
+          </div>
+          <div class="occ-card" id="occ-student" onclick="selectOcc('student','you')">
+            <span class="occ-emoji">🎓</span>
+            <span class="occ-title">Student</span>
+            <span class="occ-desc">Stipend or scholarship income</span>
+          </div>
+          <div class="occ-card" id="occ-notworking" onclick="selectOcc('notworking','you')">
+            <span class="occ-emoji">🏠</span>
+            <span class="occ-title">Not currently working</span>
+            <span class="occ-desc">Must arrange private health insurance</span>
+          </div>
+          <div class="occ-card" id="occ-other" onclick="selectOcc('other','you')" style="grid-column:1/-1;">
+            <span class="occ-emoji">❓</span>
+            <span class="occ-title">Other</span>
+            <span class="occ-desc">Retired, parental leave, irregular work…</span>
+          </div>
+        </div>
+        <div class="field-error" id="err-q5">Please select your work situation.</div>
+      </div>
+
+      <!-- "Other" freetext — shown only when "Other" selected -->
+      <div class="field-group" id="occOtherWrap" style="display:none;">
+        <label class="field-label" for="occOtherText">Tell us a bit more <span class="field-optional">Optional</span></label>
+        <input class="text-input" type="text" id="occOtherText" placeholder="e.g. Retired, parental leave…" maxlength="80">
+      </div>
+
+      <div class="btn-actions">
+        <button class="btn-primary" onclick="advance('q5')">Continue →</button>
+        <button class="btn-skip" onclick="goTo('info-occupation')">← Back</button>
+      </div>
+    </div>
+
+    <!-- ─── Q5a: PARTNER OCCUPATION (shown only if partner exists) ─── -->
+    <div class="screen" id="screen-q5a">
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-track"><div class="progress-bar-fill" style="width:60%"></div></div>
+        <span class="progress-text">Your money · 2 of 2</span>
+      </div>
+      <p class="question-label">Section 3 — Your money</p>
+      <h2 class="question-heading" id="q5a-heading">And your partner's situation?</h2>
+      <p class="question-hint" id="q5a-hint">This determines whether we ask about their income and insurance separately.</p>
+
+      <div class="field-group">
+        <label class="field-label">Partner's occupation<span class="field-required"> *</span></label>
+        <div class="occ-grid" id="pOccGrid">
+          <div class="occ-card" id="pocc-employee" onclick="selectOcc('employee','partner')">
+            <span class="occ-emoji">💼</span>
+            <span class="occ-title">Employee</span>
+            <span class="occ-desc">Employer covers health insurance</span>
+          </div>
+          <div class="occ-card" id="pocc-selfemployed" onclick="selectOcc('selfemployed','partner')">
+            <span class="occ-emoji">🧾</span>
+            <span class="occ-title">Self-employed / Freelancer</span>
+            <span class="occ-desc">Pays own health &amp; social insurance</span>
+          </div>
+          <div class="occ-card" id="pocc-student" onclick="selectOcc('student','partner')">
+            <span class="occ-emoji">🎓</span>
+            <span class="occ-title">Student</span>
+            <span class="occ-desc">Stipend or scholarship income</span>
+          </div>
+          <div class="occ-card" id="pocc-notworking" onclick="selectOcc('notworking','partner')">
+            <span class="occ-emoji">🏠</span>
+            <span class="occ-title">Not currently working</span>
+            <span class="occ-desc">Must arrange private health insurance</span>
+          </div>
+          <div class="occ-card" id="pocc-other" onclick="selectOcc('other','partner')" style="grid-column:1/-1;">
+            <span class="occ-emoji">❓</span>
+            <span class="occ-title">Other</span>
+            <span class="occ-desc">Retired, parental leave, irregular work…</span>
+          </div>
+        </div>
+        <div class="field-error" id="err-q5a">Please select your partner's work situation.</div>
+      </div>
+
+      <div class="field-group" id="pOccOtherWrap" style="display:none;">
+        <label class="field-label" for="pOccOtherText">Tell us a bit more <span class="field-optional">Optional</span></label>
+        <input class="text-input" type="text" id="pOccOtherText" placeholder="e.g. Retired, parental leave…" maxlength="80">
+      </div>
+
+      <div class="btn-actions">
+        <button class="btn-primary" onclick="advance('q5a')">Continue →</button>
+        <button class="btn-skip" onclick="goTo('q5')">← Back</button>
+      </div>
+    </div>
+
+
+    <!-- ─── SECTION COMPLETE: ABOUT YOU + LOCATION + OCCUPATION DONE ─── -->
+    <div class="screen" id="screen-section-complete">
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-track"><div class="progress-bar-fill" style="width:62%"></div></div>
+        <span class="progress-text">Great progress!</span>
+      </div>
+
+      <div style="text-align:center; padding: 16px 0 32px;">
+        <div style="font-size:56px; line-height:1; margin-bottom:20px;">🎉</div>
+        <h2 class="question-heading" id="complete-heading" style="text-align:center; margin-bottom:12px;">
+          You're over halfway there
+        </h2>
+        <p class="question-hint" style="text-align:center; max-width:360px; margin: 0 auto 32px;">
+          Your personal details, location, and occupation are all saved.
+          Next up: your income, then housing, transport, and costs.
+        </p>
+
+        <div style="
+          background: var(--surface);
+          border: 1px solid var(--border);
+          border-radius: 14px;
+          padding: 20px 24px;
+          text-align: left;
+          margin-bottom: 32px;
+        " id="completeSummary">
+          <!-- filled by JS -->
+        </div>
+      </div>
+
+      <button class="btn-primary" onclick="goTo('info-income')">
+        Continue to Income →
+      </button>
+      <button class="btn-skip" id="complete-back-btn" onclick="goTo('q5')">← Back</button>
+    </div>
+
+    <!-- ─── COMING SOON: INCOME (next increment placeholder) ─── -->
+    <div class="screen" id="screen-coming-soon-income">
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-track"><div class="progress-bar-fill" style="width:65%"></div></div>
+        <span class="progress-text">Your money · Income</span>
+      </div>
+      <div class="info-splash" style="margin-top: 20px;">
+        <span class="info-splash-icon">🚧</span>
+        <div class="info-splash-title">Income section coming next</div>
+        <div class="info-splash-body">
+          This is where you'll enter your salary, pay frequency, and any
+          other income sources. It's being built in the next increment —
+          all your data so far is safely saved.
+        </div>
+      </div>
+      <div style="
+        background: rgba(58,140,110,0.06);
+        border: 1px solid rgba(58,140,110,0.2);
+        border-radius: 10px;
+        padding: 14px 18px;
+        font-size: 13px;
+        color: var(--positive);
+        margin-bottom: 32px;
+        line-height: 1.6;
+      ">
+        ✓ Saved: personal details, location, occupation
+      </div>
+      <button class="btn-primary" onclick="goTo('section-complete')">← Back</button>
+    </div>
+
+
+    <!-- ─── INFO: INCOME ─── -->
+    <div class="screen" id="screen-info-income">
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-track"><div class="progress-bar-fill" style="width:65%"></div></div>
+        <span class="progress-text">Section 3 — Your money</span>
+      </div>
+      <div class="info-splash">
+        <span class="info-splash-icon">💰</span>
+        <div class="info-splash-title">Now let's talk income</div>
+        <div class="info-splash-body">
+          Enter your net (after-tax) take-home pay — what actually lands in your account.
+          This is the number everything else is measured against.
+        </div>
+      </div>
+      <div class="btn-actions">
+        <button class="btn-primary" onclick="goTo('q6')">Let's go →</button>
+        <button class="btn-skip" onclick="goTo('section-complete')">← Back</button>
+      </div>
+    </div>
+
+    <!-- ─── Q6: INCOME ─── -->
+    <div class="screen" id="screen-q6">
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-track"><div class="progress-bar-fill" style="width:68%"></div></div>
+        <span class="progress-text">Your money · Income</span>
+      </div>
+      <p class="question-label">Section 3 — Your money</p>
+      <h2 class="question-heading" id="q6-heading">What's your monthly take-home pay?</h2>
+      <p class="question-hint">Use the net amount — after tax, into your account. We'll convert other frequencies automatically.</p>
+
+      <!-- Person tabs — shown only if partner exists -->
+      <div class="person-tabs" id="q6Tabs" style="display:none;">
+        <button class="person-tab active" id="q6TabYou"     onclick="switchIncomeTab('you')">You</button>
+        <button class="person-tab"        id="q6TabPartner" onclick="switchIncomeTab('partner')">Partner</button>
+      </div>
+
+      <!-- YOUR income -->
+      <div class="tab-panel active" id="q6PanelYou">
+        <div class="field-group">
+          <label class="field-label">
+            Your net income<span class="field-required"> *</span>
+            <span class="field-optional">Required</span>
+          </label>
+          <div class="amount-wrap">
+            <span class="amount-prefix" id="incCurrYou">CZK</span>
+            <input class="amount-input" type="number" id="incomeYou" min="0" max="9999999"
+              placeholder="0" oninput="onIncomeInput('you')"
+              onkeydown="if(event.key==='Enter')advance('q6')">
+          </div>
+          <div class="converted-hint" id="convertedYou"></div>
+          <div class="field-error" id="err-q6-you">Please enter your income to continue.</div>
+        </div>
+        <div class="field-group">
+          <label class="field-label">How often are you paid?<span class="field-required"> *</span></label>
+          <div class="freq-row" id="freqYou">
+            <div class="freq-pill" onclick="selectFreq('you','weekly')">Weekly</div>
+            <div class="freq-pill" onclick="selectFreq('you','fortnightly')">Fortnightly</div>
+            <div class="freq-pill selected" onclick="selectFreq('you','monthly')">Monthly</div>
+            <div class="freq-pill" onclick="selectFreq('you','irregular')">Irregular</div>
+          </div>
+          <div class="field-error" id="err-q6-freq-you" style="margin-top:8px;">Please select pay frequency.</div>
+        </div>
+      </div>
+
+      <!-- PARTNER income -->
+      <div class="tab-panel" id="q6PanelPartner">
+        <div class="field-group">
+          <label class="field-label" id="partnerIncLabel">
+            Partner's net income<span class="field-optional"> Optional — skip if not working</span>
+          </label>
+          <div class="amount-wrap">
+            <span class="amount-prefix" id="incCurrPartner">CZK</span>
+            <input class="amount-input" type="number" id="incomePartner" min="0" max="9999999"
+              placeholder="0" oninput="onIncomeInput('partner')">
+          </div>
+          <div class="converted-hint" id="convertedPartner"></div>
+        </div>
+        <div class="field-group">
+          <label class="field-label">How often are they paid?</label>
+          <div class="freq-row" id="freqPartner">
+            <div class="freq-pill" onclick="selectFreq('partner','weekly')">Weekly</div>
+            <div class="freq-pill" onclick="selectFreq('partner','fortnightly')">Fortnightly</div>
+            <div class="freq-pill selected" onclick="selectFreq('partner','monthly')">Monthly</div>
+            <div class="freq-pill" onclick="selectFreq('partner','irregular')">Irregular</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="btn-actions">
+        <button class="btn-primary" onclick="advance('q6')">Continue →</button>
+        <button class="btn-skip"   onclick="goTo('info-income')">← Back</button>
+      </div>
+    </div>
+
+    <!-- ─── Q6b: OTHER INCOME SOURCES ─── -->
+    <div class="screen" id="screen-q6b">
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-track"><div class="progress-bar-fill" style="width:72%"></div></div>
+        <span class="progress-text">Your money · Other income</span>
+      </div>
+      <p class="question-label">Section 3 — Your money</p>
+      <h2 class="question-heading">Any other income sources?</h2>
+      <p class="question-hint">Rental income, freelance, investments, side work — anything that comes in regularly. Completely optional.</p>
+
+      <div class="field-group">
+        <div class="toggle-group" style="margin-bottom:20px;">
+          <div class="toggle-pill" id="pill-nosources" onclick="selectPill('othersources','no')">
+            <span class="pill-emoji">👎</span> No, just salary
+          </div>
+          <div class="toggle-pill" id="pill-yessources" onclick="selectPill('othersources','yes'); showSourceRows()">
+            <span class="pill-emoji">👍</span> Yes, add them
+          </div>
+        </div>
+
+        <div id="sourceRowsWrap" style="display:none;">
+          <label class="field-label" style="margin-bottom:10px;">
+            Source label &amp; monthly amount
+            <span class="field-optional">&nbsp;— in <span id="sourcesCurr">CZK</span></span>
+          </label>
+          <div class="source-rows" id="sourceRows"></div>
+          <button class="btn-add-row" onclick="addSourceRow()">
+            <span style="font-size:17px;line-height:1;">+</span> Add another source
+          </button>
+        </div>
+      </div>
+
+      <div class="btn-actions">
+        <button class="btn-primary" onclick="advance('q6b')">Continue →</button>
+        <button class="btn-skip"   onclick="goTo('q6')">← Back</button>
+      </div>
+    </div>
+
+    <!-- ─── Q6c: SAVINGS ─── -->
+    <div class="screen" id="screen-q6c">
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-track"><div class="progress-bar-fill" style="width:76%"></div></div>
+        <span class="progress-text">Your money · Savings</span>
+      </div>
+      <p class="question-label">Section 3 — Your money</p>
+      <h2 class="question-heading">Do you have savings?</h2>
+      <p class="question-hint">Completely optional. We use this to show how many months of expenses you have as a safety buffer — nothing more.</p>
+
+      <div class="field-group">
+        <label class="field-label" for="savingsBalance">
+          Current savings balance <span class="field-optional">Optional</span>
+        </label>
+        <div class="amount-wrap">
+          <span class="amount-prefix" id="savCurr1">CZK</span>
+          <input class="amount-input" type="number" id="savingsBalance" min="0" max="999999999"
+            placeholder="0" oninput="onSavingsInput()"
+            onkeydown="if(event.key==='Enter')advance('q6c')">
+        </div>
+        <div class="amount-hint" id="savingsMonthsHint" style="min-height:18px;"></div>
+      </div>
+
+      <div class="field-group" style="margin-top:8px;">
+        <label class="field-label" for="savingsTarget">
+          Monthly savings target <span class="field-optional">Optional</span>
+        </label>
+        <div class="amount-wrap">
+          <span class="amount-prefix" id="savCurr2">CZK</span>
+          <input class="amount-input" type="number" id="savingsTarget" min="0" max="9999999"
+            placeholder="0"
+            onkeydown="if(event.key==='Enter')advance('q6c')">
+        </div>
+        <div class="amount-hint">If set, this is treated as a fixed monthly commitment in your budget.</div>
+      </div>
+
+      <div class="btn-actions">
+        <button class="btn-primary" onclick="advance('q6c')">Continue →</button>
+        <button class="btn-skip"   onclick="goTo('q6b')">← Back</button>
+      </div>
+    </div>
+
+
+    <!-- ══════════════════════════════════════════════════════
+         SECTION 4 — HOUSING
+    ══════════════════════════════════════════════════════ -->
+
+    <!-- ─── INFO: HOUSING ─── -->
+    <div class="screen" id="screen-info-housing">
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-track"><div class="progress-bar-fill" style="width:78%"></div></div>
+        <span class="progress-text">Section 4 — Housing</span>
+      </div>
+      <div class="info-splash">
+        <span class="info-splash-icon">🏠</span>
+        <div class="info-splash-title">Let's cover your home costs</div>
+        <div class="info-splash-body">Housing is usually the biggest monthly expense. Rent or mortgage, utilities, internet — and if you're in Czechia, we'll pre-fill the standard TV and radio licence amounts.</div>
+      </div>
+      <div class="btn-actions">
+        <button class="btn-primary" onclick="goTo('q7')">Let's go →</button>
+        <button class="btn-skip" onclick="goTo('q6c')">← Back</button>
+      </div>
+    </div>
+
+    <!-- ─── Q7: HOUSING TYPE ─── -->
+    <div class="screen" id="screen-q7">
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-track"><div class="progress-bar-fill" style="width:80%"></div></div>
+        <span class="progress-text">Housing · 1 of 3</span>
+      </div>
+      <p class="question-label">Section 4 — Housing</p>
+      <h2 class="question-heading">How do you live?</h2>
+      <p class="question-hint">This determines which costs we ask about next.</p>
+      <div class="field-group">
+        <label class="field-label">Situation<span class="field-required"> *</span></label>
+        <div class="toggle-group" style="flex-direction:column; gap:8px;">
+          <div class="toggle-pill" id="pill-renting"  onclick="selectPill('housing','renting')"  style="justify-content:flex-start; gap:12px;">
+            <span class="pill-emoji">🏢</span>
+            <span>Renting</span>
+          </div>
+          <div class="toggle-pill" id="pill-owning"   onclick="selectPill('housing','owning')"   style="justify-content:flex-start; gap:12px;">
+            <span class="pill-emoji">🏠</span>
+            <span>Own my home</span>
+          </div>
+          <div class="toggle-pill" id="pill-withfamily" onclick="selectPill('housing','withfamily')" style="justify-content:flex-start; gap:12px;">
+            <span class="pill-emoji">👨‍👩‍👧</span>
+            <span>Living with family / no housing cost</span>
+          </div>
+        </div>
+        <div class="field-error" id="err-q7">Please choose your housing situation.</div>
+      </div>
+      <div class="btn-actions">
+        <button class="btn-primary" onclick="advance('q7')">Continue →</button>
+        <button class="btn-skip" onclick="goTo('info-housing')">← Back</button>
+      </div>
+    </div>
+
+    <!-- ─── Q7a: RENT ─── -->
+    <div class="screen" id="screen-q7a">
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-track"><div class="progress-bar-fill" style="width:81%"></div></div>
+        <span class="progress-text">Housing · Rent</span>
+      </div>
+      <p class="question-label">Section 4 — Housing</p>
+      <h2 class="question-heading">How much is your monthly rent?</h2>
+      <p class="question-hint">Enter your base monthly rent. Utilities can be separate or included — we'll ask next.</p>
+      <div class="field-group">
+        <label class="field-label">Monthly rent<span class="field-required"> *</span></label>
+        <div class="amount-wrap">
+          <span class="amount-prefix" id="housingCurr">CZK</span>
+          <input class="amount-input" type="number" id="housingPayment" min="0" placeholder="0"
+            onkeydown="if(event.key==='Enter')advance('q7a')">
+        </div>
+        <div class="field-error" id="err-q7a">Please enter an amount.</div>
+      </div>
+      <div class="btn-actions">
+        <button class="btn-primary" onclick="advance('q7a')">Continue →</button>
+        <button class="btn-skip" onclick="goTo('q7')">← Back</button>
+      </div>
+    </div>
+
+    <!-- ─── Q7d: OWN — MORTGAGE? ─── -->
+    <div class="screen" id="screen-q7d">
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-track"><div class="progress-bar-fill" style="width:81%"></div></div>
+        <span class="progress-text">Housing · Ownership</span>
+      </div>
+      <p class="question-label">Section 4 — Housing</p>
+      <h2 class="question-heading">Do you have a mortgage?</h2>
+      <div class="field-group">
+        <div class="toggle-group">
+          <div class="toggle-pill" id="pill-yesmortgage" onclick="selectPill('mortgage','yes')">
+            <span class="pill-emoji">🏦</span> Yes
+          </div>
+          <div class="toggle-pill" id="pill-nomortgage" onclick="selectPill('mortgage','no')">
+            <span class="pill-emoji">✅</span> Owned outright
+          </div>
+        </div>
+        <div class="field-error" id="err-q7d">Please select an option.</div>
+      </div>
+      <div class="btn-actions">
+        <button class="btn-primary" onclick="advance('q7d')">Continue →</button>
+        <button class="btn-skip" onclick="goTo('q7')">← Back</button>
+      </div>
+    </div>
+
+    <!-- ─── Q7e: MORTGAGE DETAILS ─── -->
+    <div class="screen" id="screen-q7e">
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-track"><div class="progress-bar-fill" style="width:82%"></div></div>
+        <span class="progress-text">Housing · Mortgage</span>
+      </div>
+      <p class="question-label">Section 4 — Housing</p>
+      <h2 class="question-heading">Tell us about your mortgage</h2>
+      <div class="field-group">
+        <label class="field-label">Monthly mortgage payment<span class="field-required"> *</span></label>
+        <div class="amount-wrap">
+          <span class="amount-prefix" id="housingCurr">CZK</span>
+          <input class="amount-input" type="number" id="housingPayment" min="0" placeholder="0">
+        </div>
+        <div class="field-error" id="err-q7e">Please enter your mortgage payment.</div>
+      </div>
+      <div class="field-group">
+        <label class="field-label" for="mortgageLender">Lender <span class="field-optional">Optional</span></label>
+        <input class="text-input" type="text" id="mortgageLender" placeholder="e.g. ČSOB, Komerční banka…" maxlength="60" style="font-size:14px;">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Mortgage end date <span class="field-optional">Optional — we'll remind you 12 months before</span></label>
+        <input type="date" id="mortgageEndDate">
+      </div>
+      <div class="btn-actions">
+        <button class="btn-primary" onclick="advance('q7e')">Continue →</button>
+        <button class="btn-skip" onclick="goTo('q7d')">← Back</button>
+      </div>
+    </div>
+
+    <!-- ─── Q7f: OTHER OWNERSHIP COSTS ─── -->
+    <div class="screen" id="screen-q7f">
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-track"><div class="progress-bar-fill" style="width:83%"></div></div>
+        <span class="progress-text">Housing · Other costs</span>
+      </div>
+      <p class="question-label">Section 4 — Housing</p>
+      <h2 class="question-heading">Any other home ownership costs?</h2>
+      <p class="question-hint">Maintenance fund, building insurance, service charge, property tax…</p>
+      <div class="field-group">
+        <div class="toggle-group">
+          <div class="toggle-pill" id="pill-noowncosts" onclick="selectPill('owncosts','no')">👎 No</div>
+          <div class="toggle-pill" id="pill-yesowncosts" onclick="selectPill('owncosts','yes'); document.getElementById('ownCostsRows').style.display='block'">👍 Yes, add them</div>
+        </div>
+      </div>
+      <div id="ownCostsRows" style="display:none;">
+        <div id="ownCostsList"></div>
+        <button class="btn-add-row" onclick="addGenericCostRow('ownCostsList')">+ Add cost</button>
+      </div>
+      <div class="btn-actions">
+        <button class="btn-primary" onclick="advance('q7f')">Continue →</button>
+        <button class="btn-skip" onclick="goTo('q7d')">← Back</button>
+      </div>
+    </div>
+
+    <!-- ─── Q7h: FAMILY CONTRIBUTION COSTS ─── -->
+    <div class="screen" id="screen-q7h">
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-track"><div class="progress-bar-fill" style="width:81%"></div></div>
+        <span class="progress-text">Housing · Contributions</span>
+      </div>
+      <p class="question-label">Section 4 — Housing</p>
+      <h2 class="question-heading">Do you contribute to household costs?</h2>
+      <p class="question-hint">e.g. contributing to rent, groceries, bills or any other support.</p>
+      <div class="field-group">
+        <div class="toggle-group">
+          <div class="toggle-pill" id="pill-nofamcosts" onclick="selectPill('famcosts','no')">👎 No contribution</div>
+          <div class="toggle-pill" id="pill-yesfamcosts" onclick="selectPill('famcosts','yes'); document.getElementById('famCostsRows').style.display='block'">👍 Yes, add them</div>
+        </div>
+      </div>
+      <div id="famCostsRows" style="display:none;">
+        <div id="famCostsList"></div>
+        <button class="btn-add-row" onclick="addGenericCostRow('famCostsList')">+ Add cost</button>
+      </div>
+      <div class="btn-actions">
+        <button class="btn-primary" onclick="advance('q7h')">Continue →</button>
+        <button class="btn-skip" onclick="goTo('q7')">← Back</button>
+      </div>
+    </div>
+
+    <!-- ─── Q7c: INTERNET ─── -->
+    <div class="screen" id="screen-q7c">
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-track"><div class="progress-bar-fill" style="width:84%"></div></div>
+        <span class="progress-text">Housing · Internet</span>
+      </div>
+      <p class="question-label">Section 4 — Housing</p>
+      <h2 class="question-heading">Do you pay for internet separately?</h2>
+      <div class="field-group">
+        <div class="toggle-group">
+          <div class="toggle-pill" id="pill-nointernet" onclick="selectPill('internet','no')">✅ Included / not applicable</div>
+          <div class="toggle-pill" id="pill-yesinternet" onclick="selectPill('internet','yes'); document.getElementById('internetForm').style.display='block'">📡 I pay separately</div>
+        </div>
+      </div>
+      <div id="internetForm" style="display:none; margin-top:4px;">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          <input class="text-input" type="text" id="internetProvider" placeholder="Provider (optional)" maxlength="40" style="font-size:14px;">
+          <div class="amount-wrap">
+            <span class="amount-prefix housingCurrLabel">CZK</span>
+            <input class="amount-input" type="number" id="internetCost" min="0" placeholder="0" style="font-size:18px;padding:11px 11px 11px 48px;">
+          </div>
+        </div>
+        <div class="toggle-group" style="margin-top:10px;">
+          <div class="toggle-pill selected" id="pill-intmonthly" onclick="selectPill('intfreq','monthly')" style="flex:none;padding:8px 16px;font-size:13px;">Monthly</div>
+          <div class="toggle-pill" id="pill-intannual" onclick="selectPill('intfreq','annual')" style="flex:none;padding:8px 16px;font-size:13px;">Annual</div>
+        </div>
+      </div>
+      <div class="btn-actions">
+        <button class="btn-primary" onclick="advance('q7c')">Continue →</button>
+        <button class="btn-skip" id="q7c-back-btn" onclick="goTo('q7b')">← Back</button>
+      </div>
+    </div>
+
+    <!-- ─── Q7g: GOVERNMENT / CITY TAXES ─── -->
+    <div class="screen" id="screen-q7g">
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-track"><div class="progress-bar-fill" style="width:85%"></div></div>
+        <span class="progress-text">Housing · Taxes &amp; fees</span>
+      </div>
+      <p class="question-label">Section 4 — Housing</p>
+      <h2 class="question-heading">Government &amp; city charges</h2>
+      <p class="question-hint">Most households pay some fixed government or city charges. We've pre-filled the most common ones — confirm or adjust.</p>
+
+      <!-- CZ pre-filled block -->
+      <div id="czGovBlock" style="display:none;">
+        <div class="notice-card blue" style="margin-bottom:14px;">
+          <span class="ni">🇨🇿</span><span>Czech statutory fees — 2024 rates pre-filled. All amounts are annual, divided to monthly automatically.</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;">
+          <div style="display:grid;grid-template-columns:1fr 130px;gap:8px;align-items:center;">
+            <div>
+              <div style="font-size:13.5px;font-weight:500;">📺 TV licence</div>
+              <div style="font-size:11px;color:var(--muted);">televizní poplatek · annual → 135 Kč/mo</div>
+            </div>
+            <div class="amount-wrap"><span class="amount-prefix">CZK</span>
+              <input class="amount-input" type="number" id="czTvLicence" value="1620" style="font-size:16px;padding:9px 9px 9px 44px;">
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 130px;gap:8px;align-items:center;">
+            <div>
+              <div style="font-size:13.5px;font-weight:500;">📻 Radio licence</div>
+              <div style="font-size:11px;color:var(--muted);">rozhlasový poplatek · annual → 45 Kč/mo</div>
+            </div>
+            <div class="amount-wrap"><span class="amount-prefix">CZK</span>
+              <input class="amount-input" type="number" id="czRadioLicence" value="540" style="font-size:16px;padding:9px 9px 9px 44px;">
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 130px;gap:8px;align-items:center;">
+            <div>
+              <div style="font-size:13.5px;font-weight:500;">🗑️ Waste tax</div>
+              <div style="font-size:11px;color:var(--muted);">poplatek za odpad · Prague ~1 080 Kč/yr</div>
+            </div>
+            <div class="amount-wrap"><span class="amount-prefix">CZK</span>
+              <input class="amount-input" type="number" id="czWasteTax" value="1080" style="font-size:16px;padding:9px 9px 9px 44px;">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Non-CZ EU generic block -->
+      <div id="euGovBlock" style="display:none;">
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;" id="euGovList">
+          <div style="font-size:13px;color:var(--muted);">Add any charges that apply to you:</div>
+        </div>
+        <button class="btn-add-row" onclick="addGovTaxRow()">+ Add government charge</button>
+      </div>
+
+      <!-- Universal freeform extra -->
+      <div class="field-group" style="margin-top:8px;">
+        <label class="field-label">Any other local charges? <span class="field-optional">Optional</span></label>
+        <div id="extraTaxList"></div>
+        <button class="btn-add-row" onclick="addGenericCostRow('extraTaxList')">+ Add charge</button>
+      </div>
+
+      <div class="btn-actions">
+        <button class="btn-primary" onclick="advance('q7g')">Continue →</button>
+        <button class="btn-skip" id="q7g-back-btn" onclick="goTo('q7c')">← Back</button>
+      </div>
+    </div>
+
+    <!-- ─── Q7b: UTILITIES + INTERNET + CZ TAXES ─── -->
+    <div class="screen" id="screen-q7b">
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-track"><div class="progress-bar-fill" style="width:84%"></div></div>
+        <span class="progress-text">Housing · 3 of 3</span>
+      </div>
+      <p class="question-label">Section 4 — Housing</p>
+      <h2 class="question-heading">Utilities &amp; other home costs</h2>
+      <p class="question-hint" id="q7b-hint">Are your utilities included in your rent, or do you pay them separately?</p>
+
+      <!-- Utilities included toggle -->
+      <div class="field-group" id="utilToggleBlock">
+        <label class="field-label">Electricity, gas &amp; water</label>
+        <div class="toggle-group">
+          <div class="toggle-pill selected" id="pill-utilincluded"
+            onclick="selectPill('utilsplit','included'); document.getElementById('utilBreakdown').style.display='none'">
+            ✅ Included in rent
+          </div>
+          <div class="toggle-pill" id="pill-utilseparate"
+            onclick="selectPill('utilsplit','separate'); document.getElementById('utilBreakdown').style.display='block'">
+            📋 I pay separately
+          </div>
+        </div>
+        <div id="czUtilNote" class="notice-card blue" style="display:none; margin-top:8px;">
+          <span class="ni">🇨🇿</span>
+          <span>In Czech Republic, utilities (zálohy) are typically paid together with rent as a fixed monthly advance. The default is set to included — change if yours are separate.</span>
+        </div>
+      </div>
+
+      <!-- Utility breakdown — hidden by default -->
+      <div id="utilBreakdown" style="display:none;">
+        <div class="field-group">
+          <label class="field-label" style="margin-bottom:12px;">Monthly amounts · <span class="housingCurrLabel">CZK</span></label>
+          <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;">
+            <div>
+              <div style="font-size:11.5px; color:var(--muted); margin-bottom:5px;">⚡ Electricity</div>
+              <div class="amount-wrap"><span class="amount-prefix housingCurrLabel">CZK</span>
+                <input class="amount-input" type="number" id="utilElec" min="0" placeholder="0" style="font-size:18px; padding:10px 10px 10px 48px;">
+              </div>
+            </div>
+            <div>
+              <div style="font-size:11.5px; color:var(--muted); margin-bottom:5px;">🔥 Gas</div>
+              <div class="amount-wrap"><span class="amount-prefix housingCurrLabel">CZK</span>
+                <input class="amount-input" type="number" id="utilGas" min="0" placeholder="0" style="font-size:18px; padding:10px 10px 10px 48px;">
+              </div>
+            </div>
+            <div>
+              <div style="font-size:11.5px; color:var(--muted); margin-bottom:5px;">💧 Water</div>
+              <div class="amount-wrap"><span class="amount-prefix housingCurrLabel">CZK</span>
+                <input class="amount-input" type="number" id="utilWater" min="0" placeholder="0" style="font-size:18px; padding:10px 10px 10px 48px;">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Internet -->
+      <div class="field-group">
+        <label class="field-label" for="internetCost">🌐 Internet <span class="field-optional">monthly</span></label>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          <input class="text-input" type="text" id="internetProvider" placeholder="Provider (optional)" maxlength="40" style="font-size:14px;">
+          <div class="amount-wrap">
+            <span class="amount-prefix housingCurrLabel">CZK</span>
+            <input class="amount-input" type="number" id="internetCost" min="0" placeholder="0" style="font-size:18px; padding:10px 10px 10px 48px;">
+          </div>
+        </div>
+      </div>
+
+      <!-- CZ-specific taxes (shown only if CZ) -->
+      <div id="czTaxBlock" style="display:none;">
+        <div class="notice-card blue" style="margin-bottom:16px;">
+          <span class="ni">🇨🇿</span>
+          <span>Czech statutory fees pre-filled with 2024 rates — confirm or adjust.</span>
+        </div>
+        <div class="field-group">
+          <label class="field-label" style="margin-bottom:12px;">Statutory fees <span class="field-optional">annual amounts — auto-divided to monthly</span></label>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <div style="display:grid; grid-template-columns:1fr 120px; gap:8px; align-items:center;">
+              <div style="font-size:13.5px; color:var(--text);">📺 TV licence <span style="font-size:11px;color:var(--muted);">(televizní poplatek)</span></div>
+              <div class="amount-wrap">
+                <span class="amount-prefix">CZK</span>
+                <input class="amount-input" type="number" id="czTvLicence" value="1620" min="0" style="font-size:16px; padding:9px 9px 9px 44px;">
+              </div>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 120px; gap:8px; align-items:center;">
+              <div style="font-size:13.5px; color:var(--text);">📻 Radio licence <span style="font-size:11px;color:var(--muted);">(rozhlasový poplatek)</span></div>
+              <div class="amount-wrap">
+                <span class="amount-prefix">CZK</span>
+                <input class="amount-input" type="number" id="czRadioLicence" value="540" min="0" style="font-size:16px; padding:9px 9px 9px 44px;">
+              </div>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 120px; gap:8px; align-items:center;">
+              <div style="font-size:13.5px; color:var(--text);">🗑️ Waste tax <span style="font-size:11px;color:var(--muted);">(poplatek za odpad)</span></div>
+              <div class="amount-wrap">
+                <span class="amount-prefix">CZK</span>
+                <input class="amount-input" type="number" id="czWasteTax" value="1080" min="0" style="font-size:16px; padding:9px 9px 9px 44px;">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="btn-actions">
+        <button class="btn-primary" onclick="advance('q7b')">Continue →</button>
+        <button class="btn-skip" id="q7b-back" onclick="goTo('q7a')">← Back</button>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         SECTION 5 — TRANSPORT
+    ══════════════════════════════════════════════════════ -->
+
+    <!-- ─── INFO: TRANSPORT ─── -->
+    <div class="screen" id="screen-info-transport">
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-track"><div class="progress-bar-fill" style="width:86%"></div></div>
+        <span class="progress-text">Section 5 — Transport</span>
+      </div>
+      <div class="info-splash">
+        <span class="info-splash-icon">🚗</span>
+        <div class="info-splash-title">How do you get around?</div>
+        <div class="info-splash-body">Car insurance, fuel, zone parking, public transport passes — and we'll set reminders for your car insurance renewal and next service.</div>
+      </div>
+      <div class="btn-actions">
+        <button class="btn-primary" onclick="goTo('q8')">Let's go →</button>
+        <button class="btn-skip" onclick="goTo('q7b')">← Back</button>
+      </div>
+    </div>
+
+    <!-- ─── Q8: VEHICLE? ─── -->
+    <div class="screen" id="screen-q8">
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-track"><div class="progress-bar-fill" style="width:87%"></div></div>
+        <span class="progress-text">Transport · 1 of 2</span>
+      </div>
+      <p class="question-label">Section 5 — Transport</p>
+      <h2 class="question-heading">Do you own a vehicle?</h2>
+      <p class="question-hint">We'll ask about insurance, fuel, and maintenance if yes.</p>
+
+      <div class="field-group">
+        <div class="toggle-group">
+          <div class="toggle-pill" id="pill-novehicle" onclick="selectPill('vehicle','no')">
+            <span class="pill-emoji">🚶</span> No vehicle
+          </div>
+          <div class="toggle-pill" id="pill-yesvehicle" onclick="selectPill('vehicle','yes')">
+            <span class="pill-emoji">🚗</span> Yes, I have a car
+          </div>
+        </div>
+        <div class="field-error" id="err-q8">Please make a selection.</div>
+      </div>
+
+      <div class="btn-actions">
+        <button class="btn-primary" onclick="advance('q8')">Continue →</button>
+        <button class="btn-skip" onclick="goTo('info-transport')">← Back</button>
+      </div>
+    </div>
+
+    <!-- ─── Q8a: VEHICLE DETAILS ─── -->
+    <div class="screen" id="screen-q8a">
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-track"><div class="progress-bar-fill" style="width:88%"></div></div>
+        <span class="progress-text">Transport · 2 of 2</span>
+      </div>
+      <p class="question-label">Section 5 — Transport</p>
+      <h2 class="question-heading">Tell us about your car</h2>
+      <p class="question-hint">All fields are optional except fuel type. We use this to set maintenance reminders.</p>
+
+      <p class="question-hint">Make and model are optional — just for display.</p>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:4px;">
+        <div class="field-group" style="margin:0;">
+          <label class="field-label" style="margin-bottom:6px;">Make <span class="field-optional">Optional</span></label>
+          <input class="text-input" type="text" id="carMake" placeholder="e.g. Škoda" maxlength="40" style="font-size:14px;">
+        </div>
+        <div class="field-group" style="margin:0;">
+          <label class="field-label" style="margin-bottom:6px;">Model <span class="field-optional">Optional</span></label>
+          <input class="text-input" type="text" id="carModel" placeholder="e.g. Octavia" maxlength="40" style="font-size:14px;">
+        </div>
+      </div>
+
+      <div class="btn-actions">
+        <button class="btn-primary" onclick="advance('q8a')">Continue →</button>
+        <button class="btn-skip" onclick="goTo('q8')">← Back</button>
+      </div>
+    </div>
+
+    <!-- ─── Q8b: FUEL TYPE + COST ─── -->
+    <div class="screen" id="screen-q8b">
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-track"><div class="progress-bar-fill" style="width:88%"></div></div>
+        <span class="progress-text">Transport · Fuel</span>
+      </div>
+      <p class="question-label">Section 5 — Transport</p>
+      <h2 class="question-heading">Fuel type &amp; monthly cost</h2>
+      <div class="field-group">
+        <label class="field-label">Fuel type<span class="field-required"> *</span></label>
+        <div class="toggle-group">
+          <div class="toggle-pill" id="pill-petrol"   onclick="selectPill('fuel','petrol')"   style="flex:none;padding:10px 14px;">⛽ Petrol</div>
+          <div class="toggle-pill" id="pill-diesel"   onclick="selectPill('fuel','diesel')"   style="flex:none;padding:10px 14px;">⛽ Diesel</div>
+          <div class="toggle-pill" id="pill-electric" onclick="selectPill('fuel','electric')" style="flex:none;padding:10px 14px;">⚡ Electric</div>
+          <div class="toggle-pill" id="pill-hybrid"   onclick="selectPill('fuel','hybrid')"   style="flex:none;padding:10px 14px;">🔋 Hybrid</div>
+        </div>
+        <div class="field-error" id="err-q8b-fuel">Please select a fuel type.</div>
+      </div>
+      <div class="field-group">
+        <label class="field-label" id="fuelCostLabel">Monthly fuel cost <span class="field-optional">Optional</span></label>
+        <div class="amount-wrap">
+          <span class="amount-prefix" id="transportCurr">CZK</span>
+          <input class="amount-input" type="number" id="fuelCost" min="0" placeholder="0" style="font-size:22px;padding:13px 13px 13px 52px;">
+        </div>
+      </div>
+      <div class="btn-actions">
+        <button class="btn-primary" onclick="advance('q8b')">Continue →</button>
+        <button class="btn-skip" onclick="goTo('q8a')">← Back</button>
+      </div>
+    </div>
+
+    <!-- ─── Q8c: CAR INSURANCE? ─── -->
+    <div class="screen" id="screen-q8c">
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-track"><div class="progress-bar-fill" style="width:88%"></div></div>
+        <span class="progress-text">Transport · Insurance</span>
+      </div>
+      <p class="question-label">Section 5 — Transport</p>
+      <h2 class="question-heading">Do you have car insurance?</h2>
+      <div id="czInsNoteQ8c" class="notice-card amber" style="display:none;margin-bottom:16px;">
+        <span class="ni">⚠️</span>
+        <span>In CZ, third-party liability (povinné ručení) is legally required for all vehicles.</span>
+      </div>
+      <div class="field-group">
+        <div class="toggle-group">
+          <div class="toggle-pill" id="pill-nocarins" onclick="selectPill('carins','no')">👎 No</div>
+          <div class="toggle-pill" id="pill-yescarins" onclick="selectPill('carins','yes')">✅ Yes</div>
+        </div>
+        <div class="field-error" id="err-q8c">Please select an option.</div>
+      </div>
+      <div class="btn-actions">
+        <button class="btn-primary" onclick="advance('q8c')">Continue →</button>
+        <button class="btn-skip" onclick="goTo('q8b')">← Back</button>
+      </div>
+    </div>
+
+    <!-- ─── Q8c1: INSURANCE DETAILS ─── -->
+    <div class="screen" id="screen-q8c1">
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-track"><div class="progress-bar-fill" style="width:88%"></div></div>
+        <span class="progress-text">Transport · Insurance details</span>
+      </div>
+      <p class="question-label">Section 5 — Transport</p>
+      <h2 class="question-heading">Car insurance details</h2>
+      <div class="field-group">
+        <label class="field-label">Annual premium<span class="field-required"> *</span></label>
+        <div class="amount-wrap">
+          <span class="amount-prefix" id="transportCurr2">CZK</span>
+          <input class="amount-input" type="number" id="carInsCost" min="0" placeholder="0" style="font-size:22px;padding:13px 13px 13px 52px;">
+        </div>
+        <div class="field-error" id="err-q8c1">Please enter the premium amount.</div>
+      </div>
+      <div class="field-group">
+        <label class="field-label" for="carInsProvider">Provider <span class="field-optional">Optional</span></label>
+        <input class="text-input" type="text" id="carInsProvider" placeholder="e.g. Kooperativa, Generali…" maxlength="50" style="font-size:14px;">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Renewal date <span class="field-optional">Optional — we'll remind you 30 days before</span></label>
+        <input type="date" id="carInsRenewal">
+      </div>
+      <div class="btn-actions">
+        <button class="btn-primary" onclick="advance('q8c1')">Continue →</button>
+        <button class="btn-skip" onclick="goTo('q8c')">← Back</button>
+      </div>
+    </div>
+
+    <!-- ─── Q8d: ZONE PARKING ─── -->
+    <div class="screen" id="screen-q8d">
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-track"><div class="progress-bar-fill" style="width:88%"></div></div>
+        <span class="progress-text">Transport · Parking</span>
+      </div>
+      <p class="question-label">Section 5 — Transport</p>
+      <h2 class="question-heading">Do you pay for zone parking?</h2>
+      <div class="field-group">
+        <div class="toggle-group">
+          <div class="toggle-pill" id="pill-noparking" onclick="selectPill('parking','no'); document.getElementById('parkingForm').style.display='none'">👎 No</div>
+          <div class="toggle-pill" id="pill-yesparking" onclick="selectPill('parking','yes'); document.getElementById('parkingForm').style.display='block'">🅿️ Yes</div>
+        </div>
+      </div>
+      <div id="parkingForm" style="display:none;margin-top:8px;">
+        <div class="field-group">
+          <label class="field-label">Cost <span class="field-required">*</span></label>
+          <div style="display:grid;grid-template-columns:1fr 110px;gap:8px;">
+            <div class="amount-wrap">
+              <span class="amount-prefix" id="transportCurr3">CZK</span>
+              <input class="amount-input" type="number" id="parkingCost" min="0" placeholder="0" style="font-size:18px;padding:11px 11px 11px 48px;">
+            </div>
+            <div class="select-sm">
+              <select id="parkingFreq">
+                <option value="monthly">Monthly</option>
+                <option value="annually" selected>Annual</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="btn-actions">
+        <button class="btn-primary" onclick="advance('q8d')">Continue →</button>
+        <button class="btn-skip" onclick="advance_q8d_back()">← Back</button>
+      </div>
+    </div>
+
+    <!-- ─── Q8e1: MAINTENANCE ─── -->
+    <div class="screen" id="screen-q8e1">
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-track"><div class="progress-bar-fill" style="width:89%"></div></div>
+        <span class="progress-text">Transport · Maintenance</span>
+      </div>
+      <p class="question-label">Section 5 — Transport</p>
+      <h2 class="question-heading">Vehicle maintenance</h2>
+      <p class="question-hint">We'll set reminders so you're never caught off guard by a service or test.</p>
+      <div class="field-group">
+        <label class="field-label" id="stkLabel">Next MOT / roadworthiness test <span class="field-optional">Optional</span></label>
+        <input type="date" id="stkDue">
+        <div class="amount-hint" id="stkNote"></div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Next oil change / service <span class="field-optional">Optional</span></label>
+        <input type="date" id="nextService">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Any planned maintenance coming up?</label>
+        <div class="toggle-group" style="margin-bottom:12px;">
+          <div class="toggle-pill" id="pill-nomaint" onclick="selectPill('maint','no'); document.getElementById('maintRows').style.display='none'">👎 No</div>
+          <div class="toggle-pill" id="pill-yesmaint" onclick="selectPill('maint','yes'); document.getElementById('maintRows').style.display='block'">🔧 Yes</div>
+        </div>
+        <div id="maintRows" style="display:none;">
+          <div id="maintList"></div>
+          <button class="btn-add-row" onclick="addMaintRow()">+ Add maintenance item</button>
+        </div>
+      </div>
+      <div class="btn-actions">
+        <button class="btn-primary" onclick="advance('q8e1')">Continue →</button>
+        <button class="btn-skip" onclick="goTo('q8d')">← Back</button>
+      </div>
+    </div>
+
+    <!-- ─── Q8e: PUBLIC TRANSPORT ─── -->
+    <div class="screen" id="screen-q8e">
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-track"><div class="progress-bar-fill" style="width:89%"></div></div>
+        <span class="progress-text">Transport · Public</span>
+      </div>
+      <p class="question-label">Section 5 — Transport</p>
+      <h2 class="question-heading">Do you use public transport?</h2>
+      <p class="question-hint">Bus, metro, tram, or train passes — anything you pay for regularly.</p>
+
+      <div class="field-group">
+        <div class="toggle-group">
+          <div class="toggle-pill" id="pill-nopt" onclick="selectPill('publictransport','no'); document.getElementById('ptCostWrap').style.display='none'">
+            <span class="pill-emoji">👎</span> No
+          </div>
+          <div class="toggle-pill" id="pill-yespt" onclick="selectPill('publictransport','yes'); document.getElementById('ptCostWrap').style.display='block'">
+            <span class="pill-emoji">🚇</span> Yes
+          </div>
+        </div>
+      </div>
+
+      <div id="ptCostWrap" style="display:none; margin-top:4px;">
+        <div class="field-group">
+          <label class="field-label">Pass / ticket cost <span class="field-required">*</span></label>
+          <div style="display:grid;grid-template-columns:1fr 110px;gap:8px;">
+            <div class="amount-wrap">
+              <span class="amount-prefix" id="ptCurr">CZK</span>
+              <input class="amount-input" type="number" id="ptCost" min="0" placeholder="0" style="font-size:18px;padding:11px 11px 11px 48px;">
+            </div>
+            <div class="select-sm">
+              <select id="ptFreq">
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+                <option value="monthly" selected>Monthly</option>
+                <option value="annual">Annual</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Pass valid until <span class="field-optional">Optional — sets a renewal reminder</span></label>
+          <input type="date" id="ptValidUntil">
+        </div>
+      </div>
+
+      <div class="btn-actions">
+        <button class="btn-primary" onclick="advance('q8e')">Continue →</button>
+        <button class="btn-skip" id="q8e-back" onclick="goTo('q8')">← Back</button>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         SECTION 6 — HEALTH & FAMILY
+    ══════════════════════════════════════════════════════ -->
+
+    <!-- ─── INFO: HEALTH ─── -->
+    <div class="screen" id="screen-info-health">
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-track"><div class="progress-bar-fill" style="width:90%"></div></div>
+        <span class="progress-text">Section 6 — Health &amp; family</span>
+      </div>
+      <div class="info-splash">
+        <span class="info-splash-icon">🏥</span>
+        <div class="info-splash-title">Health &amp; family costs</div>
+        <div class="info-splash-body">We'll check health insurance for each household member, then cover any children's costs — school, daycare, activities. We'll warn you if any insurance is expiring soon.</div>
+      </div>
+      <div class="btn-actions">
+        <button class="btn-primary" onclick="goTo('q9')">Let's go →</button>
+        <button class="btn-skip" onclick="goTo('q8e')">← Back</button>
+      </div>
+    </div>
+
+    <!-- ─── Q9: HEALTH INSURANCE (per member) ─── -->
+    <div class="screen" id="screen-q9">
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-track"><div class="progress-bar-fill" style="width:91%"></div></div>
+        <span class="progress-text">Health &amp; family · 1 of 2</span>
+      </div>
+      <p class="question-label">Section 6 — Health &amp; family</p>
+      <h2 class="question-heading">Health insurance</h2>
+      <p class="question-hint">Let's make sure every household member is covered.</p>
+
+      <!-- Member tabs built by JS -->
+      <div class="member-tabs-scroll" id="healthMemberTabs"></div>
+
+      <!-- Member panels built by JS -->
+      <div id="healthMemberPanels"></div>
+
+      <div class="btn-actions">
+        <button class="btn-primary" onclick="advance('q9')">Continue →</button>
+        <button class="btn-skip" onclick="goTo('info-health')">← Back</button>
+      </div>
+    </div>
+
+    <!-- ─── Q10: CHILDREN'S COSTS ─── -->
+    <div class="screen" id="screen-q10">
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-track"><div class="progress-bar-fill" style="width:93%"></div></div>
+        <span class="progress-text">Health &amp; family · 2 of 2</span>
+      </div>
+      <p class="question-label">Section 6 — Health &amp; family</p>
+      <h2 class="question-heading" id="q10-heading">Children's costs</h2>
+      <p class="question-hint" id="q10-hint">School, daycare, activities, medicine — we'll ask about each child.</p>
+
+      <!-- Child tabs + panels built by JS -->
+      <div class="member-tabs-scroll" id="childCostTabs"></div>
+      <div id="childCostPanels"></div>
+
+      <div class="btn-actions">
+        <button class="btn-primary" onclick="advance('q10')">Continue →</button>
+        <button class="btn-skip" onclick="goTo('q9')">← Back</button>
+      </div>
+    </div>
+
+
+    <!-- ─── COMING SOON: SUBSCRIPTIONS ─── -->
+    <div class="screen" id="screen-coming-soon-subscriptions">
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-track"><div class="progress-bar-fill" style="width:94%"></div></div>
+        <span class="progress-text">Almost there!</span>
+      </div>
+      <div class="info-splash" style="margin-top:20px;">
+        <span class="info-splash-icon">🎉</span>
+        <div class="info-splash-title">Housing, transport &amp; health done!</div>
+        <div class="info-splash-body">
+          Next up: subscriptions, debts, and your daily budget strategy.
+          These are being built in the next increment — all your data is safely saved.
+        </div>
+      </div>
+      <div style="background:rgba(58,140,110,0.06);border:1px solid rgba(58,140,110,0.2);border-radius:10px;padding:14px 18px;font-size:13px;color:var(--positive);margin-bottom:32px;line-height:1.8;">
+        ✓ Personal details &amp; location<br>
+        ✓ Occupation &amp; income<br>
+        ✓ Housing costs<br>
+        ✓ Transport<br>
+        ✓ Health insurance &amp; family costs
+      </div>
+      <button class="btn-primary" onclick="goTo('info-health')">← Back</button>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// ─── SECTIONS ────────────────────────────────────────────────────────────────
+const SECTIONS = [
+  { id:'intro',    name:'Getting started',      screens:['welcome','consent'] },
+  { id:'personal', name:'About you',             screens:['q1','q1a','q2','q2a','q2b','q3','q3a','q3b'] },
+  { id:'location', name:'Where you live',        screens:['info-location','q4'] },
+  { id:'income',   name:'Your money',            screens:['info-occupation','q5','q5a','section-complete','info-income','q6','q6b','q6c'] },
+  { id:'housing',  name:'Housing',               screens:['info-housing','q7','q7a','q7b','q7c','q7d','q7e','q7f','q7h','q7g'] },
+  { id:'transport',name:'Transport',             screens:['info-transport','q8','q8a','q8b','q8c','q8c1','q8d','q8e1','q8e'] },
+  { id:'health',   name:'Health & family',       screens:['info-health','q9','q10','coming-soon-subscriptions'] },
+  { id:'costs',    name:'Subscriptions & costs', screens:[] },
+  { id:'debts',    name:'Debts',                 screens:[] },
+  { id:'budget',   name:'Budget & strategy',     screens:[] },
+  { id:'review',   name:'Review & confirm',      screens:[] },
+];
+const SCREEN_SECTION = {};
+SECTIONS.forEach((s,i) => s.screens.forEach(sc => SCREEN_SECTION[sc] = i));
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let currentScreen = 'welcome';
+let consentGiven  = false;
+let pillState     = {};   // { household:'solo'|'partner', children:'yes'|'no' }
+let childCount    = 1;
+
+// Load from localStorage on start
+const saved = JSON.parse(localStorage.getItem('pocketos_profile') || '{}');
+
+function saveProfile(patch) {
+  const existing = JSON.parse(localStorage.getItem('pocketos_profile') || '{}');
+  const merged   = Object.assign({}, existing, patch);
+  localStorage.setItem('pocketos_profile', JSON.stringify(merged));
+}
+
+// ─── NAV BUILD ───────────────────────────────────────────────────────────────
+function buildNav() {
+  const nav = document.getElementById('sectionsNav');
+  nav.innerHTML = '';
+  SECTIONS.forEach(sec => {
+    const div = document.createElement('div');
+    div.className = 'section-item';
+    div.id = 'sec-' + sec.id;
+    div.innerHTML = `
+      <div class="section-dot-wrap"><div class="section-dot"></div></div>
+      <div class="section-label">
+        <span class="section-name">${sec.name}</span>
+        <span class="section-substeps" id="sub-${sec.id}"></span>
+      </div>`;
+    nav.appendChild(div);
+  });
+}
+
+function updateNav(screenId) {
+  const active = SCREEN_SECTION[screenId] ?? 0;
+  SECTIONS.forEach((sec,i) => {
+    const el = document.getElementById('sec-' + sec.id);
+    if (!el) return;
+    el.classList.remove('active','done');
+    if (i < active) el.classList.add('done');
+    if (i === active) el.classList.add('active');
+  });
+}
+
+// ─── NAVIGATION ──────────────────────────────────────────────────────────────
+function goTo(id) {
+  const cur  = document.getElementById('screen-' + currentScreen);
+  const next = document.getElementById('screen-' + id);
+  if (!next) return;
+  if (cur) cur.classList.remove('active');
+  void next.offsetWidth;
+  next.classList.add('active');
+  currentScreen = id;
+  updateNav(id);
+  setTimeout(() => { const inp = next.querySelector('input,select'); if(inp) inp.focus(); }, 80);
+}
+
+// ─── CONSENT ─────────────────────────────────────────────────────────────────
+function toggleConsent() {
+  consentGiven = !consentGiven;
+  document.getElementById('consentRow').classList.toggle('checked', consentGiven);
+  document.getElementById('consentContinue').disabled = !consentGiven;
+  if (consentGiven) saveProfile({ consentGiven: true, consentDate: new Date().toISOString() });
+}
+
+// ─── CHAR COUNTER ────────────────────────────────────────────────────────────
+function onCharInput(inputId, countId, max) {
+  const inp = document.getElementById(inputId);
+  const cnt = document.getElementById(countId);
+  const len = inp.value.length;
+  cnt.textContent = len + ' / ' + max;
+  cnt.classList.toggle('warn', len >= max * 0.8);
+  inp.classList.remove('error');
+}
+
+// ─── DOB SELECTS ─────────────────────────────────────────────────────────────
+function populateYears(selId, minAge, maxAge) {
+  const sel  = document.getElementById(selId);
+  const cur  = sel.value;
+  const now  = new Date().getFullYear();
+  sel.innerHTML = '<option value="">Year</option>';
+  for (let y = now - minAge; y >= now - maxAge; y--) {
+    const opt = document.createElement('option');
+    opt.value = y; opt.textContent = y;
+    sel.appendChild(opt);
+  }
+  if (cur) sel.value = cur;
+}
+
+function populateDays(selId, month, year) {
+  const sel = document.getElementById(selId);
+  const cur = sel.value;
+  const days = month && year ? new Date(year, month, 0).getDate() : 31;
+  sel.innerHTML = '<option value="">Day</option>';
+  for (let d = 1; d <= days; d++) {
+    const opt = document.createElement('option');
+    opt.value = d; opt.textContent = d;
+    sel.appendChild(opt);
+  }
+  if (cur && parseInt(cur) <= days) sel.value = cur;
+}
+
+function onMonthChange(who) {
+  const prefix = who === 'partner' ? 'pDob' : 'dob';
+  const m = parseInt(document.getElementById(prefix+'Month').value) || 0;
+  const y = parseInt(document.getElementById(prefix+'Year').value)  || 0;
+  populateDays(prefix+'Day', m, y);
+  clearDobError(who);
+}
+
+function onYearChange(who) {
+  const prefix = who === 'partner' ? 'pDob' : 'dob';
+  const m = parseInt(document.getElementById(prefix+'Month').value) || 0;
+  const y = parseInt(document.getElementById(prefix+'Year').value)  || 0;
+  populateDays(prefix+'Day', m, y);
+  showAgeHint(who, y, m, parseInt(document.getElementById(prefix+'Day').value)||0);
+}
+
+function clearDobError(who) {
+  const errId = who === 'partner' ? 'err-q2b' : 'err-q1a';
+  document.getElementById(errId).classList.remove('visible');
+}
+
+function showAgeHint(who, y, m, d) {
+  if (!y || !m || !d) return;
+  const dob  = new Date(y, m-1, d);
+  const now  = new Date();
+  const age  = Math.floor((now - dob) / (365.25 * 24 * 3600 * 1000));
+  const hintId = who === 'partner' ? 'pDobAgeHint' : 'dobAgeHint';
+  const el = document.getElementById(hintId);
+  if (age >= 16 && age <= 100) {
+    el.textContent = 'Age: ' + age;
+    el.style.color = 'var(--positive)';
+  } else if (y) {
+    el.textContent = age < 16 ? 'Must be at least 16 years old' : 'Please check the year entered';
+    el.style.color = '#D14040';
+  }
+}
+
+function validateDob(who) {
+  const prefix = who === 'partner' ? 'pDob' : 'dob';
+  const d = parseInt(document.getElementById(prefix+'Day').value)   || 0;
+  const m = parseInt(document.getElementById(prefix+'Month').value) || 0;
+  const y = parseInt(document.getElementById(prefix+'Year').value)  || 0;
+  if (!d || !m || !y) return null;
+  const dob = new Date(y, m-1, d);
+  const now = new Date();
+  const age = Math.floor((now - dob) / (365.25 * 24 * 3600 * 1000));
+  if (age < 16 || age > 100) return null;
+  return `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+}
+
+// ─── TOGGLE PILLS ────────────────────────────────────────────────────────────
+// pill id → group mapping (built once at runtime from DOM)
+const PILL_GROUPS = {
+  'pill-solo':'household',        'pill-partner':'household',  'pill-singleparent':'household',
+  'pill-nochildren':'children',   'pill-yeschildren':'children',
+  'pill-renting':'housing',       'pill-owning':'housing',       'pill-withfamily':'housing',
+  'pill-novehicle':'vehicle',     'pill-yesvehicle':'vehicle',
+  'pill-petrol':'fuel',           'pill-diesel':'fuel',          'pill-electric':'fuel', 'pill-hybrid':'fuel',
+  'pill-nosources':'othersources','pill-yessources':'othersources',
+  'pill-utilincluded':'utilsplit',   'pill-utilseparate':'utilsplit',
+  'pill-yesmortgage':'mortgage',      'pill-nomortgage':'mortgage',
+  'pill-noowncosts':'owncosts',        'pill-yesowncosts':'owncosts',
+  'pill-nofamcosts':'famcosts',        'pill-yesfamcosts':'famcosts',
+  'pill-nointernet':'internet',        'pill-yesinternet':'internet',
+  'pill-intmonthly':'intfreq',         'pill-intannual':'intfreq',
+  'pill-nocarins':'carins',            'pill-yescarins':'carins',
+  'pill-noparking':'parking',          'pill-yesparking':'parking',
+  'pill-nomaint':'maint',              'pill-yesmaint':'maint',
+  'pill-singleparent':'household',
+  'pill-nopt':'publictransport',  'pill-yespt':'publictransport',
+};
+const ERR_MAP = {
+  household:'err-q2', children:'err-q3', housing:'err-q7',
+  vehicle:'err-q8', fuel:'err-q8a-fuel',
+};
+
+function selectPill(group, value) {
+  pillState[group] = value;
+  // deselect all pills in same group
+  Object.entries(PILL_GROUPS).forEach(([id, g]) => {
+    if (g === group) {
+      const el = document.getElementById(id);
+      if (el) el.classList.remove('selected');
+    }
+  });
+  // select the chosen one
+  const chosen = Object.entries(PILL_GROUPS).find(([id, g]) => g === group && id.endsWith('-' + value));
+  if (chosen) {
+    const el = document.getElementById(chosen[0]);
+    if (el) el.classList.add('selected');
+  }
+  // clear error
+  const errId = ERR_MAP[group];
+  if (errId) {
+    const errEl = document.getElementById(errId);
+    if (errEl) errEl.classList.remove('visible');
+  }
+}
+
+// ─── STEPPER ─────────────────────────────────────────────────────────────────
+function stepChildren(delta) {
+  childCount = Math.max(1, Math.min(10, childCount + delta));
+  document.getElementById('childrenCount').textContent = childCount;
+  document.getElementById('childrenHint').textContent =
+    `We'll set up ${childCount} child profile${childCount > 1 ? 's' : ''}`;
+}
+
+
+// ─── COUNTRY / CURRENCY ──────────────────────────────────────────────────────
+const COUNTRY_CURRENCY = {
+  CZ:'CZK', SK:'EUR', PL:'PLN', HU:'HUF',
+  DE:'EUR', AT:'EUR', NL:'EUR', BE:'EUR', FR:'EUR',
+  ES:'EUR', IT:'EUR', PT:'EUR', OTHER_EU:'EUR', OTHER:'USD'
+};
+const CURRENCY_NAMES = {
+  CZK:'Czech Koruna', EUR:'Euro', PLN:'Polish Złoty',
+  HUF:'Hungarian Forint', USD:'US Dollar'
+};
+
+function onCountryChange() {
+  const code  = document.getElementById('countrySelect').value;
+  const curr  = COUNTRY_CURRENCY[code] || '';
+  document.getElementById('currencyBadge').textContent = curr || '— —';
+  document.getElementById('currencyName').textContent  = curr ? (CURRENCY_NAMES[curr] || '') : '';
+  document.getElementById('czPresetNote').style.display = code === 'CZ' ? 'block' : 'none';
+  document.getElementById('countrySelect').classList.remove('error');
+  document.getElementById('err-q4-country').classList.remove('visible');
+}
+
+// ─── OCCUPATION SELECTION ────────────────────────────────────────────────────
+const occState = { you: null, partner: null };
+const OCC_IDS  = ['employee','selfemployed','student','notworking','other'];
+
+function selectOcc(value, who) {
+  occState[who] = value;
+  const prefix = who === 'partner' ? 'pocc-' : 'occ-';
+  OCC_IDS.forEach(id => {
+    const el = document.getElementById(prefix + id);
+    if (el) el.classList.toggle('selected', id === value);
+  });
+  document.getElementById(who === 'partner' ? 'err-q5a'       : 'err-q5').classList.remove('visible');
+  document.getElementById(who === 'partner' ? 'pOccOtherWrap' : 'occOtherWrap').style.display =
+    value === 'other' ? 'block' : 'none';
+}
+
+
+// ─── SECTION COMPLETE SCREEN ─────────────────────────────────────────────────
+function showComingSoon() {
+  const p = JSON.parse(localStorage.getItem('pocketos_profile') || '{}');
+
+  // Personalise heading
+  const name = p.firstName || 'there';
+  document.getElementById('complete-heading').textContent =
+    'Well done, ' + name + '! You\'re over halfway there.';
+
+  // Back button: if partner, came from q5a; else from q5
+  document.getElementById('complete-back-btn').setAttribute(
+    'onclick', p.householdType === 'partner' ? "goTo(\'q5a\')" : "goTo(\'q5\')"
+  );
+
+  // Build summary card
+  const OCC_LABELS = {
+    employee:'Employee', selfemployed:'Self-employed / Freelancer',
+    student:'Student', notworking:'Not currently working', other:'Other'
+  };
+  const COUNTRY_LABELS = {
+    CZ:'Czech Republic', SK:'Slovakia', PL:'Poland', HU:'Hungary',
+    DE:'Germany', AT:'Austria', NL:'Netherlands', BE:'Belgium',
+    FR:'France', ES:'Spain', IT:'Italy', PT:'Portugal',
+    OTHER_EU:'Other EU', OTHER:'Outside EU'
+  };
+  const rows = [
+    ['Name',        p.firstName + (p.partnerName ? ' & ' + p.partnerName : '')],
+    ['Household',   p.householdType === 'partner' ? 'You & your partner' : (p.householdType === 'singleparent' ? 'Single parent' : 'Solo')],
+    ['Children',    p.hasChildren ? (p.childCount || 1) + ' child' + (p.childCount > 1 ? 'ren' : '') : 'None'],
+    ['Country',     COUNTRY_LABELS[p.country] || p.country || '—'],
+    ['Currency',    p.currency || '—'],
+    ['Your work',   OCC_LABELS[p.occupation] || '—'],
+  ];
+  if (p.partnerOccupation) {
+    rows.push(['Partner\'s work', OCC_LABELS[p.partnerOccupation] || '—']);
+  }
+  document.getElementById('completeSummary').innerHTML = rows.map(([k,v]) =>
+    '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:13.5px;">' +
+    '<span style="color:var(--muted);">' + k + '</span>' +
+    '<span style="font-weight:500;color:var(--text);">' + v + '</span>' +
+    '</div>'
+  ).join('').replace(/border-bottom[^;]+;(?=[^<]*<\/div>\s*$)/, '');  // remove last border
+
+  goTo('section-complete');
+}
+
+// ─── ADVANCE LOGIC ───────────────────────────────────────────────────────────
+function advance(screen) {
+  // Q3b-N child detail screens
+  if (screen.startsWith('q3b-')) {
+    const i   = parseInt(screen.split('-')[1]);
+    const count = parseInt(localStorage.getItem('pocketos_profile') ? JSON.parse(localStorage.getItem('pocketos_profile')).childCount : 1) || 1;
+    const name  = document.getElementById('childName'+i)?.value.trim();
+    if (!name) { document.getElementById('err-q3b-'+i)?.classList.add('visible'); return; }
+    const dobResult = validateChildDob(i);
+    if (!dobResult) { document.getElementById('err-q3b-dob-'+i)?.classList.add('visible'); return; }
+    // Save into children array
+    const p = JSON.parse(localStorage.getItem('pocketos_profile') || '{}');
+    const children = p.children || [];
+    children[i] = { name, dob: dobResult.dob, age: dobResult.age };
+    saveProfile({ children });
+    if (i + 1 < count) { goTo('q3b-' + (i+1)); }
+    else { goTo('info-location'); }
+    return;
+  }
+  if (advanceHousing(screen)) return;
+
+  if (screen === 'q1') {
+    const val = document.getElementById('firstName').value.trim();
+    if (!val) {
+      document.getElementById('firstName').classList.add('error');
+      document.getElementById('err-q1').classList.add('visible');
+      return;
+    }
+    saveProfile({ firstName: val });
+    document.getElementById('q1a-heading').textContent = `When were you born, ${val}?`;
+    goTo('q1a');
+    return;
+  }
+
+  if (screen === 'q1a') {
+    const dob = validateDob('user');
+    if (!dob) { document.getElementById('err-q1a').classList.add('visible'); return; }
+    saveProfile({ dob: dob });
+    goTo('q2');
+    return;
+  }
+
+  if (screen === 'q2') {
+    if (!pillState.household) { document.getElementById('err-q2').classList.add('visible'); return; }
+    saveProfile({ householdType: pillState.household });
+    goTo(pillState.household === 'partner' ? 'q2a' : 'q3');
+    return;
+  }
+
+  if (screen === 'q2a') {
+    const val = document.getElementById('partnerName').value.trim();
+    if (!val) {
+      document.getElementById('partnerName').classList.add('error');
+      document.getElementById('err-q2a').classList.add('visible');
+      return;
+    }
+    saveProfile({ partnerName: val });
+    document.getElementById('q2b-heading').textContent = `And when was ${val} born?`;
+    goTo('q2b');
+    return;
+  }
+
+  if (screen === 'q2b') {
+    const dob = validateDob('partner');
+    if (!dob) { document.getElementById('err-q2b').classList.add('visible'); return; }
+    saveProfile({ partnerDob: dob });
+    goTo('q3');
+    return;
+  }
+
+  if (screen === 'q3') {
+    if (!pillState.children) { document.getElementById('err-q3').classList.add('visible'); return; }
+    saveProfile({ hasChildren: pillState.children === 'yes' });
+    goTo(pillState.children === 'yes' ? 'q3a' : 'info-location');
+    return;
+  }
+
+  if (screen === 'q3a') {
+    saveProfile({ childCount: childCount });
+    buildChildDetailScreens(childCount);
+    goTo('q3b-0');
+    return;
+  }
+
+  if (screen === 'q4') {
+    const code = document.getElementById('countrySelect').value;
+    if (!code) {
+      document.getElementById('countrySelect').classList.add('error');
+      document.getElementById('err-q4-country').classList.add('visible');
+      return;
+    }
+    const curr = COUNTRY_CURRENCY[code] || 'EUR';
+    const city = document.getElementById('cityInput').value.trim();
+    saveProfile({ country: code, city: city, currency: curr, czPresets: code === 'CZ' });
+    goTo('info-occupation');
+    return;
+  }
+
+  if (screen === 'q5') {
+    if (!occState.you) { document.getElementById('err-q5').classList.add('visible'); return; }
+    const other = document.getElementById('occOtherText').value.trim();
+    saveProfile({ occupation: occState.you, occupationOther: other || null });
+    const p = JSON.parse(localStorage.getItem('pocketos_profile') || '{}');
+    if (p.householdType === 'partner') {
+      const pName = p.partnerName || 'your partner';
+      document.getElementById('q5a-heading').textContent = 'And what about ' + pName + '?';
+      goTo('q5a');
+    } else {
+      showComingSoon();
+    }
+    return;
+  }
+
+  if (screen === 'q5a') {
+    if (!occState.partner) { document.getElementById('err-q5a').classList.add('visible'); return; }
+    const other = document.getElementById('pOccOtherText').value.trim();
+    saveProfile({ partnerOccupation: occState.partner, partnerOccupationOther: other || null });
+    showComingSoon();
+    return;
+  }
+
+  if (screen === 'q6') {
+    const youVal = parseFloat(document.getElementById('incomeYou').value);
+    if (!youVal || youVal <= 0) {
+      document.getElementById('incomeYou').classList.add('error');
+      document.getElementById('err-q6-you').classList.add('visible');
+      return;
+    }
+    if (!freqState.you) {
+      document.getElementById('err-q6-freq-you').classList.add('visible');
+      return;
+    }
+    const p       = JSON.parse(localStorage.getItem('pocketos_profile') || '{}');
+    const youM    = Math.round(youVal * FREQ_MULT[freqState.you]);
+    const pVal    = parseFloat(document.getElementById('incomePartner').value) || 0;
+    const pM      = Math.round(pVal  * FREQ_MULT[freqState.partner]);
+    saveProfile({
+      incomeYou: youVal, incomeYouFreq: freqState.you, incomeYouMonthly: youM,
+      incomePartner: pVal || null, incomePartnerFreq: freqState.partner,
+      incomePartnerMonthly: pM || null,
+      incomeTotalMonthly: youM + pM
+    });
+    goTo('q6b');
+    return;
+  }
+
+  if (screen === 'q6b') {
+    const hasSources = pillState.othersources === 'yes';
+    const sources    = hasSources ? collectSourceRows() : [];
+    saveProfile({ otherIncomeSources: sources });
+    goTo('q6c');
+    return;
+  }
+
+  if (screen === 'q6c') {
+    const balance = parseFloat(document.getElementById('savingsBalance').value) || 0;
+    const target  = parseFloat(document.getElementById('savingsTarget').value)  || 0;
+    saveProfile({ savingsBalance: balance, savingsTarget: target });
+    goTo('info-housing');
+    return;
+  }
+
+}
+
+
+
+
+// ─── INCOME STATE ────────────────────────────────────────────────────────────
+const freqState  = { you: 'monthly', partner: 'monthly' };
+const FREQ_MULT  = { weekly: 4.333, fortnightly: 2.167, monthly: 1, irregular: 1 };
+let   incomeTab  = 'you';
+
+function switchIncomeTab(who) {
+  incomeTab = who;
+  document.getElementById('q6PanelYou').classList.toggle('active', who === 'you');
+  document.getElementById('q6PanelPartner').classList.toggle('active', who === 'partner');
+  document.getElementById('q6TabYou').classList.toggle('active', who === 'you');
+  document.getElementById('q6TabPartner').classList.toggle('active', who === 'partner');
+}
+
+function selectFreq(who, freq) {
+  freqState[who] = freq;
+  const container = document.getElementById('freq' + (who === 'you' ? 'You' : 'Partner'));
+  container.querySelectorAll('.freq-pill').forEach(p => p.classList.remove('selected'));
+  event.target.classList.add('selected');
+  document.getElementById('err-q6-freq-you').classList.remove('visible');
+  onIncomeInput(who);
+}
+
+function onIncomeInput(who) {
+  const suffix = who === 'you' ? 'You' : 'Partner';
+  const val    = parseFloat(document.getElementById('income' + suffix).value) || 0;
+  const freq   = freqState[who];
+  const hint   = document.getElementById('converted' + suffix);
+  const p      = JSON.parse(localStorage.getItem('pocketos_profile') || '{}');
+  const curr   = p.currency || 'CZK';
+
+  if (val && freq !== 'monthly' && freq !== 'irregular') {
+    const monthly = Math.round(val * FREQ_MULT[freq]);
+    hint.textContent = '≈ ' + monthly.toLocaleString() + ' ' + curr + '/month';
+  } else {
+    hint.textContent = '';
+  }
+  // clear error
+  if (who === 'you') document.getElementById('err-q6-you').classList.remove('visible');
+}
+
+function initIncomeCurrency() {
+  const p    = JSON.parse(localStorage.getItem('pocketos_profile') || '{}');
+  const curr = p.currency || 'CZK';
+  ['incCurrYou','incCurrPartner','savCurr1','savCurr2','sourcesCurr'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = curr;
+  });
+  // show tabs if partner
+  if (p.householdType === 'partner') {
+    document.getElementById('q6Tabs').style.display = 'flex';
+    const pName = p.partnerName || 'Partner';
+    document.getElementById('q6TabPartner').textContent = pName;
+    document.getElementById('partnerIncLabel').innerHTML =
+      pName + "'s net income<span class='field-optional'> Optional — skip if not working</span>";
+  }
+}
+
+// ─── OTHER INCOME SOURCES ────────────────────────────────────────────────────
+function showSourceRows() {
+  document.getElementById('sourceRowsWrap').style.display = 'block';
+  if (document.getElementById('sourceRows').children.length === 0) addSourceRow();
+}
+
+function addSourceRow() {
+  const p    = JSON.parse(localStorage.getItem('pocketos_profile') || '{}');
+  const curr = p.currency || 'CZK';
+  const idx  = document.getElementById('sourceRows').children.length;
+  const row  = document.createElement('div');
+  row.className = 'source-row';
+  row.id = 'srcRow' + idx;
+  row.innerHTML =
+    '<input class="text-input" type="text" placeholder="e.g. Rental income" maxlength="50">' +
+    '<div class="amount-wrap">' +
+      '<span class="amount-prefix">' + curr + '</span>' +
+      '<input class="amount-input" type="number" min="0" placeholder="0">' +
+    '</div>' +
+    '<button class="btn-remove-row" onclick="this.parentElement.remove()" title="Remove">×</button>';
+  document.getElementById('sourceRows').appendChild(row);
+}
+
+function removeSourceRow(btn) {
+  btn.closest('.source-row').remove();
+  if (document.getElementById('sourceRows').children.length === 0) {
+    selectPill('othersources', 'no');
+    document.getElementById('sourceRowsWrap').style.display = 'none';
+  }
+}
+
+function collectSourceRows() {
+  const rows = [];
+  document.querySelectorAll('#sourceRows .source-row').forEach(row => {
+    const label  = row.querySelector('input[type="text"]').value.trim();
+    const amount = parseFloat(row.querySelector('input[type="number"]').value) || 0;
+    if (label || amount) rows.push({ label: label || 'Other', monthly: amount });
+  });
+  return rows;
+}
+
+// ─── SAVINGS HINT ────────────────────────────────────────────────────────────
+function onSavingsInput() {
+  const balance = parseFloat(document.getElementById('savingsBalance').value) || 0;
+  const p       = JSON.parse(localStorage.getItem('pocketos_profile') || '{}');
+  const youAmt  = parseFloat(document.getElementById('incomeYou').value) || 0;
+  const pAmt    = parseFloat(document.getElementById('incomePartner').value) || 0;
+  const youM    = Math.round(youAmt * FREQ_MULT[freqState.you]);
+  const pM      = Math.round(pAmt  * FREQ_MULT[freqState.partner]);
+  const totalM  = youM + pM;
+  const hint    = document.getElementById('savingsMonthsHint');
+  if (balance > 0 && totalM > 0) {
+    const months = (balance / totalM).toFixed(1);
+    hint.textContent = '≈ ' + months + ' months of income as a safety buffer';
+    hint.style.color = parseFloat(months) >= 3 ? 'var(--positive)' : 'var(--accent)';
+  } else {
+    hint.textContent = '';
+  }
+}
+
+
+// ─── HOUSING HELPERS ─────────────────────────────────────────────────────────
+function initHousingCurrency() {
+  const p    = JSON.parse(localStorage.getItem('pocketos_profile') || '{}');
+  const curr = p.currency || 'CZK';
+  document.getElementById('housingCurr').textContent = curr;
+  document.querySelectorAll('.housingCurrLabel').forEach(el => el.textContent = curr);
+  if (p.czPresets) {
+    document.getElementById('czTaxBlock').style.display = 'block';
+    const czNote = document.getElementById('czUtilNote');
+    if (czNote) czNote.style.display = 'flex';
+  }
+  // default util toggle
+  pillState.utilsplit = pillState.utilsplit || 'included';
+  selectPill('utilsplit', pillState.utilsplit);
+}
+
+function initTransportCurrency() {
+  const p    = JSON.parse(localStorage.getItem('pocketos_profile') || '{}');
+  const curr = p.currency || 'CZK';
+  ['transportCurr','transportCurr2','transportCurr3','ptCurr'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = curr;
+  });
+  if (p.czPresets) {
+    const czIns = document.getElementById('czInsNote');
+    if (czIns) czIns.style.display = 'flex';
+    const czStk = document.getElementById('czStkBlock');
+    if (czStk) czStk.style.display = 'block';
+  }
+}
+
+// ─── PUBLIC TRANSPORT TOGGLE ─────────────────────────────────────────────────
+function onPtToggle(val) {
+  document.getElementById('ptCostWrap').style.display = val === 'yes' ? 'block' : 'none';
+}
+
+// ─── HEALTH MEMBER TABS ───────────────────────────────────────────────────────
+let healthTab = 0;
+
+function buildHealthTabs() {
+  const p       = JSON.parse(localStorage.getItem('pocketos_profile') || '{}');
+  const members = [];
+  members.push({ id:'you', name: p.firstName || 'You', occ: p.occupation });
+  if (p.householdType === 'partner') {
+    members.push({ id:'partner', name: p.partnerName || 'Partner', occ: p.partnerOccupation });
+  }
+  if (p.hasChildren && p.childCount) {
+    for (let i = 0; i < p.childCount; i++) {
+      members.push({ id:'child'+i, name: 'Child '+(i+1), occ:'child' });
+    }
+  }
+
+  const tabsEl   = document.getElementById('healthMemberTabs');
+  const panelsEl = document.getElementById('healthMemberPanels');
+  tabsEl.innerHTML = '';
+  panelsEl.innerHTML = '';
+
+  members.forEach((m, idx) => {
+    // Tab button
+    const btn = document.createElement('button');
+    btn.className = 'person-tab' + (idx === 0 ? ' active' : '');
+    btn.textContent = m.name;
+    btn.onclick = () => switchHealthTab(idx, members.length);
+    tabsEl.appendChild(btn);
+
+    // Panel
+    const panel = document.createElement('div');
+    panel.className = 'tab-panel' + (idx === 0 ? ' active' : '');
+    panel.id = 'healthPanel' + idx;
+
+    const isEmployee = m.occ === 'employee';
+    const isChild    = m.occ === 'child';
+    const p2         = JSON.parse(localStorage.getItem('pocketos_profile') || '{}');
+    const isCZ       = p2.czPresets;
+    const curr       = p2.currency || 'CZK';
+
+    if (isEmployee && !isChild) {
+      panel.innerHTML =
+        '<div class="notice-card green"><span class="ni">✓</span>' +
+        '<span>As an employee' + (isCZ ? ' in CZ' : '') + ', your health insurance is covered by your employer — no cost to enter.</span></div>';
+    } else {
+      panel.innerHTML =
+        '<div class="field-group">' +
+          '<label class="field-label">Provider <span class="field-optional">Optional</span></label>' +
+          '<input class="text-input" type="text" id="hiProvider'+idx+'" placeholder="e.g. VZP, OZP…" maxlength="50" style="font-size:14px;">' +
+        '</div>' +
+        '<div class="field-group">' +
+          '<label class="field-label">Monthly premium <span class="field-required">*</span></label>' +
+          '<div class="amount-wrap"><span class="amount-prefix">'+curr+'</span>' +
+          '<input class="amount-input" type="number" id="hiCost'+idx+'" min="0" placeholder="0" style="font-size:22px;padding:13px 13px 13px 52px;"></div>' +
+        '</div>' +
+        '<div class="field-group">' +
+          '<label class="field-label">Coverage dates <span class="field-optional">Optional</span></label>' +
+          '<div class="date-pair">' +
+            '<div><div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Start date</div><input type="date" id="hiStart'+idx+'"></div>' +
+            '<div><div style="font-size:11px;color:var(--muted);margin-bottom:4px;">End date</div><input type="date" id="hiEnd'+idx+'" onchange="checkInsExpiry('+idx+')"></div>' +
+          '</div>' +
+        '</div>' +
+        '<div id="hiExpiryWarn'+idx+'" class="notice-card amber" style="display:none;">' +
+          '<span class="ni">⚠️</span><span id="hiExpiryMsg'+idx+'"></span>' +
+        '</div>';
+    }
+    panelsEl.appendChild(panel);
+  });
+
+  window._healthMembers = members;
+}
+
+function switchHealthTab(idx, total) {
+  healthTab = idx;
+  for (let i = 0; i < total; i++) {
+    document.getElementById('healthPanel'+i)?.classList.toggle('active', i === idx);
+  }
+  document.querySelectorAll('#healthMemberTabs .person-tab').forEach((btn, i) => {
+    btn.classList.toggle('active', i === idx);
+  });
+}
+
+function checkInsExpiry(idx) {
+  const endEl = document.getElementById('hiEnd'+idx);
+  if (!endEl || !endEl.value) return;
+  const endDate = new Date(endEl.value);
+  const now     = new Date();
+  const days    = Math.round((endDate - now) / (1000*60*60*24));
+  const warn    = document.getElementById('hiExpiryWarn'+idx);
+  const msg     = document.getElementById('hiExpiryMsg'+idx);
+  if (days <= 90 && days >= 0) {
+    msg.textContent = 'This insurance expires in ' + days + ' day' + (days !== 1 ? 's' : '') + '. An alert will be set.';
+    warn.style.display = 'flex';
+  } else {
+    warn.style.display = 'none';
+  }
+}
+
+// ─── CHILDREN COST TABS ───────────────────────────────────────────────────────
+function buildChildCostTabs() {
+  const p = JSON.parse(localStorage.getItem('pocketos_profile') || '{}');
+  if (!p.hasChildren || !p.childCount) return;
+  const curr = p.currency || 'CZK';
+
+  const tabsEl   = document.getElementById('childCostTabs');
+  const panelsEl = document.getElementById('childCostPanels');
+  tabsEl.innerHTML   = '';
+  panelsEl.innerHTML = '';
+
+  for (let i = 0; i < p.childCount; i++) {
+    const label = 'Child ' + (i+1);
+    const btn   = document.createElement('button');
+    btn.className   = 'person-tab' + (i === 0 ? ' active' : '');
+    btn.textContent = label;
+    btn.onclick     = () => switchChildTab(i, p.childCount);
+    tabsEl.appendChild(btn);
+
+    const panel = document.createElement('div');
+    panel.className = 'tab-panel' + (i === 0 ? ' active' : '');
+    panel.id        = 'childPanel' + i;
+    panel.innerHTML =
+      '<div class="field-group">' +
+        '<label class="field-label">Schooling / daycare <span class="field-optional">monthly · '+curr+'</span></label>' +
+        '<div class="amount-wrap"><span class="amount-prefix">'+curr+'</span>' +
+        '<input class="amount-input" type="number" id="childSchool'+i+'" min="0" placeholder="0" style="font-size:22px;padding:13px 13px 13px 52px;"></div>' +
+        '<div class="amount-hint">School fees, kindergarten, or daycare</div>' +
+      '</div>' +
+      '<div class="field-group">' +
+        '<label class="field-label">Activities &amp; clubs <span class="field-optional">monthly · '+curr+'</span></label>' +
+        '<div class="amount-wrap"><span class="amount-prefix">'+curr+'</span>' +
+        '<input class="amount-input" type="number" id="childActivities'+i+'" min="0" placeholder="0" style="font-size:22px;padding:13px 13px 13px 52px;"></div>' +
+      '</div>' +
+      '<div class="field-group">' +
+        '<label class="field-label">Medicine / prescriptions <span class="field-optional">monthly · '+curr+'</span></label>' +
+        '<div class="amount-wrap"><span class="amount-prefix">'+curr+'</span>' +
+        '<input class="amount-input" type="number" id="childMeds'+i+'" min="0" placeholder="0" style="font-size:22px;padding:13px 13px 13px 52px;"></div>' +
+      '</div>' +
+      '<div class="field-group">' +
+        '<label class="field-label">Other child costs <span class="field-optional">monthly · '+curr+'</span></label>' +
+        '<input class="text-input" type="text" id="childOtherLabel'+i+'" placeholder="Description (optional)" maxlength="50" style="font-size:14px;margin-bottom:8px;">' +
+        '<div class="amount-wrap"><span class="amount-prefix">'+curr+'</span>' +
+        '<input class="amount-input" type="number" id="childOther'+i+'" min="0" placeholder="0" style="font-size:22px;padding:13px 13px 13px 52px;"></div>' +
+      '</div>';
+    panelsEl.appendChild(panel);
+  }
+  window._childCount = p.childCount;
+}
+
+function switchChildTab(idx, total) {
+  for (let i = 0; i < total; i++) {
+    document.getElementById('childPanel'+i)?.classList.toggle('active', i === idx);
+  }
+  document.querySelectorAll('#childCostTabs .person-tab').forEach((btn,i) => {
+    btn.classList.toggle('active', i === idx);
+  });
+}
+
+// ─── NEW ADVANCE CASES: q7, q7a, q7b, q8, q8a, q8e, q9, q10 ─────────────────
+function advanceHousing(screen) {
+  if (screen === 'q7') {
+    if (!pillState.housing) { document.getElementById('err-q7').classList.add('visible'); return; }
+    saveProfile({ housingType: pillState.housing });
+    initHousingCurrency();
+    if (pillState.housing === 'renting') {
+      goTo('q7a');
+    } else if (pillState.housing === 'owning') {
+      goTo('q7d');
+    } else {
+      goTo('q7h');
+    }
+    return true;
+  }
+  if (screen === 'q7a') {
+    const val = parseFloat(document.getElementById('housingPayment').value);
+    if (!val || val <= 0) { document.getElementById('err-q7a').classList.add('visible'); return true; }
+    saveProfile({ housingPayment: val });
+    goTo('q7b');
+    return true;
+  }
+  if (screen === 'q7d') {
+    if (!pillState.mortgage) { document.getElementById('err-q7d').classList.add('visible'); return true; }
+    saveProfile({ hasMortgage: pillState.mortgage === 'yes' });
+    goTo(pillState.mortgage === 'yes' ? 'q7e' : 'q7f');
+    return true;
+  }
+  if (screen === 'q7e') {
+    const val = parseFloat(document.getElementById('housingPayment').value);
+    if (!val || val <= 0) { document.getElementById('err-q7e').classList.add('visible'); return true; }
+    saveProfile({
+      housingPayment: val,
+      mortgageLender: document.getElementById('mortgageLender').value.trim() || null,
+      mortgageEndDate: document.getElementById('mortgageEndDate').value || null,
+    });
+    goTo('q7f');
+    return true;
+  }
+  if (screen === 'q7f') {
+    const costs = pillState.owncosts === 'yes' ? collectCostRows('ownCostsList') : [];
+    saveProfile({ ownershipOtherCosts: costs });
+    goTo('q7c');
+    return true;
+  }
+  if (screen === 'q7h') {
+    const costs = pillState.famcosts === 'yes' ? collectCostRows('famCostsList') : [];
+    saveProfile({ familyContributions: costs });
+    goTo('q7c');
+    return true;
+  }
+  if (screen === 'q7c') {
+    const hasSep = pillState.internet === 'yes';
+    saveProfile({
+      internetSeparate: hasSep,
+      internetProvider: hasSep ? (document.getElementById('internetProvider').value.trim() || null) : null,
+      internetCost: hasSep ? (parseFloat(document.getElementById('internetCost').value) || 0) : 0,
+      internetFreq: pillState.intfreq || 'monthly',
+    });
+    initGovTaxScreen();
+    goTo('q7g');
+    return true;
+  }
+  if (screen === 'q7g') {
+    const p = JSON.parse(localStorage.getItem('pocketos_profile') || '{}');
+    saveProfile({
+      czTvLicence:    p.czPresets ? (parseFloat(document.getElementById('czTvLicence')?.value)    || 0) : null,
+      czRadioLicence: p.czPresets ? (parseFloat(document.getElementById('czRadioLicence')?.value) || 0) : null,
+      czWasteTax:     p.czPresets ? (parseFloat(document.getElementById('czWasteTax')?.value)     || 0) : null,
+      extraTaxes: collectCostRows('extraTaxList'),
+    });
+    initTransportCurrency();
+    goTo('info-transport');
+    return true;
+  }
+  if (screen === 'q7b') {
+    const p = JSON.parse(localStorage.getItem('pocketos_profile') || '{}');
+    const utilIncluded = pillState.utilsplit === 'included';
+    saveProfile({
+      utilitiesIncluded: utilIncluded,
+      utilElec:  utilIncluded ? 0 : (parseFloat(document.getElementById('utilElec')?.value)  || 0),
+      utilGas:   utilIncluded ? 0 : (parseFloat(document.getElementById('utilGas')?.value)   || 0),
+      utilWater: utilIncluded ? 0 : (parseFloat(document.getElementById('utilWater')?.value) || 0),
+    });
+    // pill defaults
+    if (!pillState.internet) { pillState.internet = 'no'; selectPill('internet','no'); }
+    if (!pillState.intfreq)  { pillState.intfreq  = 'monthly'; selectPill('intfreq','monthly'); }
+    // set q7c back button based on housing type
+    const _p = JSON.parse(localStorage.getItem('pocketos_profile') || '{}');
+    const _backQ7c = _p.housingType === 'renting' ? 'q7b' : (_p.housingType === 'owning' ? 'q7f' : 'q7h');
+    document.getElementById('q7c-back-btn').setAttribute('onclick', "goTo('"+_backQ7c+"')");
+    goTo('q7c');
+    return true;
+  }
+  if (screen === 'q8') {
+    if (!pillState.vehicle) { document.getElementById('err-q8').classList.add('visible'); return true; }
+    saveProfile({ hasVehicle: pillState.vehicle === 'yes' });
+    if (pillState.vehicle === 'yes') {
+      goTo('q8a');
+    } else {
+      goTo('q8e');
+    }
+    return true;
+  }
+  if (screen === 'q8a') {
+    saveProfile({
+      carMake:  document.getElementById('carMake').value.trim()  || null,
+      carModel: document.getElementById('carModel').value.trim() || null,
+    });
+    initCarInsScreen();
+    goTo('q8b');
+    return true;
+  }
+  if (screen === 'q8b') {
+    if (!pillState.fuel) { document.getElementById('err-q8b-fuel').classList.add('visible'); return true; }
+    // update fuel label for electric
+    document.getElementById('fuelCostLabel').textContent = pillState.fuel === 'electric' ? 'Monthly charging cost' : 'Monthly fuel cost';
+    saveProfile({ fuelType: pillState.fuel, fuelCost: parseFloat(document.getElementById('fuelCost').value) || 0 });
+    goTo('q8c');
+    return true;
+  }
+  if (screen === 'q8c') {
+    if (!pillState.carins) { document.getElementById('err-q8c').classList.add('visible'); return true; }
+    saveProfile({ hasCarInsurance: pillState.carins === 'yes' });
+    goTo(pillState.carins === 'yes' ? 'q8c1' : 'q8d');
+    return true;
+  }
+  if (screen === 'q8c1') {
+    const val = parseFloat(document.getElementById('carInsCost').value);
+    if (!val || val <= 0) { document.getElementById('err-q8c1').classList.add('visible'); return true; }
+    saveProfile({
+      carInsCost:    val,
+      carInsProvider:document.getElementById('carInsProvider').value.trim() || null,
+      carInsRenewal: document.getElementById('carInsRenewal').value         || null,
+    });
+    goTo('q8d');
+    return true;
+  }
+  if (screen === 'q8d') {
+    const hasP   = pillState.parking === 'yes';
+    saveProfile({
+      hasZoneParking: hasP,
+      parkingCost: hasP ? (parseFloat(document.getElementById('parkingCost').value) || 0) : 0,
+      parkingFreq: document.getElementById('parkingFreq')?.value || 'annually',
+    });
+    initMaintScreen();
+    goTo('q8e1');
+    return true;
+  }
+  if (screen === 'q8e1') {
+    const maintRows = [];
+    document.querySelectorAll('#maintList > div').forEach(row => {
+      const inputs = row.querySelectorAll('input');
+      const desc   = inputs[0]?.value.trim() || '';
+      const date   = inputs[1]?.value        || null;
+      const cost   = parseFloat(inputs[2]?.value) || 0;
+      if (desc || date || cost) maintRows.push({ description: desc, date, estimatedCost: cost });
+    });
+    saveProfile({
+      stkDue:       document.getElementById('stkDue')?.value      || null,
+      nextService:  document.getElementById('nextService')?.value  || null,
+      plannedMaint: maintRows,
+    });
+    goTo('q8e');
+    return true;
+  }
+  if (screen === 'q8e') {
+    const hasPt = pillState.publictransport === 'yes';
+    saveProfile({
+      hasPublicTransport: hasPt,
+      ptCost:       hasPt ? (parseFloat(document.getElementById('ptCost')?.value)  || 0) : 0,
+      ptFreq:       hasPt ? (document.getElementById('ptFreq')?.value || 'monthly') : null,
+      ptValidUntil: hasPt ? (document.getElementById('ptValidUntil')?.value || null) : null,
+    });
+    buildHealthTabs();
+    goTo('info-health');
+    return true;
+  }
+  if (screen === 'q9') {
+    // Collect health insurance data
+    const members = window._healthMembers || [];
+    const hiData  = members.map((m, idx) => {
+      if (m.occ === 'employee') return { member: m.name, employerCovered: true };
+      return {
+        member:    m.name,
+        provider:  document.getElementById('hiProvider'+idx)?.value.trim() || null,
+        monthlyCost: parseFloat(document.getElementById('hiCost'+idx)?.value) || 0,
+        startDate: document.getElementById('hiStart'+idx)?.value || null,
+        endDate:   document.getElementById('hiEnd'+idx)?.value   || null,
+      };
+    });
+    saveProfile({ healthInsurance: hiData });
+    const p = JSON.parse(localStorage.getItem('pocketos_profile') || '{}');
+    if (p.hasChildren && p.childCount) {
+      buildChildCostTabs();
+      goTo('q10');
+    } else {
+      goTo('coming-soon-subscriptions');
+    }
+    return true;
+  }
+  if (screen === 'q10') {
+    const count    = window._childCount || 0;
+    const children = [];
+    for (let i = 0; i < count; i++) {
+      children.push({
+        index:      i,
+        school:     parseFloat(document.getElementById('childSchool'+i)?.value)     || 0,
+        activities: parseFloat(document.getElementById('childActivities'+i)?.value) || 0,
+        meds:       parseFloat(document.getElementById('childMeds'+i)?.value)       || 0,
+        otherLabel: document.getElementById('childOtherLabel'+i)?.value.trim()      || null,
+        other:      parseFloat(document.getElementById('childOther'+i)?.value)      || 0,
+      });
+    }
+    saveProfile({ childrenCosts: children });
+    goTo('coming-soon-subscriptions');
+    return true;
+  }
+  return false;
+}
+
+// ─── COMING SOON: SUBSCRIPTIONS ───────────────────────────────────────────────
+// (placeholder until next increment)
+
+
+// ─── CHILD DETAIL SCREENS (Q3b) ────────────────────────────────────────────
+function buildChildDetailScreens(count) {
+  // Remove any previously built q3b screens
+  document.querySelectorAll('[id^="screen-q3b-"]').forEach(el => el.remove());
+  const main = document.querySelector('.right-panel');
+  for (let i = 0; i < count; i++) {
+    const div = document.createElement('div');
+    div.className = 'screen';
+    div.id = 'screen-q3b-' + i;
+    div.innerHTML = `
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-track"><div class="progress-bar-fill" style="width:${38 + i}%"></div></div>
+        <span class="progress-text">About you · Child ${i+1} of ${count}</span>
+      </div>
+      <p class="question-label">Section 1 — About you</p>
+      <h2 class="question-heading">Tell us about child ${i+1}</h2>
+      <p class="question-hint">We'll use their age to ask relevant cost questions later.</p>
+      <div class="field-group">
+        <label class="field-label">First name<span class="field-required"> *</span><span class="field-optional">Required</span></label>
+        <input class="text-input" type="text" id="childName${i}" placeholder="e.g. Tomáš, Anna…" maxlength="50"
+          onkeydown="if(event.key==='Enter')advance('q3b-${i}')">
+        <div class="field-error" id="err-q3b-${i}">Please enter the child's name.</div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Date of birth<span class="field-required"> *</span><span class="field-optional">Required · Used to tailor cost questions</span></label>
+        <div class="dob-row">
+          <div class="select-wrap"><select id="chDobDay${i}" onchange="clearChildDobError(${i})"><option value="">Day</option></select></div>
+          <div class="select-wrap"><select id="chDobMonth${i}" onchange="onChildMonthChange(${i})">
+            <option value="">Month</option>
+            <option value="1">January</option><option value="2">February</option>
+            <option value="3">March</option><option value="4">April</option>
+            <option value="5">May</option><option value="6">June</option>
+            <option value="7">July</option><option value="8">August</option>
+            <option value="9">September</option><option value="10">October</option>
+            <option value="11">November</option><option value="12">December</option>
+          </select></div>
+          <div class="select-wrap"><select id="chDobYear${i}" onchange="onChildYearChange(${i})"><option value="">Year</option></select></div>
+        </div>
+        <div class="dob-hint" id="childAgeHint${i}"></div>
+        <div class="field-error" id="err-q3b-dob-${i}">Please enter a valid date of birth.</div>
+      </div>
+      <div class="btn-actions">
+        <button class="btn-primary" onclick="advance('q3b-${i}')">Continue →</button>
+        <button class="btn-skip" onclick="goTo('${i === 0 ? 'q3a' : 'q3b-' + (i-1)}')">← Back</button>
+      </div>
+    `;
+    main.appendChild(div);
+    // populate year/day selects
+    populateYears('chDobYear'+i, 0, 25);
+    populateDays('chDobDay'+i, 0, 0);
+  }
+}
+
+function onChildMonthChange(i) {
+  const m = parseInt(document.getElementById('chDobMonth'+i).value) || 0;
+  const y = parseInt(document.getElementById('chDobYear'+i).value)  || 0;
+  populateDays('chDobDay'+i, m, y);
+  clearChildDobError(i);
+}
+function onChildYearChange(i) {
+  const m = parseInt(document.getElementById('chDobMonth'+i).value) || 0;
+  const y = parseInt(document.getElementById('chDobYear'+i).value)  || 0;
+  populateDays('chDobDay'+i, m, y);
+  const d = parseInt(document.getElementById('chDobDay'+i).value)   || 0;
+  if (y && m && d) {
+    const age = Math.floor((new Date() - new Date(y,m-1,d)) / (365.25*24*3600*1000));
+    const hint = document.getElementById('childAgeHint'+i);
+    hint.textContent = age >= 0 && age <= 25 ? 'Age: ' + age : '';
+    hint.style.color = 'var(--positive)';
+  }
+}
+function clearChildDobError(i) {
+  document.getElementById('err-q3b-dob-'+i)?.classList.remove('visible');
+}
+
+function validateChildDob(i) {
+  const d = parseInt(document.getElementById('chDobDay'+i)?.value)   || 0;
+  const m = parseInt(document.getElementById('chDobMonth'+i)?.value) || 0;
+  const y = parseInt(document.getElementById('chDobYear'+i)?.value)  || 0;
+  if (!d || !m || !y) return null;
+  const dob = new Date(y, m-1, d);
+  const age = Math.floor((new Date() - dob) / (365.25*24*3600*1000));
+  if (age < 0 || age > 25) return null;
+  return { dob: `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`, age };
+}
+
+// ─── GENERIC REPEATING COST ROW ─────────────────────────────────────────────
+function addGenericCostRow(listId) {
+  const p    = JSON.parse(localStorage.getItem('pocketos_profile') || '{}');
+  const curr = p.currency || 'CZK';
+  const row  = document.createElement('div');
+  row.className = 'source-row';
+  row.style.cssText = 'grid-template-columns:1fr 140px 36px;';
+  row.innerHTML =
+    '<input class="text-input" type="text" placeholder="Description" maxlength="60" style="font-size:14px;">' +
+    '<div class="amount-wrap"><span class="amount-prefix">'+curr+'</span>' +
+    '<input class="amount-input" type="number" min="0" placeholder="0" style="font-size:16px;padding:10px 10px 10px 46px;"></div>' +
+    '<button class="btn-remove-row" onclick="this.parentElement.remove()" title="Remove">×</button>';
+  document.getElementById(listId).appendChild(row);
+}
+
+// ─── MAINTENANCE ROWS ────────────────────────────────────────────────────────
+function addMaintRow() {
+  const p    = JSON.parse(localStorage.getItem('pocketos_profile') || '{}');
+  const curr = p.currency || 'CZK';
+  const row  = document.createElement('div');
+  row.style.cssText = 'display:grid;grid-template-columns:1fr 120px 140px 36px;gap:8px;margin-bottom:8px;align-items:center;';
+  row.innerHTML =
+    '<input class="text-input" type="text" placeholder="e.g. Brake pads" maxlength="60" style="font-size:13px;">' +
+    '<input type="date" style="font-size:13px;">' +
+    '<div class="amount-wrap"><span class="amount-prefix">'+curr+'</span>' +
+    '<input class="amount-input" type="number" min="0" placeholder="Cost" style="font-size:15px;padding:9px 9px 9px 44px;"></div>' +
+    '<button class="btn-remove-row" onclick="this.parentElement.remove()" title="Remove">×</button>';
+  document.getElementById('maintList').appendChild(row);
+}
+
+// ─── GOV TAX ROW (EU generic) ────────────────────────────────────────────────
+function addGovTaxRow() {
+  addGenericCostRow('euGovList');
+}
+
+// ─── INIT Q7g (show CZ or EU block) ─────────────────────────────────────────
+function initGovTaxScreen() {
+  const p = JSON.parse(localStorage.getItem('pocketos_profile') || '{}');
+  if (p.czPresets) {
+    document.getElementById('czGovBlock').style.display = 'block';
+    document.getElementById('euGovBlock').style.display = 'none';
+  } else {
+    document.getElementById('czGovBlock').style.display = 'none';
+    document.getElementById('euGovBlock').style.display = 'block';
+  }
+}
+
+// ─── INIT Q8c (CZ insurance notice) ─────────────────────────────────────────
+function initCarInsScreen() {
+  const p = JSON.parse(localStorage.getItem('pocketos_profile') || '{}');
+  if (p.czPresets) {
+    const el = document.getElementById('czInsNoteQ8c');
+    if (el) el.style.display = 'flex';
+  }
+}
+
+// ─── INIT Q8e1 (STK label) ───────────────────────────────────────────────────
+function initMaintScreen() {
+  const p = JSON.parse(localStorage.getItem('pocketos_profile') || '{}');
+  const el = document.getElementById('stkLabel');
+  if (el) el.innerHTML = (p.czPresets ? 'STK (Státní technická kontrola) due' : 'Next MOT / roadworthiness test') + ' <span class="field-optional">Optional — sets a reminder</span>';
+}
+
+// ─── Q8d BACK BUTTON (depends on whether insurance was yes/no) ───────────────
+function advance_q8d_back() {
+  goTo(pillState.carins === 'yes' ? 'q8c1' : 'q8c');
+}
+
+// ─── COLLECT GENERIC COST ROWS ───────────────────────────────────────────────
+function collectCostRows(listId) {
+  const rows = [];
+  document.querySelectorAll('#'+listId+' .source-row').forEach(row => {
+    const desc   = row.querySelector('input[type="text"]')?.value.trim()   || '';
+    const amount = parseFloat(row.querySelector('input[type="number"]')?.value) || 0;
+    if (desc || amount) rows.push({ description: desc, monthly: amount });
+  });
+  return rows;
+}
+
+// ─── RESTORE SAVED STATE ─────────────────────────────────────────────────────
+function restoreState() {
+  const p = JSON.parse(localStorage.getItem('pocketos_profile') || '{}');
+  if (p.firstName)     document.getElementById('firstName').value = p.firstName;
+  if (p.partnerName)   document.getElementById('partnerName').value = p.partnerName;
+  if (p.householdType) selectPill('household', p.householdType);
+  if (p.hasChildren !== undefined) selectPill('children', p.hasChildren ? 'yes' : 'no');
+  if (p.childCount)    { childCount = p.childCount; document.getElementById('childrenCount').textContent = childCount; }
+  if (p.country)       { document.getElementById('countrySelect').value = p.country; onCountryChange(); }
+  if (p.city)          document.getElementById('cityInput').value = p.city;
+  if (p.occupation)    selectOcc(p.occupation, 'you');
+  if (p.partnerOccupation) selectOcc(p.partnerOccupation, 'partner');
+  // income
+  initIncomeCurrency();
+  if (p.incomeYou)      { document.getElementById('incomeYou').value = p.incomeYou; onIncomeInput('you'); }
+  if (p.incomePartner)  { document.getElementById('incomePartner').value = p.incomePartner; onIncomeInput('partner'); }
+  if (p.incomeYouFreq)  selectFreq('you', p.incomeYouFreq);
+  if (p.incomePartnerFreq) selectFreq('partner', p.incomePartnerFreq);
+  if (p.savingsBalance) { document.getElementById('savingsBalance').value = p.savingsBalance; onSavingsInput(); }
+  if (p.savingsTarget)  document.getElementById('savingsTarget').value = p.savingsTarget;
+  if (p.otherIncomeSources && p.otherIncomeSources.length) {
+    selectPill('othersources','yes');
+    showSourceRows();
+    document.getElementById('sourceRows').innerHTML = '';
+    p.otherIncomeSources.forEach(s => {
+      addSourceRow();
+      const rows = document.querySelectorAll('#sourceRows .source-row');
+      const row  = rows[rows.length - 1];
+      row.querySelector('input[type="text"]').value   = s.label || '';
+      row.querySelector('input[type="number"]').value = s.monthly || '';
+    });
+  }
+}
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+buildNav();
+updateNav('welcome');
+populateYears('dobYear',  16, 100);
+populateYears('pDobYear', 16, 100);
+populateDays('dobDay',   0, 0);
+populateDays('pDobDay',  0, 0);
+restoreState();
+</script>
+</body>
+</html>

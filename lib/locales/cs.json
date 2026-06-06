@@ -1,0 +1,809 @@
+{
+  "app": {
+    "name": "PocketOS",
+    "tagline": "Tvoje kapsa. Vylepšená.",
+    "description": "Chytrý nástroj pro domácí rozpočet, který vám pomůže sledovat příjmy, spravovat náklady a převzít kontrolu nad svými financemi — vše na jednom místě."
+  },
+  "common": {
+    "continue": "Pokračovat",
+    "back": "Zpět",
+    "skip": "Přeskočit",
+    "skipped": "Přeskočeno",
+    "save": "Uložit",
+    "cancel": "Zrušit",
+    "edit": "Upravit",
+    "delete": "Smazat",
+    "add": "Přidat",
+    "loading": "Načítání...",
+    "error": "Něco se pokazilo",
+    "yes": "Ano",
+    "no": "Ne",
+    "menu": "Menu",
+    "language": "Jazyk",
+    "daily": "Denně",
+    "weekly": "Týdně",
+    "monthly": "Měsíčně",
+    "quarterly": "Čtvrtletně",
+    "annual": "Ročně",
+    "frequency": "Frekvence",
+    "custom": "Vlastní",
+    "datePicker": {
+      "day": "Den",
+      "month": "Měsíc",
+      "year": "Rok"
+    },
+    "months": {
+      "january": "Leden",
+      "february": "Únor",
+      "march": "Březen",
+      "april": "Duben",
+      "may": "Květen",
+      "june": "Červen",
+      "july": "Červenec",
+      "august": "Srpen",
+      "september": "Září",
+      "october": "Říjen",
+      "november": "Listopad",
+      "december": "Prosinec"
+    }
+  },
+  "onboarding": {
+    "welcome": {
+      "title": "PocketOS",
+      "subtitle": "Vaše domácí finance, konečně jasné.",
+      "cta": "Začít"
+    },
+    "consent": {
+      "title": "Vaše data, vaše soukromí",
+      "body": "Vše, co zadáte, zůstává u vás. Nikdy neprodáváme vaše data ani je nesdílíme s nikým. Všechna svá data můžete kdykoli smazat v Nastavení.",
+      "checkbox": "Rozumím a souhlasím s pokračováním"
+    },
+    "household": {
+      "chapter": "Nastavení domácnosti",
+      "type": {
+        "title": "Pro koho plánujeme rozpočet?",
+        "helper": "To nám pomůže nastavit pole příjmů a nákladů pro celou vaši domácnost.",
+        "solo": "Jen já",
+        "partner": "Já + partner",
+        "singleParent": "Samoživitel/ka",
+        "validation": "Prosím vyberte typ domácnosti"
+      },
+      "partnerName": {
+        "title": "Jak máme oslovovat vašeho partnera?",
+        "helper": "Používá se pouze k personalizaci štítků jako 'Příjem Sáry'. Nic víc.",
+        "placeholder": "Jméno partnera",
+        "validation": "Prosím zadejte jméno partnera"
+      },
+      "children": {
+        "title": "Máte nějaké děti?",
+        "helper": "Tím se odemkne vyhrazená sekce pro náklady na děti.",
+        "validation": "Prosím vyberte ano nebo ne"
+      },
+      "numChildren": {
+        "title": "Kolik máte dětí?",
+        "helper": "Každé dítě dostane vlastní sekci nákladů později v nastavení."
+      },
+      "childDetails": {
+        "title": "Dítě {{n}} — pár rychlých detailů",
+        "helper": "Jméno je pouze pro zobrazení. Věková skupina zobrazí správná pole nákladů.",
+        "nameLabel": "Jméno (volitelné)",
+        "namePlaceholder": "Jméno dítěte",
+        "ageLabel": "Věková skupina",
+        "age0": "Do 3 let",
+        "age3": "3–5 let",
+        "age6": "6–15 let",
+        "age16": "16–18 let",
+        "age18": "18+ let",
+        "validation": "Prosím vyberte věkovou skupinu"
+      }
+    },
+    "s2": {
+      "eyebrow": "Sekce 2 — Lokace a povolání",
+      "heading": "Kde žijete a co děláte",
+      "body": "Ovlivňuje to, co platíte. Pojďme to správně nastavit."
+    },
+    "location": {
+      "chapter": "Lokace a povolání",
+      "title": "Kde žijete?",
+      "helper": "Použijeme to k předvyplnění místních nákladů a zobrazení relevantního finančního kontextu.",
+      "countryLabel": "Země",
+      "countryPlaceholder": "Vyberte zemi",
+      "cityLabel": "Město / Region (volitelné)",
+      "cityPlaceholder": "např. Praha",
+      "currencyLabel": "Měna",
+      "validation": "Prosím vyberte zemi"
+    },
+    "occupation": {
+      "title": "Co nejlépe popisuje vaši pracovní situaci?",
+      "helper": "Ovlivňuje sekci příjmů a některé nákladové položky — například zdravotní pojištění.",
+      "employee": "Zaměstnanec",
+      "selfEmployed": "OSVČ / Freelancer",
+      "student": "Student",
+      "notWorking": "Momentálně nepracuji",
+      "other": "Jiné",
+      "otherPlaceholder": "Stručně nám to popište (volitelné)",
+      "validation": "Prosím vyberte povolání",
+      "partnerTitle": "Jaká je pracovní situace {{name}}?",
+      "partnerHelper": "Ovlivňuje příjmy a kontext pojištění."
+    },
+    "s3": {
+      "eyebrow": "Sekce 3 — Příjmy",
+      "heading": "Teď čísla",
+      "body": "Zadejte čisté částky — co skutečně přistane na vašem účtu. Toto je číslo, ke kterému se vše ostatní vztahuje."
+    },
+    "income": {
+      "chapter": "Příjmy a úspory",
+      "q5": {
+        "titleEmployee": "Čistá měsíční mzda",
+        "titleSelfEmployed": "Průměrný měsíční čistý příjem",
+        "titleStudent": "Měsíční stipendium nebo příspěvek",
+        "titleNotWorking": "Momentálně nepracuji",
+        "titleOther": "Jaký je váš průměrný měsíční příjem?",
+        "helperEmployee": "Po dani a sociálním pojištění.",
+        "helperSelfEmployed": "Po odečtení nákladů a daně — váš průměrný čistý příjem.",
+        "helperStudent": "Vaše pravidelné stipendium nebo příspěvek.",
+        "helperNotWorking": "Příjem přeskočíme — níže můžete přidat jiné zdroje.",
+        "helperOther": "Váš nejlepší odhad průměrného měsíčního čistého příjmu.",
+        "notWorkingNote": "Žádný příjem k zadání — níže můžete přidat jiné zdroje.",
+        "frequencyDaily": "Denně",
+        "frequencyWeekly": "Týdně",
+        "frequencyFortnightly": "14denně",
+        "frequencyMonthly": "Měsíčně",
+        "monthlyEquivalent": "= přibl. {{amount}}/měsíc",
+        "validation": "Prosím zadejte svůj příjem"
+      },
+      "q5a": {
+        "title": "Jaký je měsíční čistý příjem {{name}}?",
+        "helper": "Čistá částka po zdanění.",
+        "validation": "Prosím zadejte příjem {{name}}"
+      },
+      "q5b": {
+        "title": "Máte nějaké další zdroje příjmů?",
+        "helper": "Pronájmy, dividendy, finanční podpora — cokoli pravidelného.",
+        "yes": "Ano",
+        "no": "Ne",
+        "amountLabel": "Částka",
+        "amountPlaceholder": "Částka",
+        "frequencyLabel": "Frekvence",
+        "descriptionLabel": "Popis",
+        "labelPlaceholder": "Popisek (volitelný)",
+        "addAnother": "Přidat další zdroj"
+      },
+      "q5c": {
+        "title": "Máte úspory?",
+        "helper": "Váš zůstatek ukazuje, kolik měsíců výdajů máte pokryto. Měsíční cíl je považován za závaznou položku rozpočtu.",
+        "balanceLabel": "Aktuální zůstatek úspor",
+        "balancePlaceholder": "např. 50 000",
+        "monthlyTargetLabel": "Měsíční cíl úspor",
+        "monthlyTargetPlaceholder": "např. 2 000"
+      },
+      "q5d": {
+        "title": "Máte finanční cíl?",
+        "helper": "Cílová částka a datum — dovolená, auto, svatba, rezervní fond. AI to zohlední ve svých radách.",
+        "yes": "Ano",
+        "no": "Ne",
+        "descriptionLabel": "Popis cíle (volitelný)",
+        "descriptionPlaceholder": "např. Dovolená v Thajsku",
+        "amountLabel": "Cílová částka",
+        "amountPlaceholder": "např. 100 000",
+        "dateLabel": "Cílové datum",
+        "validation": "Prosím zadejte cílovou částku"
+      }
+    },
+    "s4": {
+      "eyebrow": "Sekce 4 — Bydlení",
+      "heading": "Bydlení",
+      "body": "Bydlení je obvykle největší měsíční výdaj. Pojďme si udělat jasný obrázek."
+    },
+    "housing": {
+      "chapter": "Bydlení",
+      "q6": {
+        "title": "Bydlíte v nájmu, vlastním bydlení nebo s rodinou?",
+        "helper": "Vyberte, co nejlépe popisuje vaši současnou situaci.",
+        "renting": "V nájmu",
+        "own": "Vlastní bydlení",
+        "family": "Bydlím s rodinou / bez nájmu",
+        "validation": "Prosím vyberte typ bydlení"
+      },
+      "q6a": {
+        "title": "Kolik platíte měsíčně za nájem?",
+        "helper": "Pokud máte energie zahrnuté v nájmu a znáte částku, zadejte pouze základní nájem — energie zadáte v dalším kroku. Pokud neznáte rozdělení (kolej, vše v ceně, atd.), zadejte celkovou částku a energie přeskočte.",
+        "validation": "Prosím zadejte měsíční nájem"
+      },
+      "q6b": {
+        "title": "Kolik platíte za energie?",
+        "helper": "Plyn, elektřina, voda — dohromady. Stačí odhad. Přeskočte, pokud nevíte nebo nechcete oddělovat.",
+        "skip": "Přeskočit — nevím nebo je to v nájmu"
+      },
+      "q6c": {
+        "title": "Platíte internet zvlášť?",
+        "helper": "Přeskočte, pokud je internet zahrnut v nájmu nebo energiích.",
+        "no": "Ne / V ceně",
+        "yes": "Ano",
+        "amountPlaceholder": "Částka",
+        "frequencyMonthly": "Měsíčně",
+        "frequencyAnnual": "Ročně",
+        "validation": "Prosím zadejte částku za internet"
+      },
+      "q6d": {
+        "title": "Máte hypotéku?",
+        "helper": "Vyberte 'Ne', pokud vlastníte nemovitost bez hypotéky.",
+        "yes": "Ano",
+        "no": "Ne (vlastním bez hypotéky)",
+        "validation": "Prosím vyberte možnost"
+      },
+      "q6e": {
+        "title": "Kolik činí vaše měsíční splátka hypotéky?",
+        "helper": "Celková měsíční částka včetně jistiny a úroků.",
+        "amountLabel": "Měsíční splátka",
+        "endDateLabel": "Konec hypotéky (volitelný)",
+        "endDatePlaceholder": "MM/RRRR",
+        "validation": "Prosím zadejte splátku hypotéky"
+      },
+      "q6f": {
+        "title": "Máte další pravidelné náklady na bydlení?",
+        "helper": "Fond oprav, pojištění nemovitosti, služby, daň z nemovitosti — cokoli pravidelného.",
+        "yes": "Ano",
+        "no": "Ne",
+        "amountPlaceholder": "Částka",
+        "descriptionPlaceholder": "Popis (volitelný)",
+        "dueDateLabel": "Datum splatnosti",
+        "dueDatePlaceholder": "Datum splatnosti (volitelné)",
+        "addAnother": "Přidat další náklad"
+      },
+      "q6h": {
+        "title": "Přispíváte na chod domácnosti?",
+        "helper": "Příspěvky na nájem, potraviny, účty — přidejte jakoukoli pravidelnou podporu.",
+        "yes": "Ano",
+        "no": "Ne",
+        "amountPlaceholder": "Částka",
+        "descriptionPlaceholder": "Popis (volitelný)",
+        "dueDateLabel": "Datum splatnosti",
+        "dueDatePlaceholder": "Datum splatnosti (volitelné)",
+        "addAnother": "Přidat další příspěvek"
+      },
+      "q6g": {
+        "title": "Státní a městské poplatky",
+        "helper": "Většina domácností platí fixní zákonné poplatky. Předvyplnili jsme ty nejběžnější — potvrďte nebo upravte.",
+        "wasteTax": "Poplatek za odpad",
+        "wasteTaxNote": "1 080 Kč/rok — svoz komunálního odpadu",
+        "tvLicence": "Televizní poplatek",
+        "tvLicenceNote": "1 620 Kč/rok — Česká televize",
+        "radioLicence": "Rozhlasový poplatek",
+        "radioLicenceNote": "540 Kč/rok — Český rozhlas",
+        "addCustom": "Přidat vlastní položku",
+        "customPlaceholder": "Název položky",
+        "customAmountPlaceholder": "Částka",
+        "frequencyMonthly": "Měsíčně",
+        "frequencyAnnual": "Ročně"
+      }
+    },
+    "s5": {
+      "eyebrow": "Sekce 5 — Doprava",
+      "heading": "Doprava",
+      "body": "Auto, palivo, parkování, veřejná doprava — pojďme zjistit, kolik utrácíte za cestování."
+    },
+    "transport": {
+      "chapter": "Doprava",
+      "q7": {
+        "title": "Máte auto nebo jiné vozidlo?",
+        "helper": "Motocykl, skútr, dodávka — cokoli s motorem, co pravidelně používáte.",
+        "yes": "Ano",
+        "no": "Ne",
+        "validation": "Prosím vyberte ano nebo ne"
+      },
+      "q7Count": {
+        "title": "Kolik vozidel vlastníte?",
+        "helper": "Řekněte nám, kolik vozidel vlastníte v každé kategorii.",
+        "passenger": "Osobní vozidla",
+        "motorcycle": "Motocykly / Skútry",
+        "bicycle": "Jízdní kola",
+        "validation": "Prosím přidejte alespoň jedno vozidlo"
+      },
+      "q7a": {
+        "title": "Palivo a provozní náklady",
+        "helper": "Jaký typ paliva vaše vozidlo používá a kolik přibližně utratíte měsíčně?",
+        "vehicleLabel": "Vozidlo {{n}} z {{total}} — {{category}}",
+        "fuelLabel": "Typ paliva",
+        "petrol": "Benzín",
+        "diesel": "Nafta",
+        "electric": "Elektřina",
+        "hybrid": "Hybrid",
+        "lpg": "LPG",
+        "cng": "CNG",
+        "costLabel": "Odhadované měsíční náklady na palivo",
+        "costLabelElectric": "Odhadované měsíční náklady na nabíjení",
+        "costPlaceholder": "např. 2 500",
+        "validation": "Prosím zadejte měsíční náklady na palivo"
+      },
+      "q7b": {
+        "title": "Pojištění vozidla",
+        "helper": "Zadejte údaje o pojištění — přeskočte, pokud nemáte samostatné pojištění vozidla.",
+        "vehicleLabel": "Vozidlo {{n}} z {{total}} — {{category}}",
+        "premiumLabel": "Pojistné",
+        "premiumPlaceholder": "např. 6 000",
+        "frequencyLabel": "Frekvence",
+        "frequencyMonthly": "Měsíčně",
+        "frequencyAnnual": "Ročně",
+        "renewalLabel": "Datum příští obnovy (volitelné)",
+        "renewalPlaceholder": "MM/RRRR",
+        "skip": "Přeskočit — žádné samostatné pojištění",
+        "validation": "Prosím zadejte pojistné"
+      },
+      "q7c": {
+        "title": "Parkovací zóny nebo rezidentní povolení",
+        "helper": "Pokud platíte za parkovací zónu nebo rezidentní povolení ve městě, zadejte náklady zde.",
+        "vehicleLabel": "Vozidlo {{n}} z {{total}} — {{category}}",
+        "amountLabel": "Náklady na parkování",
+        "amountPlaceholder": "např. 1 200",
+        "frequencyLabel": "Frekvence",
+        "frequencyMonthly": "Měsíčně",
+        "frequencyAnnual": "Ročně",
+        "skip": "Přeskočit — žádné náklady na parkování",
+        "validation": "Prosím zadejte náklady na parkování"
+      },
+      "q7d": {
+        "title": "STK a údržba",
+        "helper": "Kdy končí platnost STK? Přidejte plánované položky údržby, na které šetříte.",
+        "vehicleLabel": "Vozidlo {{n}} z {{total}} — {{category}}",
+        "motLabel": "Datum konce platnosti STK (volitelné)",
+        "motPlaceholder": "MM/RRRR",
+        "maintenanceLabel": "Plánované položky údržby",
+        "maintenanceDescPlaceholder": "Co je potřeba udělat?",
+        "maintenanceCostPlaceholder": "Cena",
+        "maintenanceDateLabel": "Datum",
+        "maintenanceDatePlaceholder": "Datum (volitelné)",
+        "addItem": "Přidat položku",
+        "skip": "Přeskočit — žádná plánovaná údržba"
+      },
+      "q7bicycle": {
+        "title": "Údržba jízdního kola",
+        "helper": "Přidejte plánovanou údržbu nebo opravy kola, na které šetříte — například nový řetěz, brzdové destičky nebo oprava pneumatiky.",
+        "maintenanceLabel": "Plánované položky údržby",
+        "maintenanceDescPlaceholder": "Co je potřeba udělat?",
+        "maintenanceCostPlaceholder": "Cena",
+        "maintenanceDateLabel": "Datum",
+        "maintenanceDatePlaceholder": "Datum (volitelné)",
+        "addItem": "Přidat položku",
+        "skip": "Přeskočit — žádná plánovaná údržba"
+      },
+      "q7e": {
+        "title": "Veřejná doprava",
+        "helper": "Zadejte pravidelné náklady na veřejnou dopravu — přeskočte, pokud veřejnou dopravu nevyužíváte.",
+        "amountLabel": "Náklady na měsíční/roční kupón",
+        "amountPlaceholder": "např. 550",
+        "frequencyLabel": "Frekvence",
+        "frequencyMonthly": "Měsíčně",
+        "frequencyAnnual": "Ročně",
+        "passLabel": "Typ kupónu (volitelný)",
+        "passPlaceholder": "např. Pražská roční kupón",
+        "validUntilLabel": "Platnost kupónu do (volitelné)",
+        "skip": "Přeskočit — nevyužívám veřejnou dopravu",
+        "validation": "Prosím zadejte náklady na veřejnou dopravu"
+      }
+    },
+    "s6": {
+      "eyebrow": "Sekce 6 — Zdravotní pojištění",
+      "heading": "Zdravotní pojištění",
+      "body": "Zdravotní pojištění se liší podle situace. Pojďme se ujistit, že každý v domácnosti je pokrytý."
+    },
+    "health": {
+      "chapter": "Zdravotní pojištění",
+      "title": "Zdravotní pojištění pro {{name}}",
+      "helper": "Potvrďte, jak je řešeno zdravotní pojištění {{name}}.",
+      "you": "Vy",
+      "child": "Dítě",
+      "coveredByEmployer": "Hrazeno zaměstnavatelem",
+      "coveredByEmployerNote": "V České republice platí zaměstnavatelé zdravotní pojištění za své zaměstnance. Není potřeba nic dalšího.",
+      "confirmCoverage": "Potvrdit pokrytí",
+      "confirmed": "Potvrzeno",
+      "coverageType": "Typ pojištění",
+      "payPrivately": "Platit soukromě",
+      "premiumLabel": "Měsíční pojistné",
+      "premiumPlaceholder": "např. 2 360",
+      "premiumRequired": "Prosím zadejte částku pojistného",
+      "frequencyLabel": "Frekvence",
+      "startDateLabel": "Datum začátku",
+      "endDateLabel": "Datum konce",
+      "contractTypeLabel": "Typ smlouvy",
+      "ongoing": "Průběžně",
+      "fixed": "Pevný konec",
+      "notesLabel": "Poznámky (volitelné)",
+      "notesPlaceholder": "např. Dodatečné soukromé pojištění",
+      "customFrequencyLabel": "Kolik měsíců?",
+      "customFrequencyPlaceholder": "např. 3",
+      "validation": "Prosím potvrďte údaje o pojištění tohoto člena",
+      "q8": {
+        "title": "Zdravotní pojištění pro {{name}}",
+        "helper": "Potvrďte, jak je řešeno zdravotní pojištění {{name}}.",
+        "coveredByEmployer": "Hrazeno zaměstnavatelem",
+        "coveredByEmployerNote": "V České republice platí zaměstnavatelé zdravotní pojištění za své zaměstnance. Není potřeba nic dalšího.",
+        "premiumLabel": "Měsíční pojistné",
+        "premiumPlaceholder": "např. 2 360",
+        "frequencyLabel": "Frekvence",
+        "frequencyMonthly": "Měsíčně",
+        "frequencyQuarterly": "Čtvrtletně",
+        "frequencyAnnual": "Ročně",
+        "startDateLabel": "Datum začátku",
+        "startDatePlaceholder": "MM/RRRR",
+        "endDateLabel": "Datum konce",
+        "endDatePlaceholder": "MM/RRRR",
+        "openEnded": "Na dobu neurčitou / bez pevného konce",
+        "notesLabel": "Poznámky (volitelné)",
+        "notesPlaceholder": "např. Dodatečné soukromé pojištění",
+        "validation": "Prosím potvrďte údaje o pojištění tohoto člena",
+        "confirm": "Potvrzeno"
+      }
+    },
+    "s7": {
+      "eyebrow": "Sekce 7 — Náklady na děti",
+      "heading": "Náklady na děti",
+      "body": "Pojďme sledovat pravidelné náklady na každé dítě — od školky po školní potřeby."
+    },
+    "childrenCosts": {
+      "chapter": "Náklady na děti",
+      "q9": {
+        "title": "Náklady na {{name}}",
+        "helper": "Tato pole vycházejí z věkové skupiny {{name}} ({{ageGroup}}).",
+        "age0_2": "Do 3 let",
+        "age3_5": "3–5 let",
+        "age6_15": "6–15 let",
+        "age16_18": "16–18 let",
+        "field": {
+          "nursery": "Jesle / dětská skupina",
+          "nurseryHelper": "Měsíční náklady na jesle nebo dětskou skupinu",
+          "diapers": "Pleny a vlhčené ubrousky",
+          "diapersHelper": "Měsíční náklady na pleny, ubrousky, krémy",
+          "formula": "Suné mléko a příkrmy",
+          "formulaHelper": "Měsíční náklady na suné mléko a dětskou výživu",
+          "clothing": "Oblečení a boty",
+          "clothingHelper": "Měsíční průměr za oblečení a boty",
+          "kindergarten": "Školka",
+          "kindergartenHelper": "Měsíční poplatky za školku",
+          "toys": "Hračky a aktivity",
+          "toysHelper": "Měsíční průměr za hračky, kroužky, aktivity",
+          "schoolSupplies": "Školní potřeby",
+          "schoolSuppliesHelper": "Měsíční průměr za školní potřeby a pomůcky",
+          "afterSchool": "Družina",
+          "afterSchoolHelper": "Měsíční poplatky za družinu",
+          "allowance": "Kapesné",
+          "allowanceHelper": "Měsíční kapesné pro dítě",
+          "phone": "Telefon a data",
+          "phoneHelper": "Měsíční náklady na telefon a data",
+          "transport": "Školní doprava",
+          "transportHelper": "Měsíční náklady na školní dopravu nebo autobusový kupón",
+          "extracurricular": "Zájmové kroužky",
+          "extracurricularHelper": "Sport, hudba, doučování — měsíční průměr",
+          "savings": "Spoření pro dítě",
+          "savingsHelper": "Měsíční spoření odkládané pro dítě"
+        },
+        "suggestions": "Návrhy — klepnutím přidáte",
+        "amountPlaceholder": "Částka",
+        "frequencyMonthly": "Měsíčně",
+        "frequencyAnnual": "Ročně"
+      }
+    },
+    "s8": {
+      "eyebrow": "Sekce 8 — Domácí mazlíčci",
+      "heading": "Domácí mazlíčci",
+      "body": "Naši chlupatí (a ne tak chlupatí) přátelé přinášejí náklady. Pojďme je sledovat."
+    },
+    "pets": {
+      "chapter": "Domácí mazlíčci",
+      "q10": {
+        "title": "Máte nějaké domácí mazlíčky?",
+        "helper": "Psi, kočky, ptáci, ryby, králíci — jakékoli zvíře, o které se pravidelně staráte.",
+        "yes": "Ano",
+        "no": "Ne"
+      },
+      "q10a": {
+        "heading": "Vaši mazlíčci",
+        "title": "Mazlíček {{n}}",
+        "helper": "Zadejte pravidelné náklady.",
+        "costsLabel": "Náklady",
+        "typeLabel": "Typ mazlíčka",
+        "dog": "Pes",
+        "cat": "Kočka",
+        "bird": "Pták",
+        "other": "Jiné",
+        "nameLabel": "Jméno (volitelné)",
+        "namePlaceholder": "Jméno mazlíčka",
+        "foodLabel": "Krmivo",
+        "foodPlaceholder": "např. 800",
+        "vetLabel": "Veterinář",
+        "vetPlaceholder": "např. 2 000",
+        "insuranceLabel": "Má pojištění",
+        "insurancePremiumLabel": "Pojistné",
+        "insurancePremiumPlaceholder": "např. 300",
+        "insuranceFrequencyLabel": "Frekvence",
+        "insuranceRenewalLabel": "Datum obnovy",
+        "groomingLabel": "Péče",
+        "groomingPlaceholder": "např. 500",
+        "otherCostLabel": "Ostatní náklady",
+        "otherCostPlaceholder": "např. 500",
+        "dogTaxLabel": "Poplatek za psa (ČR)",
+        "dogTaxHelper": "V České republice platí majitelé psů roční poplatek za psa. Předvyplněno 1 500 Kč.",
+        "addPet": "Přidat dalšího mazlíčka",
+        "validation": "Prosím vyberte typ mazlíčka"
+      }
+    },
+    "s9": {
+      "eyebrow": "Sekce 9 — Předplatné",
+      "heading": "Předplatné",
+      "body": "Streamování, cloudové úložiště, fitness aplikace — malé měsíční náklady, které se nasčítají."
+    },
+    "subscriptions": {
+      "chapter": "Předplatné",
+      "q11": {
+        "title": "Jaká máte předplatné?",
+        "helper": "Klepnutím přidáte běžná předplatná nebo přidejte vlastní níže.",
+        "quickAdd": "Rychlé přidání",
+        "customAdd": "Přidat vlastní předplatné",
+        "customLabel": "Název služby",
+        "customPlaceholder": "např. Adobe Creative Cloud",
+        "amountLabel": "Cena",
+        "amountPlaceholder": "např. 599",
+        "frequencyLabel": "Frekvence",
+        "frequencyMonthly": "Měsíčně",
+        "frequencyQuarterly": "Čtvrtletně",
+        "frequencyAnnual": "Ročně",
+        "autoRenewLabel": "Automatická obnova",
+        "renewalLabel": "Datum příští obnovy (volitelné)",
+        "renewalPlaceholder": "MM/RRRR",
+        "validation": "Prosím zadejte cenu pro každé předplatné",
+        "streamingFlag": "Máte {{count}} streamovacích předplatných za {{total}}/měsíc celkem.",
+        "services": {
+          "netflix": "Netflix",
+          "primeVideo": "Prime Video",
+          "disneyPlus": "Disney+",
+          "appleTvPlus": "Apple TV+",
+          "hboMax": "HBO Max",
+          "spotify": "Spotify",
+          "appleMusic": "Apple Music",
+          "youtubePremium": "YouTube Premium",
+          "deezer": "Deezer",
+          "revolut": "Revolut",
+          "wise": "Wise",
+          "icloudPlus": "iCloud+",
+          "googleOne": "Google One",
+          "microsoft365": "Microsoft 365",
+          "adobeCC": "Adobe Creative Cloud",
+          "playstationPlus": "PlayStation Plus",
+          "xboxGamePass": "Xbox Game Pass",
+          "other": "Jiné",
+          "hulu": "Hulu",
+          "twitch": "Twitch",
+          "dropbox": "Dropbox",
+          "googleDrive": "Google Drive",
+          "icloud": "iCloud",
+          "notion": "Notion",
+          "chatgpt": "ChatGPT Plus",
+          "github": "GitHub",
+          "medium": "Medium",
+          "nytimes": "NY Times",
+          "theEconomist": "The Economist"
+        }
+      }
+    },
+    "s10": {
+      "eyebrow": "Sekce 10 — Ostatní náklady",
+      "heading": "Ostatní pravidelné náklady",
+      "body": "Zbytek vašich pravidelných výdajů — potraviny, mobil, pojištění a další."
+    },
+    "otherCosts": {
+      "chapter": "Ostatní pravidelné náklady",
+      "q12": {
+        "title": "Jaké další pravidelné náklady máte?",
+        "helper": "Klepnutím přidáte běžné náklady nebo přidejte vlastní níže.",
+        "quickAdd": "Rychlé přidání",
+        "customAdd": "Přidat vlastní náklad",
+        "customLabel": "Název nákladu",
+        "customPlaceholder": "např. Členství v posilovně",
+        "amountLabel": "Částka",
+        "amountPlaceholder": "např. 1 500",
+        "frequencyLabel": "Frekvence",
+        "frequencyMonthly": "Měsíčně",
+        "frequencyQuarterly": "Čtvrtletně",
+        "frequencyAnnual": "Ročně",
+        "dueDateLabel": "Datum splatnosti (volitelné)",
+        "dueDatePlaceholder": "MM/RRRR",
+        "validation": "Prosím zadejte částku pro každý náklad",
+        "osvcNote": "Jako OSVČ nezapomeňte zahrnout své odvody na sociální a zdravotní pojištění.",
+        "costs": {
+          "groceries": "Potraviny",
+          "mobilePhone": "Mobilní telefon",
+          "lifeInsurance": "Životní pojištění",
+          "homeInsurance": "Pojištění domácnosti",
+          "gym": "Posilovna / Fitness",
+          "hairSalon": "Kadeřník / Holič",
+          "laundry": "Prádelna / Čistírna",
+          "charity": "Charita / Dary",
+          "education": "Vzdělávání / Kurzy",
+          "pension": "Penzijní připojištění",
+          "osvcSocial": "OSVČ — Sociální pojištění",
+          "osvcHealth": "OSVČ — Zdravotní pojištění",
+          "other": "Jiné"
+        }
+      }
+    },
+    "s11": {
+      "eyebrow": "Sekce 11 — Dluhy a půjčky",
+      "heading": "Dluhy a půjčky",
+      "body": "Porozumět svým dluhům je první krok k jejich zvládnutí. Pojďme si udělat jasný obrázek."
+    },
+    "debts": {
+      "chapter": "Dluhy a půjčky",
+      "q13": {
+        "title": "Máte nějaké dluhy nebo půjčky?",
+        "helper": "Kreditní karty, osobní půjčky, studentské půjčky, BNPL — cokoli, co právě splácíte.",
+        "yes": "Ano",
+        "no": "Ne"
+      },
+      "q13a": {
+        "title": "Vaše dluhy",
+        "debtLabel": "Dluh {{n}}",
+        "helper": "Zadejte podrobnosti o tomto dluhu.",
+        "typeLabel": "Typ dluhu",
+        "creditCard": "Kreditní karta",
+        "personalLoan": "Osobní půjčka",
+        "carLoan": "Půjčka na auto / Leasing",
+        "studentLoan": "Studentská půjčka",
+        "medical": "Zdravotní dluh",
+        "family": "Půjčka od rodiny / přátel",
+        "bnpl": "Kup teď, zaplať později",
+        "other": "Jiné",
+        "creditorLabel": "Věřitel (volitelný)",
+        "creditorPlaceholder": "např. Moneta, Home Credit",
+        "balanceLabel": "Aktuální zůstatek",
+        "balancePlaceholder": "např. 50 000",
+        "minPaymentLabel": "Minimální měsíční splátka",
+        "minPaymentPlaceholder": "např. 2 000",
+        "minPaymentHelper": "Minimální částka, kterou musíte každý měsíc zaplatit, abyste byli v pořádku.",
+        "aprLabel": "RPSN (%)",
+        "aprPlaceholder": "např. 14,9",
+        "aprHelper": "Roční procentní sazba nákladů — roční úroková sazba tohoto dluhu.",
+        "promoEndLabel": "Konec promo sazby (volitelný)",
+        "promoEndPlaceholder": "MM/RRRR",
+        "highAprWarning": "⚠️ Tato RPSN je nad 20 %. Zvažte přednostní splacení tohoto dluhu.",
+        "dueDayLabel": "Den splatnosti (volitelný)",
+        "dueDayPlaceholder": "např. 15",
+        "notesLabel": "Poznámky (volitelné)",
+        "notesPlaceholder": "např. Poslední splátka očekávána v prosinci 2026",
+        "addDebt": "Přidat další dluh",
+        "validation": "Prosím vyberte typ dluhu"
+      }
+    },
+    "s12": {
+      "eyebrow": "Sekce 12 — Rozpočet",
+      "heading": "Rozpočet a strategie",
+      "body": "Nyní nastavíme váš flexibilní rozpočet a rozhodneme, jak se nespotřebované peníze převádějí."
+    },
+    "budget": {
+      "chapter": "Rozpočet a strategie",
+      "q14": {
+        "title": "Váš flexibilní rozpočet",
+        "summaryTitle": "Popis",
+        "helper": "To je to, co zbývá po fixních nákladech, splátkách dluhů a spoření. Můžete to upravit podle potřeby.",
+        "income": "Celkový měsíční příjem",
+        "fixedCosts": "Fixní měsíční náklady",
+        "debtPayments": "Splátky dluhů",
+        "savings": "Cíl spoření",
+        "available": "Dostupné pro flexibilní útratu",
+        "budgetLabel": "Váš měsíční flexibilní rozpočet",
+        "amount": "Částka",
+        "currency": "Měna",
+        "incomeUser": "Váš příjem",
+        "incomePartner": "Příjem partnera",
+        "incomeOther": "Ostatní příjmy",
+        "cat": {
+          "housing": "Bydlení",
+          "transport": "Doprava",
+          "health": "Zdravotní pojištění",
+          "children": "Děti",
+          "pets": "Domácí mazlíčci",
+          "subscriptions": "Předplatné",
+          "other": "Ostatní"
+        },
+        "placeholder": "např. 15 000",
+        "validation": "Prosím zadejte částku flexibilního rozpočtu"
+      },
+      "q14a": {
+        "title": "Co se stane s nespotřebovaným rozpočtem?",
+        "helper": "Vyberte, jak se nespotřebované peníze z flexibilního rozpočtu převádějí do dalšího měsíce.",
+        "free": "Volný převod",
+        "freeDesc": "Veškerý nespotřebovaný rozpočet se převádí do dalšího měsíce bez omezení.",
+        "capped": "Omezený převod",
+        "cappedDesc": "Nespotřebovaný rozpočet se převádí až do násobku vašeho měsíčního rozpočtu.",
+        "reset": "Reset každý měsíc",
+        "resetDesc": "Veškerý nespotřebovaný rozpočet propadá na konci každého měsíce.",
+        "multiplierLabel": "Limit převodu",
+        "multiplier2": "×2 (dva měsíce)",
+        "multiplier3": "×3 (tři měsíce)",
+        "multiplier4": "×4 (čtyři měsíce)",
+        "validation": "Prosím vyberte strategii převodu"
+      }
+    },
+    "s13": {
+      "eyebrow": "Téměř hotovo",
+      "heading": "Revize a potvrzení",
+      "body": "Pojďme zkontrolovat vše, než začneme. Vždy se můžete vrátit a upravit později."
+    },
+    "review": {
+      "chapter": "Revize a potvrzení",
+      "q15": {
+        "title": "Zkontrolujte své údaje",
+        "helper": "Zkontrolujte, zda vše vypadá správně. Klepnutím na libovolnou sekci ji rozbalíte a zobrazíte podrobnosti.",
+        "sections": {
+          "household": "Domácnost",
+          "location": "Lokace a povolání",
+          "income": "Příjmy a úspory",
+          "transport": "Doprava",
+          "health": "Zdravotní pojištění",
+          "childrenCosts": "Náklady na děti",
+          "pets": "Domácí mazlíčci",
+          "subscriptions": "Předplatné",
+          "otherCosts": "Ostatní pravidelné náklady",
+          "debts": "Dluhy a půjčky",
+          "budget": "Rozpočet a strategie"
+        },
+        "labels": {
+          "type": "Typ domácnosti",
+          "partner": "Partner",
+          "children": "Děti",
+          "country": "Země",
+          "city": "Město / Region",
+          "currency": "Měna",
+          "occupation": "Povolání",
+          "partnerOccupation": "Povolání partnera",
+          "yourIncome": "Váš příjem",
+          "partnerIncome": "Příjem partnera",
+          "otherIncome": "Jiný příjem",
+          "totalIncome": "Celkový příjem",
+          "savingsBalance": "Zůstatek úspor",
+          "savingsTarget": "Cíl úspor",
+          "goal": "Cíl",
+          "by": "do",
+          "fuel": "Palivo",
+          "insurance": "Pojištění",
+          "parking": "Parkování",
+          "noVehicle": "Bez vozidla",
+          "publicTransport": "MHD",
+          "covered": "Hrazeno zaměstnavatelem",
+          "private": "Soukromé",
+          "notConfirmed": "Nepotvrzeno",
+          "none": "Žádné",
+          "food": "Krmivo",
+          "vet": "Veterinář",
+          "minPayment": "Minimální splátka",
+          "apr": "RPSN",
+          "monthlyBudget": "Měsíční flexibilní rozpočet",
+          "rollover": "Strategie převodu",
+          "multiplier": "Násobitel převodu"
+        },
+        "cta": "Vypadá dobře — přejít na přehled",
+        "skip": "Dokončím později"
+      }
+    },
+    "progress": "{{percent}}% dokončeno"
+  },
+  "dashboard": {
+    "title": "Přehled",
+    "income": "Příjem",
+    "costs": "Náklady",
+    "budget": "Rozpočet",
+    "goals": "Cíle",
+    "alerts": "Upozornění",
+    "summary": "Souhrn",
+    "placeholder": {
+      "title": "Vítejte v PocketOS",
+      "subtitle": "Vaše finanční přehlednost začíná zde"
+    }
+  },
+  "settings": {
+    "title": "Nastavení",
+    "redoSetup": "Znovu nastavit",
+    "language": "Jazyk",
+    "theme": "Téma",
+    "currency": "Měna"
+  }
+}

@@ -1,0 +1,46 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-bg: #EFF4FB;
+  --color-surface: #F8FAFF;
+  --color-primary: #1E3A5F;
+  --color-primary-hover: #162B45;
+  --color-accent: #2563EB;
+  --color-accent-hover: #1D4ED8;
+  --color-positive: #10B981;
+  --color-warning: #F59E0B;
+  --color-danger: #EF4444;
+  --color-debt: #6B4FA0;
+  --color-text: #1E3A5F;
+  --color-muted: #6B7A99;
+  --color-border: #D1DCF0;
+  --color-divider: #D1DCF0;
+  --color-chip-active: rgba(30,58,95,0.1);
+  --color-chip-active-border: #1E3A5F;
+  --font-family-sans: 'Inter', sans-serif;
+}
+
+.dark {
+  --color-bg: #0F1724;
+  --color-surface: #172032;
+  --color-primary: #818CF8;
+  --color-primary-hover: #A5B4FC;
+  --color-accent: #60A5FA;
+  --color-accent-hover: #93C5FD;
+  --color-positive: #22C55E;
+  --color-warning: #F59E0B;
+  --color-danger: #EF4444;
+  --color-debt: #9F6BFF;
+  --color-text: #E8EAF0;
+  --color-muted: #8B95A8;
+  --color-border: #2A3650;
+  --color-divider: #2A3650;
+  --color-chip-active: rgba(129,140,248,0.15);
+  --color-chip-active-border: #818CF8;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+}
