@@ -18,6 +18,7 @@ import {
   BreakdownCell,
   BreakdownPillRowSlot,
   BreakdownRow,
+  LedgerCardRow,
   usePillRowSelectMotion,
 } from './BreakdownTablePrimitives';
 
@@ -184,7 +185,8 @@ export default function LedgerPillDataTable({
   initialEditingRowId,
 }) {
   const { t } = useI18n();
-  const { narrow } = useBreakdownTableColumns();
+  const { narrow, tableLayout } = useBreakdownTableColumns();
+  const cardMode = tableLayout === 'card';
   const { scrollToAnchor } = useDashboardScroll();
   const focusRowRef = useRef(null);
   const [selectedId, setSelectedId] = useState(null);
@@ -269,7 +271,7 @@ export default function LedgerPillDataTable({
         </Text>
       ) : (
         <View style={{ gap: 8, width: '100%', alignSelf: 'stretch', overflow: 'visible' }}>
-          <LedgerPillColumnHeaders columns={columns} narrow={narrow} />
+          {!cardMode ? <LedgerPillColumnHeaders columns={columns} narrow={narrow} /> : null}
           {visibleRows.map((row, index) => {
             const selected = selectedId === row.id;
             const editing = editingId === row.id;
@@ -296,17 +298,35 @@ export default function LedgerPillDataTable({
                   deleteA11yLabel: t('dashboard.ledgerTable.deleteRowA11y', { label: rowLabel }),
                 }}
               >
-                <LedgerPillRow
-                  row={row}
-                  columns={columns}
-                  index={index}
-                  selected={selected || editing}
-                  onSelect={() => handleSelect(row)}
-                  selectA11yLabel={t('dashboard.ledgerTable.selectRowA11y', { label: rowLabel })}
-                  iconSectionKey={iconSectionKey}
-                  iconScope={iconScope}
-                  narrow={narrow}
-                />
+                {cardMode ? (
+                  <LedgerCardRow
+                    columns={columns}
+                    cells={row.cells}
+                    index={index}
+                    selected={selected || editing}
+                    onPress={() => handleSelect(row)}
+                    accessibilityLabel={t('dashboard.ledgerTable.selectRowA11y', { label: rowLabel })}
+                    leading={(
+                      <BreakdownSectionIcon
+                        sectionKey={row.iconSectionKey || iconSectionKey}
+                        scope={row.iconScope || iconScope}
+                        selected={selected || editing}
+                      />
+                    )}
+                  />
+                ) : (
+                  <LedgerPillRow
+                    row={row}
+                    columns={columns}
+                    index={index}
+                    selected={selected || editing}
+                    onSelect={() => handleSelect(row)}
+                    selectA11yLabel={t('dashboard.ledgerTable.selectRowA11y', { label: rowLabel })}
+                    iconSectionKey={iconSectionKey}
+                    iconScope={iconScope}
+                    narrow={narrow}
+                  />
+                )}
                 {renderEditPanel ? (
                   <AnimatedCollapse visible={editing} fallbackHeight={220}>
                     <View style={{

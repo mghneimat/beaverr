@@ -11,6 +11,7 @@ import { formatCurrency, displayBudget, toMonthly, committedMonthlyLoad } from '
 import { formatDateDisplay } from '../../lib/datePicker';
 
 import { useDashboardFrequency } from '../../lib/useDashboardFrequency';
+import { useDashboardLayout } from '../../lib/dashboardLayout';
 
 import { C, S } from '../../constants/onboarding-theme';
 
@@ -82,8 +83,9 @@ export default function OverviewMetricCards({
   const router = useRouter();
 
   const { width } = useWindowDimensions();
+  const { isPhone } = useDashboardLayout();
 
-  const stackHero = width < 520;
+  const stackHero = isPhone || width < 520;
 
   const { frequency, setFrequency } = useDashboardFrequency(financials.budgetDisplayFrequency || 'daily');
 

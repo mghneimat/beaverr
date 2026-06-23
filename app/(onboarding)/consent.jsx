@@ -27,6 +27,7 @@ export default function ConsentScreen() {
   const { t } = useI18n();
   const router = useRouter();
   const layout = useOnboardingLayout();
+  const isFullBleed = layout.surfaceVariant === 'fullBleed';
   useOnboardingScreen();
   const [agreed, setAgreed] = useState(false);
 
@@ -62,9 +63,99 @@ export default function ConsentScreen() {
     navigateBack();
   };
 
+  const introCard = (
+    <OnboardingIntroCardLayout
+      variant={isFullBleed ? 'fullBleed' : 'card'}
+      layoutMode={isFullBleed ? 'introScroll' : 'form'}
+      contentPadH={layout.contentPadH}
+      illustration={<ConsentGdprIllustration width={layout.illustrationWidth} />}
+      title={t('onboarding.consent.title')}
+      titleTextStyle={{
+        ...T.questionTitle,
+        textAlign: 'left',
+        marginTop: 0,
+      }}
+      description={t('onboarding.consent.body')}
+      descriptionTextStyle={{
+        ...T.helper,
+        textAlign: 'left',
+        marginBottom: 0,
+      }}
+      footer={(
+        <OnboardingBottomBar
+          inCard
+          fullBleedFooter={isFullBleed}
+          layout={layout}
+          primaryLabel={t('common.continue')}
+          onPrimary={handleContinue}
+          primaryDisabled={!agreed}
+          showExit={false}
+        />
+      )}
+    >
+      <OnboardingPressable
+        onPress={() => setAgreed(!agreed)}
+        accessibilityRole="checkbox"
+        accessibilityState={{ checked: agreed }}
+        accessibilityLabel={t('onboarding.consent.checkbox')}
+        style={({ pressed, hovered }) => ({
+          borderRadius: R.input,
+          borderWidth: 1.5,
+          borderColor: agreed ? C.accent : C.border,
+          backgroundColor: agreed
+            ? C.infoBg
+            : pressed
+              ? C.overlayPressed
+              : hovered
+                ? C.bg
+                : C.surface,
+          paddingHorizontal: INPUT_FIELD.paddingHorizontal,
+          paddingVertical: INPUT_FIELD.paddingVertical,
+          minHeight: INPUT_FIELD.minHeight,
+        })}
+      >
+        <View style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          flexWrap: 'nowrap',
+          width: '100%',
+        }}
+        >
+          <View style={{
+            width: 24,
+            height: 24,
+            borderRadius: 6,
+            borderWidth: 2,
+            marginRight: 12,
+            flexShrink: 0,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: agreed ? C.pillSelectedBg : 'transparent',
+            borderColor: agreed ? C.pillSelectedBg : C.border,
+          }}
+          >
+            {agreed ? (
+              <Text style={{ color: C.pillSelectedText, fontSize: 14, lineHeight: 16 }}>✓</Text>
+            ) : null}
+          </View>
+          <Text style={{
+            fontSize: 15,
+            lineHeight: 22,
+            flex: 1,
+            flexShrink: 1,
+            color: agreed ? C.accent : C.text,
+          }}
+          >
+            {t('onboarding.consent.checkbox')}
+          </Text>
+        </View>
+      </OnboardingPressable>
+    </OnboardingIntroCardLayout>
+  );
+
   return (
     <OnboardingScreenShell>
-    <View style={{ flex: 1, backgroundColor: C.bg }}>
+    <View style={{ flex: 1, backgroundColor: isFullBleed ? C.surface : C.bg }}>
       <View style={{
         backgroundColor: C.surface,
         height: S.navHeight,
@@ -72,7 +163,9 @@ export default function ConsentScreen() {
         alignItems: 'center',
         borderBottomWidth: 1,
         borderBottomColor: C.border,
-      }}>
+        flexShrink: 0,
+      }}
+      >
         <OnboardingNavBackButton onPress={handleBack} cooldown={false} />
         <View style={{
           position: 'absolute',
@@ -80,7 +173,8 @@ export default function ConsentScreen() {
           right: 0,
           alignItems: 'center',
           pointerEvents: 'none',
-        }}>
+        }}
+        >
           <Text
             numberOfLines={1}
             ellipsizeMode="tail"
@@ -95,100 +189,30 @@ export default function ConsentScreen() {
         <View style={{ width: 100 }} />
       </View>
 
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1 }}>
-        <View style={{
-          paddingHorizontal: S.pagePadH,
-          paddingVertical: 48,
-          maxWidth: S.maxWidth,
-          marginHorizontal: 'auto',
-          width: '100%',
-          flex: 1,
-          justifyContent: 'center',
-        }}>
-          <FadeUpView skipInitial>
-            <OnboardingIntroCardLayout
-              illustration={<ConsentGdprIllustration width={layout.illustrationWidth} />}
-              title={t('onboarding.consent.title')}
-              titleTextStyle={{
-                ...T.questionTitle,
-                textAlign: 'left',
-                marginTop: 0,
-              }}
-              description={t('onboarding.consent.body')}
-              descriptionTextStyle={{
-                ...T.helper,
-                textAlign: 'left',
-                marginBottom: 0,
-              }}
-              footer={(
-                <OnboardingBottomBar
-                  inCard
-                  layout={layout}
-                  primaryLabel={t('common.continue')}
-                  onPrimary={handleContinue}
-                  primaryDisabled={!agreed}
-                  showExit={false}
-                />
-              )}
-            >
-              <OnboardingPressable
-                onPress={() => setAgreed(!agreed)}
-                accessibilityRole="checkbox"
-                accessibilityState={{ checked: agreed }}
-                accessibilityLabel={t('onboarding.consent.checkbox')}
-                style={({ pressed, hovered }) => ({
-                  borderRadius: R.input,
-                  borderWidth: 1.5,
-                  borderColor: agreed ? C.accent : C.border,
-                  backgroundColor: agreed
-                    ? C.infoBg
-                    : pressed
-                      ? C.overlayPressed
-                      : hovered
-                        ? C.bg
-                        : C.surface,
-                  paddingHorizontal: INPUT_FIELD.paddingHorizontal,
-                  paddingVertical: INPUT_FIELD.paddingVertical,
-                  minHeight: INPUT_FIELD.minHeight,
-                })}
-              >
-                <View style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  flexWrap: 'nowrap',
-                  width: '100%',
-                }}>
-                  <View style={{
-                    width: 24,
-                    height: 24,
-                    borderRadius: 6,
-                    borderWidth: 2,
-                    marginRight: 12,
-                    flexShrink: 0,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    backgroundColor: agreed ? C.pillSelectedBg : 'transparent',
-                    borderColor: agreed ? C.pillSelectedBg : C.border,
-                  }}>
-                    {agreed ? (
-                      <Text style={{ color: C.pillSelectedText, fontSize: 14, lineHeight: 16 }}>✓</Text>
-                    ) : null}
-                  </View>
-                  <Text style={{
-                    fontSize: 15,
-                    lineHeight: 22,
-                    flex: 1,
-                    flexShrink: 1,
-                    color: agreed ? C.accent : C.text,
-                  }}>
-                    {t('onboarding.consent.checkbox')}
-                  </Text>
-                </View>
-              </OnboardingPressable>
-            </OnboardingIntroCardLayout>
+      {isFullBleed ? (
+        <View style={{ flex: 1, minHeight: 0, width: '100%' }}>
+          <FadeUpView skipInitial style={{ flex: 1, width: '100%', minHeight: 0 }}>
+            {introCard}
           </FadeUpView>
         </View>
-      </ScrollView>
+      ) : (
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1 }}>
+          <View style={{
+            paddingHorizontal: S.pagePadH,
+            paddingVertical: 48,
+            maxWidth: S.maxWidth,
+            marginHorizontal: 'auto',
+            width: '100%',
+            flex: 1,
+            justifyContent: 'center',
+          }}
+          >
+            <FadeUpView skipInitial>
+              {introCard}
+            </FadeUpView>
+          </View>
+        </ScrollView>
+      )}
     </View>
     </OnboardingScreenShell>
   );

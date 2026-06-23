@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useIsFocused } from 'expo-router';
+import { Platform, View } from 'react-native';import { useIsFocused } from 'expo-router';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -20,7 +20,7 @@ export default function OnboardingScreenShell({ children, style }) {
   useEffect(() => {
     if (!isFocused) return;
 
-    if (reduceMotion) {
+    if (reduceMotion || Platform.OS === 'web') {
       opacity.value = 1;
       translateY.value = 0;
       return;
@@ -37,6 +37,14 @@ export default function OnboardingScreenShell({ children, style }) {
     opacity: opacity.value,
     transform: [{ translateY: translateY.value }],
   }));
+
+  if (Platform.OS === 'web') {
+    return (
+      <View style={[{ flex: 1, minHeight: '100dvh', height: '100%', width: '100%' }, style]}>
+        {children}
+      </View>
+    );
+  }
 
   return (
     <Animated.View style={[{ flex: 1 }, style, animatedStyle]}>

@@ -2,6 +2,7 @@ import { View, Pressable, Platform } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
 import Svg, { Path } from 'react-native-svg';
 import { useI18n } from '../../lib/i18n';
+import { useDashboardLayout } from '../../lib/dashboardLayout';
 import { C, R, T } from '../../constants/onboarding-theme';
 import SurfaceCard from '../ui/SurfaceCard';
 import InCardSectionHeader from './InCardSectionHeader';
@@ -71,6 +72,10 @@ export default function GoalsCategorySection({
   onAddGoal,
 }) {
   const { t } = useI18n();
+  const { isPhone } = useDashboardLayout();
+  const gridItemStyle = isPhone
+    ? { width: '100%', flexBasis: '100%', alignSelf: 'stretch' }
+    : QUAD_GRID_ITEM;
 
   if (!goals?.length) return null;
 
@@ -88,7 +93,7 @@ export default function GoalsCategorySection({
       />
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, paddingBottom: 4, alignItems: 'stretch' }}>
         {goals.map((goal) => (
-          <View key={goal.id} style={QUAD_GRID_ITEM}>
+          <View key={goal.id} style={gridItemStyle}>
             <GoalGridTile
               goal={goal}
               currency={currency}

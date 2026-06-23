@@ -39,7 +39,8 @@ import SurfaceCard from '../ui/SurfaceCard';
 import ConfirmDialog from '../ui/ConfirmDialog';
 import AnimatedCollapse from './AnimatedCollapse';
 import BreakdownSectionIcon from './BreakdownSectionIcon';
-import { BreakdownCell, BreakdownPillRowSlot, BreakdownRow } from './BreakdownTablePrimitives';
+import { BreakdownCell, BreakdownPillRowSlot, BreakdownRow, LedgerCardRow } from './BreakdownTablePrimitives';
+import { useBreakdownTableColumns } from '../../lib/dashboardLayout';
 
 const WARNING_CHIP = {
   bg: '#FEF3C7',
@@ -656,6 +657,7 @@ function RemindersTableRow({
   onReminderTypesChange,
   onSave,
   onCancel,
+  cardMode = false,
 }) {
   const { t } = useI18n();
   const [dateDropdownOpen, setDateDropdownOpen] = useState(false);
@@ -847,6 +849,52 @@ function RemindersTableRow({
         </View>
       </AnimatedCollapse>
     </View>
+  ) : cardMode ? (
+    <LedgerCardRow
+      columns={columns}
+      cells={row.cells}
+      index={index}
+      selected={rowSelected && !editing}
+      onPress={onSelect}
+      accessibilityLabel={selectA11yLabel}
+      leading={(
+        <BreakdownSectionIcon
+          sectionKey={row.iconSectionKey || iconSectionKey}
+          scope={row.iconScope || iconScope}
+          selected={rowSelected}
+        />
+      )}
+      renderCell={(col) => {
+        if (col.key === 'reminderType') {
+          return (
+            <ReminderTypesCell
+              pref={displayPref}
+              colors={resolveRowShellColors(false, false)}
+              t={t}
+              hasNextPayment={hasNextPayment}
+            />
+          );
+        }
+        if (col.key === 'reminder') {
+          return (
+            <ReminderColumnCell
+              row={row}
+              editing={false}
+              draftEnabled={draftEnabled}
+              saving={saving}
+              pendingDisplay={pendingDisplay}
+              colors={resolveRowShellColors(false, false)}
+              selected={rowSelected}
+              onDraftChange={onDraftChange}
+            />
+          );
+        }
+        if (col.key === 'reminderDate') {
+          return formatReminderDateLabel(displayPref, t, { hasNextPayment });
+        }
+        return row.cells[col.key];
+      }}
+    />
   ) : (
     <Pressable
       onPress={onSelect}
@@ -900,6 +948,8 @@ export default function RemindersLedgerTable({
   const { t } = useI18n();
   const router = useRouter();
   const reduceMotion = useReducedMotion();
+  const { tableLayout } = useBreakdownTableColumns();
+  const cardMode = tableLayout === 'card';
   const [selectedId, setSelectedId] = useState(null);
   const [editSessionId, setEditSessionId] = useState(null);
   const [editExpanded, setEditExpanded] = useState(false);
@@ -1068,7 +1118,7 @@ export default function RemindersLedgerTable({
         </Text>
       ) : (
         <View style={{ gap: 8, width: '100%', alignSelf: 'stretch' }}>
-          <RemindersColumnHeaders columns={columns} />
+          {!cardMode ? <RemindersColumnHeaders columns={columns} /> : null}
           {rows.map((row, index) => {
             const inSession = editSessionId === row.id;
             const selected = selectedId === row.id;
@@ -1099,6 +1149,7 @@ export default function RemindersLedgerTable({
                 onReminderTypesChange={handleReminderTypesChange}
                 onSave={() => handleSave(row)}
                 onCancel={handleCancel}
+                cardMode={cardMode}
               />
             );
           })}

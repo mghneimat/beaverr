@@ -1,5 +1,55 @@
 import React from 'react';
+import { View, ActivityIndicator, Text, Pressable } from 'react-native';
 import { Stack } from 'expo-router';
+import { C, T } from '../../constants/onboarding-theme';
+import OnboardingScreenShell from '../../components/onboarding/OnboardingScreenShell';
+
+/** Surfaces route render errors instead of a silent blank screen on mobile web. */
+export function ErrorBoundary({ error, retry }) {
+  return (
+    <OnboardingScreenShell>
+      <View style={{
+        flex: 1,
+        justifyContent: 'center',
+        padding: 24,
+        backgroundColor: C.surface,
+      }}
+      >
+        <Text style={{ ...T.questionTitle, marginBottom: 12 }}>
+          Something went wrong
+        </Text>
+        <Text style={{ ...T.helper, color: C.danger, marginBottom: 20 }}>
+          {error?.message || 'Unknown error'}
+        </Text>
+        <Text style={{ ...T.helper, color: C.danger, marginBottom: 12, fontSize: 11 }} numberOfLines={8}>
+          {error?.stack?.split('\n').slice(0, 4).join('\n') || ''}
+        </Text>
+        {retry ? (
+          <Pressable onPress={retry} accessibilityRole="button">
+            <Text style={{ ...T.helper, color: C.accent, fontWeight: '600' }}>Try again</Text>
+          </Pressable>
+        ) : null}
+      </View>
+    </OnboardingScreenShell>
+  );
+}
+
+/** Shown while a child onboarding route chunk loads (prevents blank mobile-web transitions). */
+export function SuspenseFallback() {
+  return (
+    <OnboardingScreenShell>
+      <View style={{
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: C.surface,
+      }}
+      >
+        <ActivityIndicator size="large" color={C.primary} />
+      </View>
+    </OnboardingScreenShell>
+  );
+}
 
 /**
  * Onboarding stack navigator.
@@ -13,7 +63,7 @@ import { Stack } from 'expo-router';
  */
 export default function OnboardingLayout() {
   return (
-    <Stack screenOptions={{ headerShown: false, animation: 'none' }}>
+    <Stack screenOptions={{ headerShown: false, animation: 'none', contentStyle: { flex: 1 } }}>
       {/* Entry points */}
       <Stack.Screen name="welcome" />
       <Stack.Screen name="consent" />

@@ -164,6 +164,15 @@ export const ONBOARDING_SPLASH = {
   descriptionMinHeightNoIllustration: 161,
 };
 
+/** Phone full-bleed onboarding — edge-to-edge bands without card shell. */
+export const ONBOARDING_FULL_BLEED = {
+  contentPadH: 16,
+  /** Pinned-intro hero cap — compact band, not a fixed viewport fraction */
+  heroCompactMinHeight: 160,
+  heroCompactMaxHeight: 220,
+  panelShadow: { offsetY: -4, blur: 12, opacity: 0.06 },
+};
+
 // ── Elevation (shadow OR border — not both on cards) ─────────────────────────
 export const SHADOW = {
   card: Platform.select({

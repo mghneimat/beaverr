@@ -9,6 +9,7 @@ import {
 import { Text } from '@gluestack-ui/themed';
 import { useI18n } from '../../lib/i18n';
 import { C, R } from '../../constants/onboarding-theme';
+import { isTouchWeb } from '../../lib/isMobileWebTouch';
 import { elevationShadow } from '../../lib/shadow';
 import { CardHeaderChevron } from './CardHeaderActionButton';
 
@@ -34,6 +35,7 @@ const DROPDOWN_TONES = {
 };
 
 function FrequencyMenuOption({ label, selected, onPress }) {
+  const touchWeb = isTouchWeb();
   const [hovered, setHovered] = useState(false);
   const [pressed, setPressed] = useState(false);
   const active = pressed || hovered;
@@ -52,7 +54,7 @@ function FrequencyMenuOption({ label, selected, onPress }) {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        minHeight: 40,
+        minHeight: touchWeb ? 44 : 40,
         paddingHorizontal: 14,
         paddingVertical: 10,
         borderRadius: R.pill,
@@ -92,6 +94,7 @@ export default function DashboardFrequencyDropdown({
   style,
 }) {
   const { t } = useI18n();
+  const touchWeb = isTouchWeb();
   const [open, setOpen] = useState(false);
   const [anchor, setAnchor] = useState(null);
   const triggerRef = useRef(null);
@@ -139,7 +142,7 @@ export default function DashboardFrequencyDropdown({
             alignItems: 'center',
             justifyContent: 'center',
             gap: 4,
-            minHeight: compact ? 32 : 36,
+            minHeight: touchWeb ? 44 : (compact ? 32 : 36),
             paddingVertical: compact ? 6 : 8,
             paddingHorizontal: compact ? 12 : 14,
             borderRadius: R.pill,

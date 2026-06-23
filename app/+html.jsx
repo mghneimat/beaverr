@@ -83,6 +83,7 @@ export default function Root({ children }) {
       <head>
         <meta charSet="utf-8" />
         <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <meta name="application-name" content="Beaverr" />
         <title>Beaverr</title>
         <script dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }} />

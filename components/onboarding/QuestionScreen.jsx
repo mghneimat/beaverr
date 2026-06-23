@@ -16,6 +16,7 @@ import FadeUpView from './FadeUpView';
 import OnboardingScreenShell from './OnboardingScreenShell';
 import OnboardingIntroCardLayout from './OnboardingIntroCardLayout';
 import OnboardingNavBackButton from './OnboardingNavBackButton';
+import OnboardingQuestionShell from './OnboardingQuestionShell';
 import { injectValidationErrorIntoChildren } from './injectValidationError';
 import FieldError from './FieldError';
 import { useSectionEditOptional } from '../../lib/SectionEditContext';
@@ -61,6 +62,7 @@ export default function QuestionScreen({
   });
   const progress = progressProp ?? computedProgress;
   const layout = useOnboardingLayout();
+  const isFullBleed = layout.surfaceVariant === 'fullBleed';
   const mobileWebShell = isMobileWebOnboarding(layout.width);
   const { visible: keyboardVisible } = useOnboardingKeyboard();
   const shellRef = useRef(null);
@@ -68,7 +70,7 @@ export default function QuestionScreen({
   const scrollRef = useRef(null);
   const contentRef = useRef(null);
   useOnboardingViewportShell({
-    enabled: mobileWebShell,
+    enabled: mobileWebShell && Platform.OS !== 'web',
     shellRef,
     footerRef,
     scrollRef,
@@ -201,6 +203,123 @@ export default function QuestionScreen({
     </View>
   );
 
+  const bottomBar = (
+    <View ref={footerRef} collapsable={false}>
+      <OnboardingBottomBar
+        inCard
+        fullBleedFooter={isFullBleed}
+        layout={layout}
+        compact={compactFooter}
+        primaryLabel={submitting ? t('common.saving') : (continueLabel || t('common.continue'))}
+        onPrimary={handleContinue}
+        primaryDisabled={isContinueDisabled}
+        primaryAccessibilityState={{ busy: submitting, disabled: isContinueDisabled }}
+        showExit={showExit}
+        resumeRoute={resumeRoute}
+        exitPatch={exitPatch}
+        onSaveDraft={onSaveDraft}
+        exitDisabled={submitting}
+        onSkip={onSkip}
+        skipLabel={skipLabel}
+      />
+    </View>
+  );
+
+  const introCard = (
+    <OnboardingIntroCardLayout
+      variant={isFullBleed ? 'fullBleed' : 'card'}
+      layoutMode={isFullBleed ? 'introScroll' : 'form'}
+      contentPadH={layout.contentPadH}
+      scrollRef={isFullBleed ? scrollRef : undefined}
+      illustration={isFullBleed ? undefined : illustration}
+      headerContent={titleBlock}
+      footer={bottomBar}
+    >
+      {fieldsBlock}
+    </OnboardingIntroCardLayout>
+  );
+
+  const navBar = !isEditMode ? (
+    <View style={{
+      backgroundColor: C.surface,
+      height: S.navHeight,
+      flexDirection: 'row',
+      alignItems: 'center',
+      borderBottomWidth: 1,
+      borderBottomColor: C.border,
+      flexShrink: 0,
+    }}>
+      <OnboardingNavBackButton onPress={handleBack} />
+      <View style={{
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        alignItems: 'center',
+        pointerEvents: 'none',
+      }}>
+        {chapter ? (
+          <Text
+            numberOfLines={1}
+            ellipsizeMode="tail"
+            style={{
+              ...T.chapterLabel,
+              maxWidth: layout.width - 160,
+            }}
+          >
+            {chapter}
+          </Text>
+        ) : null}
+      </View>
+      <View style={{ width: 100 }} />
+    </View>
+  ) : null;
+
+  const progressBar = hasProgress ? (
+    <View
+      accessibilityRole="progressbar"
+      accessibilityValue={{ min: 0, max: 100, now: Math.round(progress) }}
+      style={{
+        height: S.progressHeight,
+        backgroundColor: C.progressTrack,
+        flexShrink: 0,
+      }}
+    >
+      <Animated.View style={{
+        height: '100%',
+        width: fillAnim.interpolate({
+          inputRange: [0, 100],
+          outputRange: ['0%', '100%'],
+        }),
+        backgroundColor: C.progressFill,
+      }} />
+    </View>
+  ) : null;
+
+  const scrollProviders = (node) => (
+    <OnboardingScrollContext.Provider value={scrollContextValue}>
+      <OnboardingValidationClearContext.Provider value={validationClearValue}>
+        {node}
+      </OnboardingValidationClearContext.Provider>
+    </OnboardingScrollContext.Provider>
+  );
+
+  if (isFullBleed) {
+    return (
+      <OnboardingQuestionShell
+        navBar={navBar}
+        progressBar={progressBar}
+        shellRef={shellRef}
+        animationKey={animationKey}
+      >
+        {scrollProviders(
+          <View ref={contentRef} collapsable={false} style={{ flex: 1, minHeight: 0, width: '100%' }}>
+            {introCard}
+          </View>,
+        )}
+      </OnboardingQuestionShell>
+    );
+  }
+
   return (
     <OnboardingScreenShell>
     <KeyboardAvoidingView
@@ -209,62 +328,8 @@ export default function QuestionScreen({
       keyboardVerticalOffset={keyboardOffset}
     >
       <View ref={shellRef} style={{ flex: 1, minHeight: 0 }}>
-
-        {!isEditMode ? (
-          <View style={{
-            backgroundColor: C.surface,
-            height: S.navHeight,
-            flexDirection: 'row',
-            alignItems: 'center',
-            borderBottomWidth: 1,
-            borderBottomColor: C.border,
-            flexShrink: 0,
-          }}>
-            <OnboardingNavBackButton onPress={handleBack} />
-            <View style={{
-              position: 'absolute',
-              left: 0,
-              right: 0,
-              alignItems: 'center',
-              pointerEvents: 'none',
-            }}>
-              {chapter ? (
-                <Text
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                  style={{
-                    ...T.chapterLabel,
-                    maxWidth: layout.width - 160,
-                  }}
-                >
-                  {chapter}
-                </Text>
-              ) : null}
-            </View>
-            <View style={{ width: 100 }} />
-          </View>
-        ) : null}
-
-        {hasProgress ? (
-          <View
-            accessibilityRole="progressbar"
-            accessibilityValue={{ min: 0, max: 100, now: Math.round(progress) }}
-            style={{
-              height: S.progressHeight,
-              backgroundColor: C.progressTrack,
-              flexShrink: 0,
-            }}
-          >
-            <Animated.View style={{
-              height: '100%',
-              width: fillAnim.interpolate({
-                inputRange: [0, 100],
-                outputRange: ['0%', '100%'],
-              }),
-              backgroundColor: C.progressFill,
-            }} />
-          </View>
-        ) : null}
+        {navBar}
+        {progressBar}
 
         <ScrollView
           ref={scrollRef}
@@ -292,32 +357,7 @@ export default function QuestionScreen({
                 skipInitial
                 style={{ width: '100%' }}
               >
-                <OnboardingIntroCardLayout
-                  illustration={illustration}
-                  headerContent={titleBlock}
-                  footer={(
-                    <View ref={footerRef} collapsable={false}>
-                      <OnboardingBottomBar
-                        inCard
-                        layout={layout}
-                        compact={compactFooter}
-                        primaryLabel={submitting ? t('common.saving') : (continueLabel || t('common.continue'))}
-                        onPrimary={handleContinue}
-                        primaryDisabled={isContinueDisabled}
-                        primaryAccessibilityState={{ busy: submitting, disabled: isContinueDisabled }}
-                        showExit={showExit}
-                        resumeRoute={resumeRoute}
-                        exitPatch={exitPatch}
-                        onSaveDraft={onSaveDraft}
-                        exitDisabled={submitting}
-                        onSkip={onSkip}
-                        skipLabel={skipLabel}
-                      />
-                    </View>
-                  )}
-                >
-                  {fieldsBlock}
-                </OnboardingIntroCardLayout>
+                {introCard}
               </FadeUpView>
             </View>
             </OnboardingValidationClearContext.Provider>

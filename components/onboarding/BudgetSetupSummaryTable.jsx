@@ -2,16 +2,20 @@ import { useMemo, useState } from 'react';
 import { View, Text } from 'react-native';
 import { formatCurrency, toMonthly, totalMonthlyCosts } from '../../lib/finance';
 import { formatSharePct } from '../../lib/formatSharePct';
+import { asArray } from '../../lib/asArray';
 import { useBreakdownTableColumns } from '../../lib/dashboardLayout';
 import { C, R, tabularNums } from '../../constants/onboarding-theme';
 import InCardSectionHeader from '../dashboard/InCardSectionHeader';
 import DashboardTableExportActions from '../dashboard/DashboardTableExportActions';
 import AnimatedCollapse from '../dashboard/AnimatedCollapse';
+import BreakdownSectionIcon from '../dashboard/BreakdownSectionIcon';
+import BudgetExpandChevron from './BudgetExpandChevron';
 import {
   BreakdownExpandAllButton,
   BreakdownPillColumnHeaders,
   BreakdownPillRow,
   BreakdownPillSubRow,
+  LedgerCardRow,
   MaytechTableFrame,
 } from '../dashboard/BreakdownTablePrimitives';
 
@@ -24,6 +28,54 @@ function toggleLabel(t, label, isOpen) {
   return isOpen
     ? t('onboarding.budget.budgetSplit.a11y.collapseRow', { label })
     : t('onboarding.budget.budgetSplit.a11y.expandRow', { label });
+}
+
+function BudgetSummaryCardRow({
+  sectionKey,
+  scope,
+  label,
+  amount,
+  share,
+  index,
+  expandable,
+  expanded,
+  onExpandPress,
+  expandA11yLabel,
+  columns,
+}) {
+  return (
+    <LedgerCardRow
+      columns={columns}
+      cells={{ name: label, share, amount }}
+      index={index}
+      onPress={expandable ? onExpandPress : undefined}
+      accessibilityLabel={expandA11yLabel || label}
+      leading={(
+        <BreakdownSectionIcon sectionKey={sectionKey} scope={scope} />
+      )}
+      trailing={expandable ? (
+        <BudgetExpandChevron expanded={expanded} />
+      ) : null}
+    />
+  );
+}
+
+function BudgetSummarySubCardRow({ label, amount, share, columns, isLast }) {
+  return (
+    <View style={{
+      marginLeft: 12,
+      marginBottom: isLast ? 0 : 6,
+      paddingLeft: 12,
+      borderLeftWidth: 2,
+      borderLeftColor: C.divider,
+    }}
+    >
+      <LedgerCardRow
+        columns={columns}
+        cells={{ name: label, share, amount }}
+      />
+    </View>
+  );
 }
 
 /**
@@ -42,11 +94,16 @@ export default function BudgetSetupSummaryTable({
   onExportXlsx,
   onExportPdf,
 }) {
-  const { amountColMinW, shareColMinW } = useBreakdownTableColumns();
+  const { amountColMinW, shareColMinW, tableLayout } = useBreakdownTableColumns();
+  const cardMode = tableLayout === 'card';
+  const summaryColumns = useMemo(() => ([
+    { key: 'share', label: t('dashboard.expensesScreen.table.share') },
+    { key: 'amount', label: t('onboarding.budget.budgetSplit.amount'), align: 'right' },
+  ]), [t]);
   const shareBase = totalIncome > 0 ? totalIncome : 1;
 
   const categoryKeys = useMemo(
-    () => costsByCategory.map((cat) => `cat_${cat.category}`),
+    () => asArray(costsByCategory).map((cat) => `cat_${cat.category}`),
     [costsByCategory],
   );
 
@@ -59,7 +116,7 @@ export default function BudgetSetupSummaryTable({
   const buildExpandedState = () => {
     const next = {
       income: incomeBreakdowns.length > 0,
-      fixedCosts: costsByCategory.length > 0,
+      fixedCosts: asArray(costsByCategory).length > 0,
     };
     categoryKeys.forEach((key) => { next[key] = true; });
     return next;
@@ -93,7 +150,7 @@ export default function BudgetSetupSummaryTable({
       scope: 'expense',
       label: t('onboarding.budget.budgetSplit.fixedCosts'),
       amount: -fixedCosts,
-      expandable: costsByCategory.length > 0,
+      expandable: asArray(costsByCategory).length > 0,
     },
     {
       key: 'debtPayments',
@@ -126,34 +183,53 @@ export default function BudgetSetupSummaryTable({
       />
 
       <View style={{ gap: 8, overflow: 'visible', width: '100%', alignSelf: 'stretch' }}>
-        <BreakdownPillColumnHeaders
-          nameLabel={t('onboarding.budget.budgetSplit.summaryTitle')}
-          amountLabel={t('onboarding.budget.budgetSplit.amount')}
-          shareLabel={t('dashboard.expensesScreen.table.share')}
-          amountColMinW={amountColMinW}
-          shareColMinW={shareColMinW}
-        />
+        {!cardMode ? (
+          <BreakdownPillColumnHeaders
+            nameLabel={t('onboarding.budget.budgetSplit.summaryTitle')}
+            amountLabel={t('onboarding.budget.budgetSplit.amount')}
+            shareLabel={t('dashboard.expensesScreen.table.share')}
+            amountColMinW={amountColMinW}
+            shareColMinW={shareColMinW}
+          />
+        ) : null}
 
         {topRows.map((row, rowIdx) => {
           const isOpen = expanded[row.key] ?? false;
           const share = formatSharePct(Math.abs(row.amount), shareBase);
+          const amountFormatted = formatSignedMonthly(row.amount, currency);
 
           return (
             <View key={row.key}>
-              <BreakdownPillRow
-                sectionKey={row.sectionKey}
-                scope={row.scope}
-                label={row.label}
-                amount={formatSignedMonthly(row.amount, currency)}
-                share={share}
-                index={rowIdx}
-                expandable={row.expandable}
-                expanded={isOpen}
-                amountColMinW={amountColMinW}
-                shareColMinW={shareColMinW}
-                onExpandPress={row.expandable ? () => toggle(row.key) : undefined}
-                expandA11yLabel={toggleLabel(t, row.label, isOpen)}
-              />
+              {cardMode ? (
+                <BudgetSummaryCardRow
+                  sectionKey={row.sectionKey}
+                  scope={row.scope}
+                  label={row.label}
+                  amount={amountFormatted}
+                  share={share}
+                  index={rowIdx}
+                  expandable={row.expandable}
+                  expanded={isOpen}
+                  onExpandPress={row.expandable ? () => toggle(row.key) : undefined}
+                  expandA11yLabel={toggleLabel(t, row.label, isOpen)}
+                  columns={summaryColumns}
+                />
+              ) : (
+                <BreakdownPillRow
+                  sectionKey={row.sectionKey}
+                  scope={row.scope}
+                  label={row.label}
+                  amount={amountFormatted}
+                  share={share}
+                  index={rowIdx}
+                  expandable={row.expandable}
+                  expanded={isOpen}
+                  amountColMinW={amountColMinW}
+                  shareColMinW={shareColMinW}
+                  onExpandPress={row.expandable ? () => toggle(row.key) : undefined}
+                  expandA11yLabel={toggleLabel(t, row.label, isOpen)}
+                />
+              )}
 
               {row.key === 'income' && row.expandable ? (
                 <AnimatedCollapse
@@ -162,15 +238,26 @@ export default function BudgetSetupSummaryTable({
                 >
                   <View style={{ marginTop: 4, marginBottom: 4 }}>
                     {incomeBreakdowns.map((item, itemIdx) => (
-                      <BreakdownPillSubRow
-                        key={item.label}
-                        label={item.label}
-                        amount={formatSignedMonthly(item.amount, currency)}
-                        share={formatSharePct(item.amount, shareBase)}
-                        amountColMinW={amountColMinW}
-                        shareColMinW={shareColMinW}
-                        isLast={itemIdx === incomeBreakdowns.length - 1}
-                      />
+                      cardMode ? (
+                        <BudgetSummarySubCardRow
+                          key={item.label}
+                          label={item.label}
+                          amount={formatSignedMonthly(item.amount, currency)}
+                          share={formatSharePct(item.amount, shareBase)}
+                          columns={summaryColumns}
+                          isLast={itemIdx === incomeBreakdowns.length - 1}
+                        />
+                      ) : (
+                        <BreakdownPillSubRow
+                          key={item.label}
+                          label={item.label}
+                          amount={formatSignedMonthly(item.amount, currency)}
+                          share={formatSharePct(item.amount, shareBase)}
+                          amountColMinW={amountColMinW}
+                          shareColMinW={shareColMinW}
+                          isLast={itemIdx === incomeBreakdowns.length - 1}
+                        />
+                      )
                     ))}
                   </View>
                 </AnimatedCollapse>
@@ -179,47 +266,75 @@ export default function BudgetSetupSummaryTable({
               {row.key === 'fixedCosts' && row.expandable ? (
                 <AnimatedCollapse
                   visible={isOpen}
-                  fallbackHeight={Math.max(costsByCategory.length * 56, 56)}
+                  fallbackHeight={Math.max(asArray(costsByCategory).length * 56, 56)}
                 >
                   <View style={{ marginTop: 4, marginBottom: 4, gap: 8 }}>
-                    {costsByCategory.map((cat, catIdx) => {
+                    {asArray(costsByCategory).map((cat, catIdx) => {
                       const catKey = `cat_${cat.category}`;
-                      const catMonthly = totalMonthlyCosts(cat.items);
+                      const catItems = asArray(cat.items);
+                      const catMonthly = totalMonthlyCosts(catItems);
                       const catOpen = expanded[catKey] ?? false;
 
                       return (
                         <View key={catKey}>
-                          <BreakdownPillRow
-                            sectionKey={cat.category}
-                            scope="expense"
-                            label={cat.label}
-                            amount={formatSignedMonthly(-catMonthly, currency)}
-                            share={formatSharePct(catMonthly, shareBase)}
-                            index={rowIdx + catIdx + 1}
-                            expandable={cat.items.length > 0}
-                            expanded={catOpen}
-                            amountColMinW={amountColMinW}
-                            shareColMinW={shareColMinW}
-                            onExpandPress={cat.items.length > 0 ? () => toggle(catKey) : undefined}
-                            expandA11yLabel={toggleLabel(t, cat.label, catOpen)}
-                          />
-                          {cat.items.length > 0 ? (
+                          {cardMode ? (
+                            <BudgetSummaryCardRow
+                              sectionKey={cat.category}
+                              scope="expense"
+                              label={cat.label}
+                              amount={formatSignedMonthly(-catMonthly, currency)}
+                              share={formatSharePct(catMonthly, shareBase)}
+                              index={rowIdx + catIdx + 1}
+                              expandable={catItems.length > 0}
+                              expanded={catOpen}
+                              onExpandPress={catItems.length > 0 ? () => toggle(catKey) : undefined}
+                              expandA11yLabel={toggleLabel(t, cat.label, catOpen)}
+                              columns={summaryColumns}
+                            />
+                          ) : (
+                            <BreakdownPillRow
+                              sectionKey={cat.category}
+                              scope="expense"
+                              label={cat.label}
+                              amount={formatSignedMonthly(-catMonthly, currency)}
+                              share={formatSharePct(catMonthly, shareBase)}
+                              index={rowIdx + catIdx + 1}
+                              expandable={catItems.length > 0}
+                              expanded={catOpen}
+                              amountColMinW={amountColMinW}
+                              shareColMinW={shareColMinW}
+                              onExpandPress={catItems.length > 0 ? () => toggle(catKey) : undefined}
+                              expandA11yLabel={toggleLabel(t, cat.label, catOpen)}
+                            />
+                          )}
+                          {catItems.length > 0 ? (
                             <AnimatedCollapse
                               visible={catOpen}
-                              fallbackHeight={Math.max(cat.items.length * 40, 40)}
+                              fallbackHeight={Math.max(catItems.length * 40, 40)}
                             >
                               <View style={{ marginTop: 4, marginBottom: 4 }}>
-                                {cat.items.map((item, itemIdx) => {
+                                {catItems.map((item, itemIdx) => {
                                   const itemMonthly = toMonthly(item.amount || 0, item.frequency || 'monthly');
-                                  return (
+                                  const itemAmount = formatSignedMonthly(-itemMonthly, currency);
+                                  const itemShare = formatSharePct(itemMonthly, shareBase);
+                                  return cardMode ? (
+                                    <BudgetSummarySubCardRow
+                                      key={`${catKey}-${itemIdx}`}
+                                      label={item.label}
+                                      amount={itemAmount}
+                                      share={itemShare}
+                                      columns={summaryColumns}
+                                      isLast={itemIdx === catItems.length - 1}
+                                    />
+                                  ) : (
                                     <BreakdownPillSubRow
                                       key={`${catKey}-${itemIdx}`}
                                       label={item.label}
-                                      amount={formatSignedMonthly(-itemMonthly, currency)}
-                                      share={formatSharePct(itemMonthly, shareBase)}
+                                      amount={itemAmount}
+                                      share={itemShare}
                                       amountColMinW={amountColMinW}
                                       shareColMinW={shareColMinW}
-                                      isLast={itemIdx === cat.items.length - 1}
+                                      isLast={itemIdx === catItems.length - 1}
                                     />
                                   );
                                 })}
@@ -236,6 +351,37 @@ export default function BudgetSetupSummaryTable({
           );
         })}
 
+        {cardMode ? (
+          <LedgerCardRow
+            columns={summaryColumns}
+            cells={{
+              name: t('onboarding.budget.budgetSplit.budgetLabel'),
+              share: formatSharePct(Math.max(totalBudget, 0), shareBase),
+              amount: formatSignedMonthly(totalBudget, currency),
+            }}
+            renderCell={(col) => {
+              if (col.key === 'amount') {
+                return (
+                  <Text style={{
+                    fontSize: 15,
+                    fontWeight: '700',
+                    color: budgetAmountColor,
+                    textAlign: 'right',
+                    ...tabularNums,
+                  }}
+                  numberOfLines={1}
+                  >
+                    {formatSignedMonthly(totalBudget, currency)}
+                  </Text>
+                );
+              }
+              if (col.key === 'share') {
+                return formatSharePct(Math.max(totalBudget, 0), shareBase);
+              }
+              return null;
+            }}
+          />
+        ) : (
         <View style={{
           flexDirection: 'row',
           alignItems: 'center',
@@ -271,6 +417,7 @@ export default function BudgetSetupSummaryTable({
           </View>
           <View style={{ width: 28, flexShrink: 0 }} />
         </View>
+        )}
       </View>
     </MaytechTableFrame>
   );

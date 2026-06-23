@@ -6,6 +6,7 @@ import {
   recordVisit,
   navigateBack,
   segmentsToOnboardingRoute,
+  pathnameToOnboardingRoute,
   __resetNavHistoryForTests,
 } from '../../lib/onboardingNavigation';
 
@@ -34,6 +35,22 @@ describe('onboardingNavigation', () => {
     );
     expect(segmentsToOnboardingRoute(['(onboarding)', 'income'])).toBe(
       '/(onboarding)/income',
+    );
+  });
+
+  test('pathnameToOnboardingRoute resolves budget-setup from pathname', () => {
+    expect(pathnameToOnboardingRoute('/(onboarding)/budget-setup')).toBe(
+      '/(onboarding)/budget-setup',
+    );
+    expect(pathnameToOnboardingRoute('/')).toBe('/(onboarding)/welcome');
+    expect(pathnameToOnboardingRoute(undefined)).toBe('/(onboarding)/welcome');
+  });
+
+  test('segmentsToOnboardingRoute tolerates non-array segments (mobile web)', () => {
+    expect(segmentsToOnboardingRoute(undefined)).toBe('/(onboarding)/welcome');
+    expect(segmentsToOnboardingRoute(null)).toBe('/(onboarding)/welcome');
+    expect(segmentsToOnboardingRoute({ 0: '(onboarding)', 1: 'budget-setup' })).toBe(
+      '/(onboarding)/welcome',
     );
   });
 

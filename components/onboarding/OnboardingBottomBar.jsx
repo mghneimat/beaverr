@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { View, Platform } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
-import { useRouter, useSegments } from 'expo-router';
+import { useRouter, usePathname } from 'expo-router';
 import { useI18n } from '../../lib/i18n';
+import { webSafeAreaBottom } from '../../lib/safeAreaWeb';
 import { S } from '../../constants/onboarding-theme';
 import PrimaryButton from '../ui/PrimaryButton';
 import ConfirmDialog from '../ui/ConfirmDialog';
@@ -38,15 +39,16 @@ export default function OnboardingBottomBar({
   skipLabel,
   compact = false,
   inCard = false,
+  fullBleedFooter = false,
 }) {
   const { t } = useI18n();
   const router = useRouter();
-  const segments = useSegments();
+  const pathname = usePathname();
   const [discardOpen, setDiscardOpen] = useState(false);
   const [discardMessage, setDiscardMessage] = useState('');
   const [discarding, setDiscarding] = useState(false);
 
-  const resumeRoute = resumeRouteProp || `/${segments.join('/')}`;
+  const resumeRoute = resumeRouteProp || pathname || '/(onboarding)/welcome';
   const isNarrow = layout?.isNarrow;
   const useShortDiscard = isNarrow || compact;
   const btnPadH = useShortDiscard ? 10 : 28;
@@ -54,6 +56,10 @@ export default function OnboardingBottomBar({
   const discardLabel = useShortDiscard
     ? t('onboarding.exit.discardShort')
     : t('onboarding.exit.discard');
+
+  const webBottomPad = (fallback) => (
+    Platform.OS === 'web' && (!inCard || fullBleedFooter) ? webSafeAreaBottom(fallback) : fallback
+  );
 
   const shell = inCard
     ? {
@@ -116,7 +122,7 @@ export default function OnboardingBottomBar({
         alignItems: 'stretch',
         gap: 10,
         paddingTop: inCard ? 0 : 8,
-        paddingBottom: compact ? 8 : onSkip ? 4 : showExit ? 4 : inCard ? 0 : 8,
+        paddingBottom: compact ? 8 : onSkip ? 4 : showExit ? 4 : (inCard && !fullBleedFooter) ? 0 : webBottomPad(8),
       }]}>
         {showExit ? (
           <PrimaryButton
@@ -147,7 +153,7 @@ export default function OnboardingBottomBar({
       </View>
 
       {showExit && !compact ? (
-        <View style={[shell, { paddingBottom: onSkip ? 4 : inCard ? 0 : 12, alignItems: 'center' }]}>
+        <View style={[shell, { paddingBottom: onSkip ? 4 : (inCard && !fullBleedFooter) ? 0 : webBottomPad(12), alignItems: 'center' }]}>
           <OnboardingPressable
             onPress={handleSaveForLater}
             disabled={exitDisabled}
@@ -170,7 +176,7 @@ export default function OnboardingBottomBar({
       ) : null}
 
       {onSkip ? (
-        <View style={[shell, { paddingTop: 4, paddingBottom: compact ? 8 : 12 }]}>
+        <View style={[shell, { paddingTop: 4, paddingBottom: compact ? 8 : webBottomPad(12) }]}>
           <SkipButton
             label={skipLabel || t('common.skip')}
             onPress={onSkip}

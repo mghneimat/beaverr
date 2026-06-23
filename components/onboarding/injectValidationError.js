@@ -31,8 +31,11 @@ function injectIntoNode(node, validationError, stats) {
     const mapped = React.Children.map(childNodes, (child) =>
       injectIntoNode(child, validationError, stats),
     );
-    if (mapped !== childNodes) {
-      el = React.cloneElement(el, {}, ...mapped);
+    if (mapped != null && mapped !== childNodes) {
+      const nextChildren = React.Children.toArray(mapped);
+      if (nextChildren.length > 0) {
+        el = React.cloneElement(el, {}, ...nextChildren);
+      }
     }
   }
 

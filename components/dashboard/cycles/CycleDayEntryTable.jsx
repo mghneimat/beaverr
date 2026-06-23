@@ -11,7 +11,7 @@ import {
   groupCycleDayRowsByWeek,
 } from '../../../lib/cycleDayLedger';
 import { C, R, T, tabularNums } from '../../../constants/onboarding-theme';
-import { BreakdownCell, BreakdownRow } from '../BreakdownTablePrimitives';
+import { BreakdownCell, BreakdownRow, LedgerCardRow } from '../BreakdownTablePrimitives';
 import AnimatedResize from '../AnimatedResize';
 
 function formatTableDate(isoDate, locale, isToday, t) {
@@ -156,9 +156,14 @@ export default function CycleDayEntryTable({
   onRowPress,
 }) {
   const { t, locale } = useI18n();
-  const { narrow } = useBreakdownTableColumns();
+  const { narrow, tableLayout } = useBreakdownTableColumns();
+  const cardMode = tableLayout === 'card';
   const [pageIndex, setPageIndex] = useState(0);
   const amountColMinW = ledgerColumnMinWidth('amount', narrow);
+  const dayColumns = useMemo(() => ([
+    { key: 'name', label: t('dashboard.cycles.calendar.entryTable.columnDay') },
+    { key: 'amount', label: t('dashboard.cycles.calendar.entryTable.columnSpent'), align: 'right' },
+  ]), [t]);
 
   const rows = useMemo(
     () => buildCycleDayRows(activeCycle, dailyLogs),
@@ -216,8 +221,55 @@ export default function CycleDayEntryTable({
         ) : null}
 
         <View style={{ gap: 8, width: '100%' }}>
-          <CycleDayColumnHeaders t={t} amountColMinW={amountColMinW} />
-          {visibleRows.map((row, index) => (
+          {!cardMode ? <CycleDayColumnHeaders t={t} amountColMinW={amountColMinW} /> : null}
+          {visibleRows.map((row, index) => {
+            if (cardMode) {
+              const dateLabel = formatTableDate(row.isoDate, locale, row.isToday, t);
+              const unset = row.status !== 'confirmed';
+              const amountLabel = unset
+                ? t('dashboard.cycles.calendar.entryTable.emptyAmount')
+                : formatCurrency(row.spent ?? 0, currency);
+              return (
+                <LedgerCardRow
+                  key={row.isoDate}
+                  columns={dayColumns}
+                  cells={{ name: dateLabel, amount: amountLabel }}
+                  index={index}
+                  onPress={() => onRowPress(row.isoDate)}
+                  accessibilityLabel={t('dashboard.cycles.calendar.entryTable.openA11y', { date: dateLabel })}
+                  renderCell={(col) => {
+                    if (col.key !== 'amount') return dateLabel;
+                    if (unset) {
+                      return (
+                        <Text style={{
+                          fontSize: 14,
+                          fontWeight: '700',
+                          color: C.cycleWarning,
+                          textAlign: 'right',
+                          ...tabularNums,
+                        }}
+                        >
+                          {amountLabel}
+                        </Text>
+                      );
+                    }
+                    return (
+                      <Text style={{
+                        fontSize: 14,
+                        fontWeight: '700',
+                        color: C.primary,
+                        textAlign: 'right',
+                        ...tabularNums,
+                      }}
+                      >
+                        {amountLabel}
+                      </Text>
+                    );
+                  }}
+                />
+              );
+            }
+            return (
             <CycleDayPillRow
               key={row.isoDate}
               row={row}
@@ -228,7 +280,8 @@ export default function CycleDayEntryTable({
               t={t}
               amountColMinW={amountColMinW}
             />
-          ))}
+            );
+          })}
         </View>
 
         {weeks.length > 1 ? (

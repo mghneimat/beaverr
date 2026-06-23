@@ -13,7 +13,7 @@ SplashScreen.preventAutoHideAsync();
 
 function AppNavigation() {
   return (
-    <Stack screenOptions={{ headerShown: false }}>
+    <Stack screenOptions={{ headerShown: false, contentStyle: { flex: 1 } }}>
       <Stack.Screen name="index" />
       <Stack.Screen name="(onboarding)" />
       <Stack.Screen name="(app)" />

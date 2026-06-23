@@ -116,6 +116,146 @@ export function BreakdownRow({ children, style }) {
   );
 }
 
+function ledgerCardShellStyle({ index, selected, pressed, hovered }) {
+  const striped = index % 2 === 1;
+  let bg = striped ? C.breakdownStripeBg : C.surface;
+  if (selected) bg = C.pillSelectedBg;
+  else if (pressed || hovered) bg = C.breakdownRowHover;
+  return {
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: R.card,
+    backgroundColor: bg,
+    borderWidth: 1,
+    borderColor: selected ? C.pillSelectedBg : C.tableRowBorder,
+    width: '100%',
+    minHeight: 44,
+    opacity: pressed ? 0.92 : 1,
+  };
+}
+
+/**
+ * Phone layout — stacked label/value pairs for ledger tables.
+ * @param {Function} [renderCell] — (col) => ReactNode; overrides cells[col.key]
+ */
+export function LedgerCardRow({
+  columns,
+  cells = {},
+  renderCell,
+  index = 0,
+  selected = false,
+  onPress,
+  accessibilityLabel,
+  leading,
+  trailing,
+  skipKeys = [],
+  children,
+  style,
+}) {
+  const detailColumns = columns.filter(
+    (col) => col.key !== 'name' && col.key !== 'amount' && col.label && !skipKeys.includes(col.key),
+  );
+  const nameValue = cells.name ?? '';
+  const amountValue = cells.amount;
+
+  const labelColor = selected ? C.pillSelectedText : C.text;
+  const metaColor = selected ? 'rgba(255,255,255,0.78)' : C.muted;
+  const valueColor = selected ? C.pillSelectedText : C.primary;
+
+  const content = (
+    <View style={{ gap: 8 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10 }}>
+        {leading}
+        <View style={{ flex: 1, minWidth: 0 }}>
+          <Text style={{ fontSize: 15, fontWeight: '600', color: labelColor }} numberOfLines={3}>
+            {nameValue}
+          </Text>
+        </View>
+        {amountValue != null && amountValue !== '' ? (
+          <Text
+            style={{
+              fontSize: 15,
+              fontWeight: '700',
+              color: selected ? C.pillSelectedText : C.primary,
+              flexShrink: 0,
+              ...tabularNums,
+            }}
+            numberOfLines={1}
+          >
+            {amountValue}
+          </Text>
+        ) : null}
+        {trailing}
+      </View>
+      {detailColumns.map((col) => {
+        const rendered = renderCell ? renderCell(col) : cells[col.key];
+        if (rendered == null || rendered === '') return null;
+        return (
+          <View
+            key={col.key}
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'flex-start',
+              gap: 12,
+            }}
+          >
+            <Text style={{ fontSize: 12, fontWeight: '600', color: metaColor, flex: 1 }} numberOfLines={2}>
+              {col.label}
+            </Text>
+            <View style={{ flex: 1, alignItems: 'flex-end', minWidth: 0 }}>
+              {typeof rendered === 'string' || typeof rendered === 'number' ? (
+                <Text
+                  style={{
+                    fontSize: 14,
+                    fontWeight: col.key === 'amount' ? '700' : '500',
+                    color: valueColor,
+                    textAlign: 'right',
+                    ...tabularNums,
+                  }}
+                  numberOfLines={3}
+                >
+                  {rendered}
+                </Text>
+              ) : rendered}
+            </View>
+          </View>
+        );
+      })}
+      {children}
+    </View>
+  );
+
+  if (!onPress) {
+    return (
+      <View style={[ledgerCardShellStyle({ index, selected }), style]}>
+        {content}
+      </View>
+    );
+  }
+
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+      accessibilityState={{ selected }}
+      style={({ pressed, hovered }) => [
+        ledgerCardShellStyle({
+          index,
+          selected,
+          pressed,
+          hovered: Platform.OS === 'web' && hovered,
+        }),
+        ...(Platform.OS === 'web' ? { cursor: 'pointer' } : {}),
+        style,
+      ]}
+    >
+      {content}
+    </Pressable>
+  );
+}
+
 /** Column labels above pill rows. */
 export function BreakdownPillColumnHeaders({
   nameLabel,

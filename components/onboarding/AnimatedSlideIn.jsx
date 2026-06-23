@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { View } from 'react-native';
+import { Platform, View } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -67,7 +67,7 @@ export default function AnimatedSlideIn({
     height: spacingTop > 0 ? progress.value * spacingTop : 0,
   }));
 
-  if (reduceMotion) {
+  if (Platform.OS === 'web' || reduceMotion) {
     return visible ? (
       <>
         {spacingTop > 0 ? <View style={{ height: spacingTop }} /> : null}

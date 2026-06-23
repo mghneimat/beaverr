@@ -9,6 +9,8 @@ import { loadDashboardBundle } from '../../lib/dashboardData';
 import { subscribeDashboardRefresh } from '../../lib/dashboardRefresh';
 import { buildDashboardActionQueue } from '../../lib/dashboardAlerts';
 import { C, S, T } from '../../constants/onboarding-theme';
+import { useDashboardLayout } from '../../lib/dashboardLayout';
+import { webScrollBottomPadding } from '../../lib/safeAreaWeb';
 import PrimaryButton from '../ui/PrimaryButton';
 import SettleCrossfade from '../ui/SettleCrossfade';
 import ActionQueuePreview from './ActionQueuePreview';
@@ -20,6 +22,7 @@ const DASHBOARD_MAX_WIDTH = 900;
 export default function DashboardHome() {
   const { t } = useI18n();
   const router = useRouter();
+  const { pagePadH, titleFontSize } = useDashboardLayout();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [bundle, setBundle] = useState(null);
@@ -78,10 +81,11 @@ export default function DashboardHome() {
         </View>
       ) : !bundle ? null : (
         <ScrollView
-      style={{ flex: 1, backgroundColor: C.bg }}
+      style={{ flex: 1, backgroundColor: C.bg, width: '100%', maxWidth: '100%' }}
       contentContainerStyle={{
-        paddingHorizontal: S.pagePadH,
+        paddingHorizontal: pagePadH,
         paddingVertical: S.pagePadV,
+        paddingBottom: webScrollBottomPadding(S.pagePadV),
         maxWidth: DASHBOARD_MAX_WIDTH,
         width: '100%',
         alignSelf: 'center',
@@ -92,7 +96,7 @@ export default function DashboardHome() {
     >
       <Text
         accessibilityRole="header"
-        style={{ ...T.questionTitle, fontSize: 28, marginBottom: 8 }}
+        style={{ ...T.questionTitle, fontSize: titleFontSize, marginBottom: 8 }}
       >
         {t('dashboard.title')}
       </Text>

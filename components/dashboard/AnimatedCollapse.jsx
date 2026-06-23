@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { View } from 'react-native';
+import { Platform, View } from 'react-native';
 import Animated, {
   interpolate,
   useAnimatedStyle,
@@ -19,7 +19,7 @@ export default function AnimatedCollapse({ visible, children, style, fallbackHei
   const contentHeight = useSharedValue(fallbackHeight);
 
   useEffect(() => {
-    if (reduceMotion) {
+    if (Platform.OS === 'web' || reduceMotion) {
       progress.value = visible ? 1 : 0;
       return;
     }
@@ -36,7 +36,7 @@ export default function AnimatedCollapse({ visible, children, style, fallbackHei
     overflow: 'hidden',
   }));
 
-  if (reduceMotion) {
+  if (Platform.OS === 'web' || reduceMotion) {
     return visible ? <View style={style}>{children}</View> : null;
   }
 

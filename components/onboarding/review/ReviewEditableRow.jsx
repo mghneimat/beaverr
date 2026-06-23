@@ -2,6 +2,7 @@ import { View } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
 import { useRouter } from 'expo-router';
 import { useI18n } from '../../../lib/i18n';
+import { useOnboardingLayout } from '../../../lib/onboardingLayout';
 import { C, T, tabularNums } from '../../../constants/onboarding-theme';
 import { buildReviewRowEditRouteFromRow } from '../../../lib/reviewRowEdit';
 import ReviewRowPenButton, { REVIEW_PEN_GAP } from './ReviewRowPenButton';
@@ -15,6 +16,8 @@ export default function ReviewEditableRow({
 }) {
   const { t } = useI18n();
   const router = useRouter();
+  const layout = useOnboardingLayout();
+  const stackNarrow = layout.isNarrow;
   const reservePenSlot = Boolean(row.editable && row.editKey);
   const showPen = editMode && reservePenSlot;
   const penA11y = t('onboarding.review.review.editRowA11y', { label: row.label });
@@ -27,8 +30,8 @@ export default function ReviewEditableRow({
   return (
     <View
       style={{
-        flexDirection: 'row',
-        alignItems: 'center',
+        flexDirection: stackNarrow ? 'column' : 'row',
+        alignItems: stackNarrow ? 'stretch' : 'center',
         paddingVertical: ROW_PAD_V,
         gap: showPen ? REVIEW_PEN_GAP : 12,
         borderBottomWidth: isLast ? 0 : 1,
@@ -39,18 +42,26 @@ export default function ReviewEditableRow({
         style={{
           ...T.caption,
           color: C.muted,
-          flex: 1,
+          flex: stackNarrow ? undefined : 1,
         }}
         numberOfLines={3}
       >
         {row.label}
       </Text>
+      <View style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: stackNarrow ? 'space-between' : 'flex-end',
+        gap: showPen ? REVIEW_PEN_GAP : 0,
+        flexShrink: stackNarrow ? undefined : 1,
+      }}
+      >
       <Text
         style={{
           ...T.caption,
           fontWeight: '600',
           color: row.warn ? '#D97706' : C.text,
-          textAlign: 'right',
+          textAlign: stackNarrow ? 'left' : 'right',
           flexShrink: 1,
           ...tabularNums,
         }}
@@ -65,6 +76,7 @@ export default function ReviewEditableRow({
           accessibilityLabel={penA11y}
         />
       ) : null}
+      </View>
     </View>
   );
 }

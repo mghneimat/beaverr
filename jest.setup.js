@@ -11,6 +11,7 @@ jest.mock('expo-router', () => ({
   router: mockRouter,
   useRouter: () => mockRouter,
   useSegments: () => [],
+  usePathname: () => '/(onboarding)/welcome',
   useLocalSearchParams: () => ({}),
   useFocusEffect: (callback) => {
     const cleanup = callback();

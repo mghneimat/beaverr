@@ -21,6 +21,7 @@ import EditStashSheet from './EditStashSheet';
 import TransferStashSheet from './TransferStashSheet';
 import DeleteStashSheet from './DeleteStashSheet';
 import { useDashboardScroll } from '../../lib/dashboardScroll';
+import { useDashboardLayout } from '../../lib/dashboardLayout';
 
 const QUAD_GRID_ITEM = { width: '47%', flexGrow: 1, flexBasis: '45%' };
 const ROW_HALF_ITEM = { flex: 1, minWidth: '45%' };
@@ -395,6 +396,13 @@ export default function JarsBudgetGrid({
 }) {
   const { t } = useI18n();
   const router = useRouter();
+  const { isPhone } = useDashboardLayout();
+  const gridItemStyle = isPhone
+    ? { width: '100%', flexBasis: '100%' }
+    : QUAD_GRID_ITEM;
+  const rowHalfItemStyle = isPhone
+    ? { width: '100%', flexBasis: '100%' }
+    : ROW_HALF_ITEM;
   const { scrollToAnchor } = useDashboardScroll();
   const [explainLine, setExplainLine] = useState(null);
   const [glowJarId, setGlowJarId] = useState(null);
@@ -587,7 +595,7 @@ export default function JarsBudgetGrid({
           <View>
             <View style={{ flexDirection: 'row', gap: 12 }}>
               {primaryLines.map((line, index) => (
-                <View key={line.id} style={ROW_HALF_ITEM}>
+                <View key={line.id} style={rowHalfItemStyle}>
                   {renderJarCell({
                     ...sharedCellProps,
                     ...buildTransferProps(line),
@@ -607,7 +615,7 @@ export default function JarsBudgetGrid({
                   const isExiting = exitingLineId === line.id;
 
                   return (
-                    <View key={line.id} style={QUAD_GRID_ITEM}>
+                    <View key={line.id} style={gridItemStyle}>
                       {renderJarCell({
                         ...sharedCellProps,
                         ...buildTransferProps(line),
@@ -631,7 +639,7 @@ export default function JarsBudgetGrid({
         ) : (
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
             {gridCells.map((cell, index) => (
-              <View key={cell.key} style={QUAD_GRID_ITEM}>
+              <View key={cell.key} style={gridItemStyle}>
                 {renderJarCell({
                   ...sharedCellProps,
                   line: cell.line,

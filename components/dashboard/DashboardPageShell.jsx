@@ -10,6 +10,8 @@ import {
   createDashboardScrollCompleteRegistry,
 } from '../../lib/dashboardScroll';
 import { C, S, T } from '../../constants/onboarding-theme';
+import { useDashboardLayout } from '../../lib/dashboardLayout';
+import { webScrollBottomPadding } from '../../lib/safeAreaWeb';
 import PrimaryButton from '../ui/PrimaryButton';
 import AppScreenShell from '../app/AppScreenShell';
 import SaveFeedbackBanner from './SaveFeedbackBanner';
@@ -19,6 +21,7 @@ const MAX_WIDTH = 900;
 
 export default function DashboardPageShell({ titleKey, roleHintKey, subheader, children }) {
   const { t } = useI18n();
+  const { pagePadH, titleFontSize } = useDashboardLayout();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [bundle, setBundle] = useState(null);
@@ -85,12 +88,13 @@ export default function DashboardPageShell({ titleKey, roleHintKey, subheader, c
             <View style={{ flex: 1 }}>
               <ScrollView
                 ref={scrollRef}
-                style={{ flex: 1, backgroundColor: C.bg }}
+                style={{ flex: 1, backgroundColor: C.bg, width: '100%', maxWidth: '100%' }}
                 onMomentumScrollEnd={notifyScrollComplete}
                 onScrollEndDrag={notifyScrollComplete}
                 contentContainerStyle={{
-                  paddingHorizontal: S.pagePadH,
+                  paddingHorizontal: pagePadH,
                   paddingVertical: S.pagePadV,
+                  paddingBottom: webScrollBottomPadding(S.pagePadV),
                   maxWidth: MAX_WIDTH,
                   width: '100%',
                   alignSelf: 'center',
@@ -102,7 +106,7 @@ export default function DashboardPageShell({ titleKey, roleHintKey, subheader, c
                 {titleKey ? (
                   <Text
                     accessibilityRole="header"
-                    style={{ ...T.questionTitle, fontSize: 28, marginBottom: roleHintKey ? 8 : 0 }}
+                    style={{ ...T.questionTitle, fontSize: titleFontSize, marginBottom: roleHintKey ? 8 : 0 }}
                   >
                     {t(titleKey)}
                   </Text>

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { View, Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from '@gluestack-ui/themed';
 import Animated, {
   interpolate,
@@ -21,6 +22,7 @@ const DISMISS_MS = 3200;
  */
 export default function PillSnackbar() {
   const { t } = useI18n();
+  const insets = useSafeAreaInsets();
   const reduceMotion = useReducedMotion();
   const [toast, setToast] = useState(null);
   const progress = useSharedValue(0);
@@ -74,7 +76,7 @@ export default function PillSnackbar() {
         position: 'absolute',
         left: 0,
         right: 0,
-        bottom: 24,
+        bottom: Math.max(24, insets.bottom),
         alignItems: 'center',
         zIndex: 1000,
         pointerEvents: 'box-none',

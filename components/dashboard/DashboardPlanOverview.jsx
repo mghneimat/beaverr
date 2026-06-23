@@ -7,6 +7,7 @@ import { formatCurrency } from '../../lib/finance';
 import { buildLedgerCascade } from '../../lib/ledgerCascade';
 import { buildIncomeBurnRate } from '../../lib/burnRate';
 import { useDashboardFrequency } from '../../lib/useDashboardFrequency';
+import { useDashboardLayout } from '../../lib/dashboardLayout';
 import { navigateFromDashboard } from '../../lib/screenTransition';
 import {
   computeSavedSoFar,
@@ -41,6 +42,7 @@ export default function DashboardPlanOverview({
 }) {
   const { t } = useI18n();
   const router = useRouter();
+  const { isPhone } = useDashboardLayout();
   const tabInsight = getTabInsight('home', insights, t);
   const [savedExplainOpen, setSavedExplainOpen] = useState(false);
   const cascade = buildLedgerCascade(financials, insights || {});
@@ -181,8 +183,13 @@ export default function DashboardPlanOverview({
                   }}>
                     {compactChildren(
                       <>
-                        <View style={{ flexDirection: 'row', alignItems: 'flex-start', width: '100%' }}>
-                          <View style={{ flex: 1, paddingRight: 12 }}>
+                        <View style={{
+                          flexDirection: isPhone ? 'column' : 'row',
+                          alignItems: 'flex-start',
+                          width: '100%',
+                          gap: isPhone ? 16 : 0,
+                        }}>
+                          <View style={{ flex: 1, paddingRight: isPhone ? 0 : 12, width: isPhone ? '100%' : undefined, minWidth: 0 }}>
                             <Text style={{ fontSize: 13, fontWeight: '600', color: C.muted, marginBottom: 8 }}>
                               {t('dashboard.home.toSpendToday.title')}
                             </Text>
@@ -202,8 +209,12 @@ export default function DashboardPlanOverview({
                               </Text>
                             ) : null}
                           </View>
+                          {!isPhone ? (
                           <View style={{ width: 1, alignSelf: 'stretch', backgroundColor: C.border, marginVertical: 4 }} />
-                          <View style={{ flex: 1, paddingLeft: 12 }}>
+                          ) : (
+                          <View style={{ width: '100%', height: 1, backgroundColor: C.border }} />
+                          )}
+                          <View style={{ flex: 1, paddingLeft: isPhone ? 0 : 12, width: isPhone ? '100%' : undefined, minWidth: 0 }}>
                             <SavedSoFarLabel onInfoPress={() => setSavedExplainOpen(true)} />
                             <BurnRateAnimatedAmount
                               text={savedDisplay}

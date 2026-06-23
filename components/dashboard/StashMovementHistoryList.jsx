@@ -11,7 +11,7 @@ import SurfaceCard from '../ui/SurfaceCard';
 import { formatSignedCurrency } from '../../lib/finance';
 import InCardSectionHeader from './InCardSectionHeader';
 import DashboardTablePagination from './DashboardTablePagination';
-import { BreakdownCell, BreakdownRow } from './BreakdownTablePrimitives';
+import { BreakdownCell, BreakdownRow, LedgerCardRow } from './BreakdownTablePrimitives';
 
 const MOVEMENT_TABLE_GAP = 10;
 
@@ -130,7 +130,12 @@ export default function StashMovementHistoryList({
   emptyKey = 'dashboard.stashMovements.empty',
 }) {
   const { t } = useI18n();
-  const { amountColMinW, dateColMinW, narrow } = useBreakdownTableColumns();
+  const { amountColMinW, dateColMinW, narrow, tableLayout } = useBreakdownTableColumns();
+  const cardMode = tableLayout === 'card';
+  const movementColumns = useMemo(() => ([
+    { key: 'date', label: t('dashboard.stashMovements.columnDate') },
+    { key: 'amount', label: t('dashboard.stashMovements.columnAmount'), align: 'right' },
+  ]), [t]);
   const movementDateColMinW = Math.max(dateColMinW, narrow ? 104 : 116);
   const movementAmountColMinW = Math.max(amountColMinW, narrow ? 88 : 96);
   const [pageIndex, setPageIndex] = useState(0);
@@ -163,12 +168,57 @@ export default function StashMovementHistoryList({
         </Text>
       ) : (
         <View style={{ gap: 8, width: '100%', alignSelf: 'stretch', overflow: 'visible' }}>
-          <MovementColumnHeaders
-            t={t}
-            dateColMinW={movementDateColMinW}
-            amountColMinW={movementAmountColMinW}
-          />
-          {pagination.pageItems.map((row, index) => (
+          {!cardMode ? (
+            <MovementColumnHeaders
+              t={t}
+              dateColMinW={movementDateColMinW}
+              amountColMinW={movementAmountColMinW}
+            />
+          ) : null}
+          {pagination.pageItems.map((row, index) => {
+            if (cardMode) {
+              const signed = signedMovementAmount(row);
+              const positive = signed > 0;
+              const description = describeStashMovement(row, budget, t);
+              const dateLabel = formatStashMovementTableDate(row.date);
+              const amountColor = positive ? C.positive : signed < 0 ? C.primary : C.muted;
+              return (
+                <LedgerCardRow
+                  key={row.id}
+                  columns={movementColumns}
+                  cells={{
+                    name: description,
+                    date: dateLabel,
+                    amount: formatSignedCurrency(signed, currency, positive),
+                  }}
+                  index={index}
+                  accessibilityLabel={t('dashboard.stashMovements.rowA11y', {
+                    date: dateLabel,
+                    description,
+                    amount: formatSignedCurrency(signed, currency, positive),
+                  })}
+                  renderCell={(col) => {
+                    if (col.key === 'amount') {
+                      return (
+                        <Text style={{
+                          fontSize: 14,
+                          fontWeight: '700',
+                          color: amountColor,
+                          textAlign: 'right',
+                          ...tabularNums,
+                        }}
+                        >
+                          {formatSignedCurrency(signed, currency, positive)}
+                        </Text>
+                      );
+                    }
+                    if (col.key === 'date') return dateLabel;
+                    return description;
+                  }}
+                />
+              );
+            }
+            return (
             <MovementPillRow
               key={row.id}
               row={row}
@@ -179,7 +229,8 @@ export default function StashMovementHistoryList({
               dateColMinW={movementDateColMinW}
               amountColMinW={movementAmountColMinW}
             />
-          ))}
+            );
+          })}
 
           {showPagination ? (
             <DashboardTablePagination

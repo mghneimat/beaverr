@@ -1,5 +1,6 @@
 import { View, Text } from 'react-native';
 import { C, T, tabularNums } from '../../../constants/onboarding-theme';
+import { useOnboardingLayout } from '../../../lib/onboardingLayout';
 import { MaytechTableFrame } from '../../dashboard/BreakdownTablePrimitives';
 import { formatReviewMonthlyAmount, formatReviewMoney } from '../../../lib/reviewOnboardingData';
 
@@ -13,6 +14,8 @@ export default function ReviewSummaryBar({
   currency,
   t,
 }) {
+  const layout = useOnboardingLayout();
+  const stackNarrow = layout.isNarrow;
   const balanceColor = monthlyBalance >= 0 ? C.positive : C.danger;
 
   const rows = [
@@ -41,14 +44,14 @@ export default function ReviewSummaryBar({
         <View
           key={row.label}
           style={{
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            alignItems: 'center',
+            flexDirection: stackNarrow ? 'column' : 'row',
+            justifyContent: stackNarrow ? 'flex-start' : 'space-between',
+            alignItems: stackNarrow ? 'stretch' : 'center',
             paddingVertical: 10,
             borderTopWidth: row.dividerTop ? 1 : 0,
             borderTopColor: C.divider,
             marginTop: row.dividerTop ? 4 : 0,
-            gap: 12,
+            gap: stackNarrow ? 4 : 12,
           }}
         >
           <Text style={{

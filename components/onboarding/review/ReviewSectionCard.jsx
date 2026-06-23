@@ -10,6 +10,7 @@ import BreakdownSectionIcon from '../../dashboard/BreakdownSectionIcon';
 import ReviewEditableRow from './ReviewEditableRow';
 import ReviewBlockPenHeader from './ReviewBlockPenHeader';
 import { reviewSectionHasEditableRows } from '../../../lib/reviewRowEdit';
+import { isTouchWeb } from '../../../lib/isMobileWebTouch';
 import {
   isReviewSectionExpanded,
   setReviewSectionExpanded,
@@ -91,17 +92,22 @@ const CANCEL_HOVER_BG = '#FEF2F2';
 const CANCEL_PRESSED_BG = '#FEE2E2';
 
 function ReviewEditBar({ editMode, onEdit, onCancel, editLabel, cancelLabel }) {
+  const touchWeb = isTouchWeb();
   const actionStyle = {
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 8,
+    minHeight: touchWeb ? 44 : undefined,
+    minWidth: touchWeb ? 44 : undefined,
+    alignItems: 'center',
+    justifyContent: 'center',
     ...(Platform.OS === 'web' ? { cursor: 'pointer' } : {}),
   };
 
   return (
     <View
       style={{
-        height: 32,
+        minHeight: touchWeb ? 44 : 32,
         marginTop: S.tabSectionTightGap,
         alignItems: 'center',
         justifyContent: 'center',
