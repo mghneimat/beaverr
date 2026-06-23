@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useI18n } from '../../lib/i18n';
 import DashboardHome from '../../components/dashboard/DashboardHome';
 import DashboardErrorBoundary from '../../components/dashboard/DashboardErrorBoundary';
-import ScreenTransitionShell from '../../components/app/ScreenTransitionShell';
+import AppScreenShell from '../../components/app/AppScreenShell';
 
 export default function DashboardScreen() {
   const { t } = useI18n();
@@ -15,9 +15,9 @@ export default function DashboardScreen() {
       retryLabel={t('common.retry')}
       onReset={() => setResetKey((k) => k + 1)}
     >
-      <ScreenTransitionShell variant="dashboard">
+      <AppScreenShell variant="dashboard">
         <DashboardHome key={resetKey} />
-      </ScreenTransitionShell>
+      </AppScreenShell>
     </DashboardErrorBoundary>
   );
 }

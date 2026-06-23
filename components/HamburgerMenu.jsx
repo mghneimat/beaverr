@@ -3,6 +3,7 @@ import { View, Text, Pressable, Modal, Animated, Dimensions, Alert } from 'react
 import { useI18n } from '../lib/i18n';
 import { useRouter } from 'expo-router';
 import { revokeConsent } from '../lib/consent';
+import { navigateToAppRoute } from '../lib/screenTransition';
 import { USE_NATIVE_DRIVER } from '../lib/animation';
 import { elevationShadow } from '../lib/shadow';
 import { C } from '../constants/onboarding-theme';
@@ -98,7 +99,7 @@ export default function HamburgerMenu() {
 
   const handleAlertsPress = () => {
     closeMenu();
-    setTimeout(() => router.push('/(app)/alerts'), 260);
+    setTimeout(() => navigateToAppRoute(router, '/(app)/alerts'), 260);
   };
 
   const handleRevokeConsentPress = () => {

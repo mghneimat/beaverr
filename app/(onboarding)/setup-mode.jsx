@@ -2,6 +2,7 @@ import { Text } from '@gluestack-ui/themed';
 import { useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import FadeUpView from '../../components/onboarding/FadeUpView';
+import OnboardingScreenShell from '../../components/onboarding/OnboardingScreenShell';
 import OnboardingBottomBar from '../../components/onboarding/OnboardingBottomBar';
 import OnboardingIntroCardLayout from '../../components/onboarding/OnboardingIntroCardLayout';
 import OnboardingNavBackButton from '../../components/onboarding/OnboardingNavBackButton';
@@ -58,6 +59,7 @@ export default function SetupModeScreen() {
   };
 
   return (
+    <OnboardingScreenShell>
     <View style={{ flex: 1, backgroundColor: C.bg }}>
       <View style={{
         backgroundColor: C.surface,
@@ -97,7 +99,7 @@ export default function SetupModeScreen() {
           marginHorizontal: 'auto',
           width: '100%',
         }}>
-          <FadeUpView>
+          <FadeUpView skipInitial>
             <OnboardingIntroCardLayout
               illustration={<SetupModeIllustration width={layout.illustrationWidth} />}
               title={t('onboarding.setupMode.title')}
@@ -203,5 +205,6 @@ export default function SetupModeScreen() {
         </View>
       </ScrollView>
     </View>
+    </OnboardingScreenShell>
   );
 }

@@ -10,16 +10,21 @@ import {
   DASHBOARD_MOTION_EASE,
   DASHBOARD_ENTER,
   SETTLE_FADE_IN_MS,
-} from '../../lib/dashboardMotion';
+} from '../../lib/motion';
 import { useReducedMotion } from '../../lib/useReducedMotion';
+import SettleCrossfade from '../ui/SettleCrossfade';
 
 /**
- * Route-focus enter animation for dashboard ↔ tab transitions.
- * Only the focused screen consumes the pending direction so nested stacks
- * (e.g. goals list → goal detail) animate correctly.
+ * Universal route-focus enter shell for app tabs and dashboard.
+ * Optionally wraps children in SettleCrossfade when `settleKey` is provided.
  * @param {'dashboard' | 'tab'} variant
  */
-export default function ScreenTransitionShell({ children, variant = 'tab' }) {
+export default function AppScreenShell({
+  children,
+  variant = 'tab',
+  settleKey,
+  style,
+}) {
   const reduceMotion = useReducedMotion();
   const isFocused = useIsFocused();
   const segments = useSegments();
@@ -64,9 +69,17 @@ export default function ScreenTransitionShell({ children, variant = 'tab' }) {
     ],
   }));
 
-  return (
-    <Animated.View style={[{ flex: 1 }, animatedStyle]}>
+  const inner = settleKey != null ? (
+    <SettleCrossfade animationKey={settleKey} style={{ flex: 1 }}>
       {children}
+    </SettleCrossfade>
+  ) : (
+    children
+  );
+
+  return (
+    <Animated.View style={[{ flex: 1 }, style, animatedStyle]}>
+      {inner}
     </Animated.View>
   );
 }

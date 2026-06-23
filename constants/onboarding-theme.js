@@ -1,4 +1,5 @@
 import { Platform } from 'react-native';
+import { ENTER_DURATION_MS, ENTER_TRANSLATE_Y } from '../lib/motionTokens';
 import { GENERAL_SANS_REGULAR, GENERAL_SANS_WORDMARK, GENERAL_SANS_VARIABLE, sansFontFamily, wordmarkTextStyle } from '../lib/fonts';
 import { C, P } from './palette';
 import { syncThemeTokens } from '../lib/theme/syncThemeTokens';
@@ -143,8 +144,8 @@ export const ONBOARDING_ILLUSTRATION = {
   widthNarrow:  280,
   width:        320,
   marginBottom: 32,
-  fadeDuration: 400,
-  fadeTranslateY: 10,
+  fadeDuration: ENTER_DURATION_MS,
+  fadeTranslateY: ENTER_TRANSLATE_Y,
 };
 
 /** Splash section headings — compact title above data-capture description. */

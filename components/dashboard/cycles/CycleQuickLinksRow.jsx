@@ -2,7 +2,7 @@ import { Platform, Pressable, View } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
 import { useRouter } from 'expo-router';
 import { useI18n } from '../../../lib/i18n';
-import { navigateFromDashboard } from '../../../lib/screenTransition';
+import { navigateFromDashboard, navigateToCostsSubtab } from '../../../lib/screenTransition';
 import { IncomeIcon, CostsIcon } from '../../app/AppNavIcons';
 import LucideStrokeIcon from '../../app/LucideStrokeIcon';
 import { CHEVRON_RIGHT_NODES } from '../../app/lucidePaths';
@@ -84,7 +84,7 @@ export default function CycleQuickLinksRow() {
   const router = useRouter();
 
   const goIncome = () => navigateFromDashboard(router, 'income');
-  const goRecurringExpense = () => router.push('/(app)/costs?primary=recurring&sub=subscriptions');
+  const goRecurringExpense = () => navigateToCostsSubtab(router, { primary: 'recurring', sub: 'subscriptions' }, 'dashboard');
 
   return (
     <SurfaceCard style={{ marginTop: 12 }}>

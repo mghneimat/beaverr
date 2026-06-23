@@ -12,6 +12,7 @@ import {
 } from '../../constants/onboarding-theme';
 import OnboardingBottomBar from './OnboardingBottomBar';
 import FadeUpView from './FadeUpView';
+import OnboardingScreenShell from './OnboardingScreenShell';
 import OnboardingIntroCardLayout from './OnboardingIntroCardLayout';
 import OnboardingNavBackButton from './OnboardingNavBackButton';
 import { useOnboardingScrollToTop } from '../../lib/onboardingScroll';
@@ -72,6 +73,7 @@ export default function SplashScreen({
   };
 
   return (
+    <OnboardingScreenShell>
     <View style={{ flex: 1, backgroundColor: C.bg }}>
       <View style={{ flex: 1, minHeight: 0 }}>
         <View style={{
@@ -138,6 +140,7 @@ export default function SplashScreen({
               animationKey={animationKey}
               duration={ONBOARDING_ILLUSTRATION.fadeDuration}
               translateY={ONBOARDING_ILLUSTRATION.fadeTranslateY}
+              skipInitial
               style={{ width: '100%' }}
             >
               <OnboardingIntroCardLayout
@@ -179,5 +182,6 @@ export default function SplashScreen({
         </ScrollView>
       </View>
     </View>
+    </OnboardingScreenShell>
   );
 }

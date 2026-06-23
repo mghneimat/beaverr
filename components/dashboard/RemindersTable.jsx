@@ -1,14 +1,17 @@
 import { useMemo, useCallback } from 'react';
 import { View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useSegments } from 'expo-router';
 import { useI18n } from '../../lib/i18n';
 import { buildReminderTableRows } from '../../lib/reminderTableRows';
 import { resolveReminderPref, formatReminderDateLabel, formatReminderTypesLabel, isReminderEffectivelyEnabled } from '../../lib/reminderPreferences';
+import { navigateToAppRoute, resolveActiveAppTab } from '../../lib/screenTransition';
 import RemindersLedgerTable, { RemindersMissingDatesBanner } from './RemindersLedgerTable';
 
 export default function RemindersTable({ financials, prefs, defaultLeadDays }) {
   const { t } = useI18n();
   const router = useRouter();
+  const segments = useSegments();
+  const currentRoute = resolveActiveAppTab(segments);
 
   const rows = useMemo(() => {
     const schedule = buildReminderTableRows(
@@ -43,8 +46,8 @@ export default function RemindersTable({ financials, prefs, defaultLeadDays }) {
   );
 
   const handleGoToExpenses = useCallback(() => {
-    router.push('/(app)/costs');
-  }, [router]);
+    navigateToAppRoute(router, '/(app)/costs', currentRoute);
+  }, [router, currentRoute]);
 
   const columns = [
     { key: 'name', label: t('dashboard.expensesScreen.table.name'), flex: 1 },

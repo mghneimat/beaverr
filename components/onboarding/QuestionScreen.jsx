@@ -13,6 +13,7 @@ import { useI18n } from '../../lib/i18n';
 import { C, T, S, ONBOARDING_ILLUSTRATION } from '../../constants/onboarding-theme';
 import OnboardingBottomBar from './OnboardingBottomBar';
 import FadeUpView from './FadeUpView';
+import OnboardingScreenShell from './OnboardingScreenShell';
 import OnboardingIntroCardLayout from './OnboardingIntroCardLayout';
 import OnboardingNavBackButton from './OnboardingNavBackButton';
 import { injectValidationErrorIntoChildren } from './injectValidationError';
@@ -201,6 +202,7 @@ export default function QuestionScreen({
   );
 
   return (
+    <OnboardingScreenShell>
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: C.bg }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -287,6 +289,7 @@ export default function QuestionScreen({
                 animationKey={animationKey}
                 duration={ONBOARDING_ILLUSTRATION.fadeDuration}
                 translateY={ONBOARDING_ILLUSTRATION.fadeTranslateY}
+                skipInitial
                 style={{ width: '100%' }}
               >
                 <OnboardingIntroCardLayout
@@ -323,5 +326,6 @@ export default function QuestionScreen({
 
       </View>
     </KeyboardAvoidingView>
+    </OnboardingScreenShell>
   );
 }

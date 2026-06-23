@@ -1,10 +1,11 @@
 import { View, Pressable } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
-import { useRouter } from 'expo-router';
+import { useRouter, useSegments } from 'expo-router';
 import { C, R, T } from '../../constants/onboarding-theme';
 import SurfaceCard from '../ui/SurfaceCard';
 import InCardSectionHeader from './InCardSectionHeader';
 import { getAlertActionLabelKey } from '../../lib/dashboardAlerts';
+import { navigateToAppRoute, resolveActiveAppTab } from '../../lib/screenTransition';
 
 const URGENCY_COLORS = {
   high: C.danger,
@@ -57,6 +58,8 @@ function AlertRow({ alert, message, actionLabel, onAction }) {
 
 export default function ActionQueuePreview({ title, alerts, t, viewAllLabel, onViewAll }) {
   const router = useRouter();
+  const segments = useSegments();
+  const currentRoute = resolveActiveAppTab(segments);
 
   if (!alerts.length) return null;
 
@@ -88,7 +91,7 @@ export default function ActionQueuePreview({ title, alerts, t, viewAllLabel, onV
           message={t(alert.messageKey, alert.messageParams)}
           actionLabel={t(getAlertActionLabelKey(alert))}
           onAction={() => {
-            if (alert.actionRoute) router.push(alert.actionRoute);
+            if (alert.actionRoute) navigateToAppRoute(router, alert.actionRoute, currentRoute);
           }}
         />
       ))}

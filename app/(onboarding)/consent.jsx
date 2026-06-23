@@ -16,6 +16,7 @@ import { isDashboardUnlocked } from '../../lib/onboardingProgress';
 import { useOnboardingLayout } from '../../lib/onboardingLayout';
 import { C, T, S, R, INPUT_FIELD } from '../../constants/onboarding-theme';
 import FadeUpView from '../../components/onboarding/FadeUpView';
+import OnboardingScreenShell from '../../components/onboarding/OnboardingScreenShell';
 import OnboardingIntroCardLayout from '../../components/onboarding/OnboardingIntroCardLayout';
 import OnboardingBottomBar from '../../components/onboarding/OnboardingBottomBar';
 import OnboardingNavBackButton from '../../components/onboarding/OnboardingNavBackButton';
@@ -62,6 +63,7 @@ export default function ConsentScreen() {
   };
 
   return (
+    <OnboardingScreenShell>
     <View style={{ flex: 1, backgroundColor: C.bg }}>
       <View style={{
         backgroundColor: C.surface,
@@ -103,7 +105,7 @@ export default function ConsentScreen() {
           flex: 1,
           justifyContent: 'center',
         }}>
-          <FadeUpView>
+          <FadeUpView skipInitial>
             <OnboardingIntroCardLayout
               illustration={<ConsentGdprIllustration width={layout.illustrationWidth} />}
               title={t('onboarding.consent.title')}
@@ -188,5 +190,6 @@ export default function ConsentScreen() {
         </View>
       </ScrollView>
     </View>
+    </OnboardingScreenShell>
   );
 }

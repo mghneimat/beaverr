@@ -1,9 +1,10 @@
 import { View, Pressable } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
-import { useRouter } from 'expo-router';
+import { useRouter, useSegments } from 'expo-router';
 import { useI18n } from '../../lib/i18n';
 import { dismissAlert, snoozeAlert } from '../../lib/alerts';
 import { getTabInsight } from '../../lib/insights';
+import { navigateToAppRoute, resolveActiveAppTab } from '../../lib/screenTransition';
 import { C, R, T } from '../../constants/onboarding-theme';
 import SurfaceCard from '../ui/SurfaceCard';
 import TabSectionStack from './TabSectionStack';
@@ -18,6 +19,8 @@ const URGENCY_COLORS = {
 export default function AlertsContent({ bundle, onRefresh }) {
   const { t } = useI18n();
   const router = useRouter();
+  const segments = useSegments();
+  const currentRoute = resolveActiveAppTab(segments);
   const active = bundle.alerts.filter((a) => a.status === 'active');
   const tabInsight = getTabInsight('alerts', bundle.insights, t, { alerts: bundle.alerts });
 
@@ -61,7 +64,7 @@ export default function AlertsContent({ bundle, onRefresh }) {
           <View style={{ flexDirection: 'row', gap: 12, marginTop: 12, flexWrap: 'wrap' }}>
             {alert.actionRoute ? (
               <Pressable
-                onPress={() => router.push(alert.actionRoute)}
+                onPress={() => navigateToAppRoute(router, alert.actionRoute, currentRoute)}
                 accessibilityRole="button"
                 style={({ pressed }) => ({
                   paddingVertical: 8,

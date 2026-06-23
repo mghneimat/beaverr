@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { View, Pressable, Platform } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
-import { useRouter } from 'expo-router';
-import { navigateToGoalDetail } from '../../lib/screenTransition';
+import { useRouter, useSegments } from 'expo-router';
+import { navigateToGoalDetail, navigateToReduceCosts, resolveActiveAppTab } from '../../lib/screenTransition';
 import { useI18n } from '../../lib/i18n';
 import { formatCurrency } from '../../lib/finance';
 import { computeProgressPercent } from '../../lib/goals';
@@ -167,6 +167,8 @@ export default function GoalGridTile({
 }) {
   const { t } = useI18n();
   const router = useRouter();
+  const segments = useSegments();
+  const currentRoute = resolveActiveAppTab(segments);
   const isReduceCosts = goal.type === 'reduceCosts';
   const reduction = isReduceCosts && financials
     ? computeCostReduction(financials)
@@ -259,7 +261,7 @@ export default function GoalGridTile({
   const handlePress = () => {
     if (isArchived) return;
     if (isReduceCosts) {
-      router.push('/(app)/reduce-costs');
+      navigateToReduceCosts(router, currentRoute);
       return;
     }
     navigateToGoalDetail(router, goal.id);

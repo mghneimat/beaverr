@@ -11,8 +11,7 @@ import {
 } from '../../lib/dashboardScroll';
 import { C, S, T } from '../../constants/onboarding-theme';
 import PrimaryButton from '../ui/PrimaryButton';
-import ScreenTransitionShell from '../app/ScreenTransitionShell';
-import SettleCrossfade from '../ui/SettleCrossfade';
+import AppScreenShell from '../app/AppScreenShell';
 import SaveFeedbackBanner from './SaveFeedbackBanner';
 import PillSnackbar from './PillSnackbar';
 
@@ -71,8 +70,7 @@ export default function DashboardPageShell({ titleKey, roleHintKey, subheader, c
   const viewKey = loading ? 'loading' : error ? 'error' : 'content';
 
   return (
-    <ScreenTransitionShell variant="tab">
-      <SettleCrossfade animationKey={viewKey} style={{ flex: 1 }}>
+    <AppScreenShell variant="tab" settleKey={viewKey}>
         {loading ? (
           <View style={{ flex: 1, backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center', padding: S.pagePadH }}>
             <Text style={{ ...T.helper }}>{t('dashboard.home.loading')}</Text>
@@ -126,7 +124,6 @@ export default function DashboardPageShell({ titleKey, roleHintKey, subheader, c
             </View>
           </DashboardScrollContext.Provider>
         )}
-      </SettleCrossfade>
-    </ScreenTransitionShell>
+    </AppScreenShell>
   );
 }

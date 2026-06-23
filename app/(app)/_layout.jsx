@@ -47,8 +47,7 @@ export default function AppLayout() {
         <Stack
           screenOptions={{
             headerShown: false,
-            animation: 'fade',
-            animationDuration: 220,
+            animation: 'none',
           }}
         />
       </View>

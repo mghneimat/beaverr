@@ -1,27 +1,28 @@
-import { useRef, useEffect, useState, useCallback } from 'react';
-import { View, Animated, Easing } from 'react-native';
+import { useEffect, useState, useCallback } from 'react';
+import { View } from 'react-native';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
+import { DASHBOARD_MOTION_DURATION, ENTER_EASE } from '../../lib/motion';
 import { useReducedMotion } from '../../lib/useReducedMotion';
 
-/** Upper bound while content height is measured — long forms (e.g. health insurance) exceed 2000px. */
+/** Upper bound while content height is measured — long forms exceed 2000px. */
 const FALLBACK_EXPANDED_MAX = 12000;
 
 /**
  * Animated wrapper that fades + slides its children in/out.
- *
- * Uses `useNativeDriver: false` with maxHeight so hidden children
- * properly collapse to zero height, preventing unwanted whitespace.
- * `overflow` is set to `'hidden'` only during the collapse animation
- * to avoid clipping child elements (e.g. TextInput focus rings) when visible.
- *
- * @param {Object} props
- * @param {boolean} props.visible - Whether children should be visible
- * @param {React.ReactNode} props.children - Content to animate
- * @param {number} [props.duration=280] - Animation duration in ms
- * @param {number} [props.spacingTop=0] - Gap above revealed content (e.g. after Yes/No toggle)
+ * Uses maxHeight collapse so hidden children take zero layout space.
  */
-export default function AnimatedSlideIn({ visible, children, duration = 280, spacingTop = 0 }) {
+export default function AnimatedSlideIn({
+  visible,
+  children,
+  duration = DASHBOARD_MOTION_DURATION,
+  spacingTop = 0,
+}) {
   const reduceMotion = useReducedMotion();
-  const anim = useRef(new Animated.Value(visible ? 1 : 0)).current;
+  const progress = useSharedValue(visible ? 1 : 0);
   const [overflowHidden, setOverflowHidden] = useState(!visible);
   const [contentHeight, setContentHeight] = useState(0);
 
@@ -41,30 +42,30 @@ export default function AnimatedSlideIn({ visible, children, duration = 280, spa
   useEffect(() => {
     if (reduceMotion) {
       setOverflowHidden(!visible);
-      anim.setValue(visible ? 1 : 0);
+      progress.value = visible ? 1 : 0;
       return;
     }
 
     if (visible) {
       const timer = setTimeout(() => setOverflowHidden(false), duration);
+      progress.value = withTiming(1, { duration, easing: ENTER_EASE });
       return () => clearTimeout(timer);
     }
+
     setOverflowHidden(true);
-  }, [visible, reduceMotion, duration, anim]);
+    progress.value = withTiming(0, { duration, easing: ENTER_EASE });
+  }, [visible, reduceMotion, duration, progress]);
 
-  useEffect(() => {
-    if (reduceMotion) {
-      anim.setValue(visible ? 1 : 0);
-      return;
-    }
+  const expandedMax = contentHeight > 0 ? contentHeight : FALLBACK_EXPANDED_MAX;
 
-    Animated.timing(anim, {
-      toValue: visible ? 1 : 0,
-      duration,
-      easing: Easing.bezier(0.16, 1, 0.3, 1),
-      useNativeDriver: false,
-    }).start();
-  }, [visible, reduceMotion, duration, anim]);
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: progress.value,
+    maxHeight: progress.value * expandedMax + (1 - progress.value) * 0,
+  }));
+
+  const spacerStyle = useAnimatedStyle(() => ({
+    height: spacingTop > 0 ? progress.value * spacingTop : 0,
+  }));
 
   if (reduceMotion) {
     return visible ? (
@@ -75,29 +76,14 @@ export default function AnimatedSlideIn({ visible, children, duration = 280, spa
     ) : null;
   }
 
-  const expandedMax = contentHeight > 0 ? contentHeight : FALLBACK_EXPANDED_MAX;
-
-  const spacerHeight = spacingTop > 0
-    ? anim.interpolate({
-      inputRange: [0, 1],
-      outputRange: [0, spacingTop],
-    })
-    : 0;
-
   return (
     <Animated.View
-      style={{
-        opacity: anim,
-        maxHeight: anim.interpolate({
-          inputRange: [0, 1],
-          outputRange: [0, expandedMax],
-        }),
-        overflow: overflowHidden ? 'hidden' : 'visible',
-      }}
+      style={[
+        animatedStyle,
+        { overflow: overflowHidden ? 'hidden' : 'visible' },
+      ]}
     >
-      {spacingTop > 0 ? (
-        <Animated.View style={{ height: spacerHeight }} />
-      ) : null}
+      {spacingTop > 0 ? <Animated.View style={spacerStyle} /> : null}
       <View onLayout={handleContentLayout} collapsable={false}>
         {children}
       </View>

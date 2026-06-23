@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { View, Pressable, Platform } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
-import { useRouter } from 'expo-router';
+import { useRouter, useSegments } from 'expo-router';
 import { useI18n } from '../../lib/i18n';
 import { toMonthly } from '../../lib/finance';
 import { categoryMonthlyTotal } from '../../lib/householdBudget';
 import { useDashboardFrequency } from '../../lib/useDashboardFrequency';
+import { navigateFromDashboard } from '../../lib/screenTransition';
 import { C, R, T, tabularNums } from '../../constants/onboarding-theme';
 import SurfaceCard from '../ui/SurfaceCard';
 import InCardSectionHeader from './InCardSectionHeader';
@@ -47,7 +48,7 @@ export default function ExpensesOverviewCard({ financials, currency, daysInMonth
         style={{ marginBottom: 0 }}
       />
       <Pressable
-        onPress={() => router.push('/(app)/costs')}
+        onPress={() => navigateFromDashboard(router, 'costs')}
         accessibilityRole="button"
         style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
       >

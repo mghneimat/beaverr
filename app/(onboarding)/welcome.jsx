@@ -2,6 +2,7 @@ import { useRouter } from 'expo-router';
 import React from 'react';
 import { ScrollView, View } from 'react-native';
 import FadeUpView from '../../components/onboarding/FadeUpView';
+import OnboardingScreenShell from '../../components/onboarding/OnboardingScreenShell';
 import OnboardingBottomBar from '../../components/onboarding/OnboardingBottomBar';
 import OnboardingIntroCardLayout from '../../components/onboarding/OnboardingIntroCardLayout';
 import WelcomeAvatarIllustration from '../../components/onboarding/WelcomeAvatarIllustration';
@@ -54,6 +55,7 @@ export default function WelcomeScreen() {
   };
 
   return (
+    <OnboardingScreenShell>
     <View style={{ flex: 1, backgroundColor: C.bg }}>
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1 }}>
         <View style={{
@@ -65,7 +67,7 @@ export default function WelcomeScreen() {
           flex: 1,
           justifyContent: 'center',
         }}>
-          <FadeUpView style={{ alignItems: 'stretch', width: '100%', maxWidth: S.maxWidth }}>
+          <FadeUpView skipInitial style={{ alignItems: 'stretch', width: '100%', maxWidth: S.maxWidth }}>
             <OnboardingIntroCardLayout
               illustration={<WelcomeAvatarIllustration size={layout.illustrationWidth} />}
               title={t('onboarding.welcome.heading')}
@@ -94,5 +96,6 @@ export default function WelcomeScreen() {
         </View>
       </ScrollView>
     </View>
+    </OnboardingScreenShell>
   );
 }

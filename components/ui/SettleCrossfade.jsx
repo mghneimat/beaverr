@@ -11,7 +11,7 @@ import {
   SETTLE_FADE_IN_MS,
   SETTLE_FADE_OUT_MS,
   SETTLE_FADE_Y,
-} from '../../lib/dashboardMotion';
+} from '../../lib/motion';
 import { useReducedMotion } from '../../lib/useReducedMotion';
 
 /**
