@@ -41,6 +41,8 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
+    "export:web": "node scripts/export-web.mjs && node scripts/prepare-dist-vercel.mjs",
+    "deploy:web": "npm run export:web && vercel --prod",
     "test": "jest",
     "test:watch": "jest --watch"
   },

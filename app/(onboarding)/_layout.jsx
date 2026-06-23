@@ -2,10 +2,12 @@ import React from 'react';
 import { View, ActivityIndicator, Text, Pressable } from 'react-native';
 import { Stack } from 'expo-router';
 import { C, T } from '../../constants/onboarding-theme';
+import { BUILD_STAMP } from '../../lib/buildStamp';
 import OnboardingScreenShell from '../../components/onboarding/OnboardingScreenShell';
 
 /** Surfaces route render errors instead of a silent blank screen on mobile web. */
 export function ErrorBoundary({ error, retry }) {
+  const stackPreview = error?.stack?.split('\n').slice(0, 6).join('\n') || '';
   return (
     <OnboardingScreenShell>
       <View style={{
@@ -21,8 +23,22 @@ export function ErrorBoundary({ error, retry }) {
         <Text style={{ ...T.helper, color: C.danger, marginBottom: 20 }}>
           {error?.message || 'Unknown error'}
         </Text>
-        <Text style={{ ...T.helper, color: C.danger, marginBottom: 12, fontSize: 11 }} numberOfLines={8}>
-          {error?.stack?.split('\n').slice(0, 4).join('\n') || ''}
+        {stackPreview ? (
+          <Text
+            selectable
+            style={{
+              ...T.helper,
+              color: C.danger,
+              marginBottom: 12,
+              fontSize: 11,
+              fontFamily: 'monospace',
+            }}
+          >
+            {stackPreview}
+          </Text>
+        ) : null}
+        <Text style={{ ...T.helper, color: C.muted, marginBottom: 20, fontSize: 11 }}>
+          Build: {BUILD_STAMP}
         </Text>
         {retry ? (
           <Pressable onPress={retry} accessibilityRole="button">

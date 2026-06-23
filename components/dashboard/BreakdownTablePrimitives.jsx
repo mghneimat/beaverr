@@ -16,6 +16,7 @@ import { DASHBOARD_MOTION_DURATION_FAST, DASHBOARD_MOTION_EASE } from '../../lib
 import { useReducedMotion } from '../../lib/useReducedMotion';
 import { elevationShadow } from '../../lib/shadow';
 import { compactChildren } from '../../lib/compactChildren';
+import { asArray } from '../../lib/asArray';
 
 const PILL_ICON_SLOT = 36;
 const PILL_CHEVRON_SLOT = 32;
@@ -152,8 +153,8 @@ export function LedgerCardRow({
   children,
   style,
 }) {
-  const detailColumns = columns.filter(
-    (col) => col.key !== 'name' && col.key !== 'amount' && col.label && !skipKeys.includes(col.key),
+  const detailColumns = asArray(columns).filter(
+    (col) => col.key !== 'name' && col.key !== 'amount' && col.label && !asArray(skipKeys).includes(col.key),
   );
   const nameValue = cells.name ?? '';
   const amountValue = cells.amount;
@@ -247,7 +248,7 @@ export function LedgerCardRow({
           pressed,
           hovered: Platform.OS === 'web' && hovered,
         }),
-        ...(Platform.OS === 'web' ? { cursor: 'pointer' } : {}),
+        Platform.OS === 'web' ? { cursor: 'pointer' } : null,
         style,
       ]}
     >
