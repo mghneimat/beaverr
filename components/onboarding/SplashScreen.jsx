@@ -1,39 +1,55 @@
 import { useRef, useEffect } from 'react';
-import { View, Animated, Easing } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { View, ScrollView, Animated, Easing } from 'react-native';
 import { useOnboardingLayout } from '../../lib/onboardingLayout';
 import { Text } from '@gluestack-ui/themed';
-import { useRouter } from 'expo-router';
-import { C, R, T, S } from '../../constants/onboarding-theme';
-import PrimaryButton from '../ui/PrimaryButton';
+import {
+  C,
+  T,
+  S,
+  ONBOARDING_ILLUSTRATION,
+  ONBOARDING_SPLASH,
+  ONBOARDING_SPLASH_HEADING,
+} from '../../constants/onboarding-theme';
+import OnboardingBottomBar from './OnboardingBottomBar';
 import FadeUpView from './FadeUpView';
+import OnboardingIntroCardLayout from './OnboardingIntroCardLayout';
 import OnboardingNavBackButton from './OnboardingNavBackButton';
+import { useOnboardingScrollToTop } from '../../lib/onboardingScroll';
+import { useMonotonicOnboardingProgress } from '../../lib/useOnboardingProgress';
+import { navigateBack, useOnboardingScreen } from '../../lib/onboardingNavigation';
 
 /**
  * Full-screen section intro splash screen.
- * Nav bar, progress bar, heading, and continue CTA.
- *
- * @param {Object} props
- * @param {string} props.heading - Main heading (1–2 lines)
- * @param {string} props.cta - CTA button label
- * @param {Function} props.onContinue - Continue handler
- * @param {string} [props.chapter] - Chapter label shown in nav bar (optional)
- * @param {Function} [props.onBack] - Back button handler (shows back button if provided)
- * @param {number} [props.progress] - Progress 0–100 for the progress bar
+ * Nav bar, progress bar, heading, and in-flow continue CTA.
  */
 export default function SplashScreen({
   heading,
+  description,
+  illustration,
+  animationKey,
   cta,
   onContinue,
   chapter,
   onBack,
-  progress,
+  progress: progressProp,
+  showExitActions = true,
+  resumeRoute,
 }) {
-  const router = useRouter();
-  const insets = useSafeAreaInsets();
   const layout = useOnboardingLayout();
+  const scrollRef = useRef(null);
+  useOnboardingScreen();
+  const computedProgress = useMonotonicOnboardingProgress();
+  const progress = progressProp ?? computedProgress;
   const fillAnim = useRef(new Animated.Value(progress !== undefined ? progress : 0)).current;
   const hasProgress = progress !== undefined;
+  const headingFontSize = layout.isNarrow
+    ? ONBOARDING_SPLASH_HEADING.fontSizeNarrow
+    : ONBOARDING_SPLASH_HEADING.fontSize;
+  const headingLineHeight = layout.isNarrow
+    ? ONBOARDING_SPLASH_HEADING.lineHeightNarrow
+    : ONBOARDING_SPLASH_HEADING.lineHeight;
+
+  useOnboardingScrollToTop(scrollRef, animationKey ?? chapter ?? 'splash');
 
   useEffect(() => {
     if (hasProgress) {
@@ -47,108 +63,120 @@ export default function SplashScreen({
   }, [progress, hasProgress]);
 
   const handleBack = () => {
-    if (onBack) { onBack(); } else { router.back(); }
+    if (onBack) {
+      onBack();
+    } else {
+      navigateBack();
+    }
   };
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
-
-      {/* ── Nav bar ── */}
-      <View style={{
-        backgroundColor: C.surface,
-        height: S.navHeight,
-        flexDirection: 'row',
-        alignItems: 'center',
-        borderBottomWidth: 1,
-        borderBottomColor: C.border,
-      }}>
-        {/* Back arrow — top left (only shown when onBack is provided) */}
-        {onBack ? (
-          <OnboardingNavBackButton onPress={handleBack} cooldown={false} />
-        ) : (
-          <View style={{ width: 100 }} />
-        )}
-
-        {/* Chapter title — centered */}
+      <View style={{ flex: 1, minHeight: 0 }}>
         <View style={{
-          position: 'absolute',
-          left: 0,
-          right: 0,
-          alignItems: 'center',
-          pointerEvents: 'none',
-        }}>
-          {chapter ? (
-            <Text style={{
-              ...T.chapterLabel,
-            }}>
-              {chapter}
-            </Text>
-          ) : null}
-        </View>
-
-        {/* Right spacer */}
-        <View style={{ width: 100 }} />
-      </View>
-
-      {/* ── Progress bar (thin line under nav bar) ── */}
-      {hasProgress ? (
-        <View
-          accessibilityRole="progressbar"
-          accessibilityValue={{ min: 0, max: 100, now: Math.round(progress) }}
-          style={{
-          height: S.progressHeight,
-          backgroundColor: C.progressTrack,
-        }}>
-          <Animated.View style={{
-            height: '100%',
-            width: fillAnim.interpolate({
-              inputRange: [0, 100],
-              outputRange: ['0%', '100%'],
-            }),
-            backgroundColor: C.progressFill,
-          }} />
-        </View>
-      ) : null}
-
-      {/* ── Centered content ── */}
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: layout.pagePadH }}>
-        <View style={{
-          width: '100%',
-          maxWidth: S.maxWidth,
-        }}>
-          <FadeUpView duration={320} translateY={10} style={{ width: '100%' }}>
-            <Text
-              accessibilityRole="header"
-              style={{
-              ...T.splashHeading,
-              textAlign: 'left',
-            }}>
-              {heading}
-            </Text>
-          </FadeUpView>
-        </View>
-      </View>
-
-      {/* ── Bottom bar (fixed, matching UI Examples) ── */}
-      <View style={{
-        backgroundColor: C.surface,
-        borderTopWidth: 1,
-        borderTopColor: C.border,
-        paddingBottom: Math.max(insets.bottom, 0),
-      }}>
-        <View style={{
+          backgroundColor: C.surface,
+          height: S.navHeight,
           flexDirection: 'row',
           alignItems: 'center',
-          minHeight: 74,
-          paddingHorizontal: layout.pagePadH,
-          maxWidth: S.maxWidth,
-          width: '100%',
-          alignSelf: 'center',
+          borderBottomWidth: 1,
+          borderBottomColor: C.border,
+          flexShrink: 0,
         }}>
-          <PrimaryButton onPress={onContinue}>{cta}</PrimaryButton>
-        </View>
-      </View>
+          <OnboardingNavBackButton onPress={handleBack} cooldown={false} />
 
+          <View style={{
+            position: 'absolute',
+            left: 0,
+            right: 0,
+            alignItems: 'center',
+            pointerEvents: 'none',
+          }}>
+            {chapter ? (
+              <Text style={{ ...T.chapterLabel }}>
+                {chapter}
+              </Text>
+            ) : null}
+          </View>
+
+          <View style={{ width: 100 }} />
+        </View>
+
+        {hasProgress ? (
+          <View
+            accessibilityRole="progressbar"
+            accessibilityValue={{ min: 0, max: 100, now: Math.round(progress) }}
+            style={{
+              height: S.progressHeight,
+              backgroundColor: C.progressTrack,
+              flexShrink: 0,
+            }}
+          >
+            <Animated.View style={{
+              height: '100%',
+              width: fillAnim.interpolate({
+                inputRange: [0, 100],
+                outputRange: ['0%', '100%'],
+              }),
+              backgroundColor: C.progressFill,
+            }} />
+          </View>
+        ) : null}
+
+        <ScrollView
+          ref={scrollRef}
+          style={{ flex: 1, minHeight: 0 }}
+          contentContainerStyle={{ flexGrow: 1, paddingVertical: 32, paddingBottom: 24 }}
+        >
+          <View style={{
+            width: '100%',
+            maxWidth: S.maxWidth,
+            paddingHorizontal: layout.pagePadH,
+            alignSelf: 'center',
+          }}>
+            <FadeUpView
+              animationKey={animationKey}
+              duration={ONBOARDING_ILLUSTRATION.fadeDuration}
+              translateY={ONBOARDING_ILLUSTRATION.fadeTranslateY}
+              style={{ width: '100%' }}
+            >
+              <OnboardingIntroCardLayout
+                illustration={illustration}
+                illustrationMinHeight={illustration ? layout.illustrationWidth : undefined}
+                descriptionMinHeight={
+                  illustration
+                    ? ONBOARDING_SPLASH.descriptionMinHeight
+                    : ONBOARDING_SPLASH.descriptionMinHeightNoIllustration
+                }
+                title={heading}
+                titleTextStyle={{
+                  ...T.splashHeading,
+                  fontSize: headingFontSize,
+                  lineHeight: headingLineHeight,
+                  textAlign: 'left',
+                  width: '100%',
+                  marginTop: 0,
+                }}
+                description={description}
+                descriptionTextStyle={{
+                  ...T.helper,
+                  textAlign: 'left',
+                  marginBottom: 0,
+                }}
+                footer={(
+                  <OnboardingBottomBar
+                    inCard
+                    layout={layout}
+                    primaryLabel={cta}
+                    onPrimary={onContinue}
+                    showExit={showExitActions}
+                    resumeRoute={resumeRoute}
+                  />
+                )}
+              />
+            </FadeUpView>
+          </View>
+        </ScrollView>
+      </View>
     </View>
   );
 }

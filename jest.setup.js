@@ -1,24 +1,21 @@
-// Jest setup file
-// Add any global test setup here
-
-// Mock AsyncStorage for tests
-jest.mock('@react-native-async-storage/async-storage', () => ({
-  default: {
-    getItem: jest.fn(),
-    setItem: jest.fn(),
-    removeItem: jest.fn(),
-    clear: jest.fn(),
-  },
-}));
+// Jest setup file — global mocks for unit tests
 
 // Mock expo-router
+const mockRouter = {
+  push: jest.fn(),
+  replace: jest.fn(),
+  back: jest.fn(),
+};
+
 jest.mock('expo-router', () => ({
-  useRouter: () => ({
-    push: jest.fn(),
-    replace: jest.fn(),
-    back: jest.fn(),
-  }),
+  router: mockRouter,
+  useRouter: () => mockRouter,
   useSegments: () => [],
+  useLocalSearchParams: () => ({}),
+  useFocusEffect: (callback) => {
+    const cleanup = callback();
+    return cleanup;
+  },
   Stack: {
     Screen: 'Stack.Screen',
   },

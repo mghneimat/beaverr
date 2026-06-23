@@ -1,43 +1,52 @@
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useRef, useCallback } from 'react';
 import { View } from 'react-native';
-import { Text } from '@gluestack-ui/themed';
+import { useLocalSearchParams } from 'expo-router';
 import { useI18n } from '../../lib/i18n';
+import { useDashboardScroll } from '../../lib/dashboardScroll';
 import { getCurrencySymbol } from '../../lib/currency';
-import { getHeadlineInsight } from '../../lib/insights';
-import { useDashboardFrequency } from '../../lib/useDashboardFrequency';
+import { getTabInsight } from '../../lib/insights';
 import { committedMonthlyLoad } from '../../lib/finance';
 import {
   OVERVIEW_TAB_KEY,
   buildFixedExpensePanels,
   buildRecurringExpensePanels,
   buildOverviewPanels,
+  resolveExpenseSectionNavigation,
+  resolveExpensePrimaryTab,
 } from '../../lib/expensePanels';
 import TabHeroMetric from './TabHeroMetric';
-import SectionAIInsightCard from './SectionAIInsightCard';
+import AIInsightSection from './AIInsightSection';
 import ExpenseUnderlineTabBar from './ExpenseUnderlineTabBar';
+import ExpenseAddCategoryPicker from './ExpenseAddCategoryPicker';
 import ExpensesCategoryPanel from './ExpensesCategoryPanel';
 import DashboardTabPanel from './DashboardTabPanel';
-import DashboardFrequencyToggle from './DashboardFrequencyToggle';
+import DashboardFrequencyHeaderControls from './DashboardFrequencyHeaderControls';
+import OverviewMetricCards from './OverviewMetricCards';
+import SurfaceCard from '../ui/SurfaceCard';
+import InCardSectionHeader from './InCardSectionHeader';
 import { formatDashboardAmount } from './formatDashboardAmount';
-import { T, C } from '../../constants/onboarding-theme';
+import TabSectionStack from './TabSectionStack';
+import CycleObligationsCard from './CycleObligationsCard';
 
-const PERIOD_LABEL_KEYS = {
-  daily: 'dashboard.home.kpi.perDay',
-  weekly: 'dashboard.home.kpi.perWeek',
-  monthly: 'dashboard.home.kpi.perMonth',
-};
+const ADD_PICKER_KEY = '__add_picker__';
 
-export default function ExpensesContent({ bundle }) {
+export default function ExpensesContent({ bundle, frequency = 'monthly', setFrequency }) {
   const { t } = useI18n();
+  const params = useLocalSearchParams();
+  const deepPrimary = Array.isArray(params.primary) ? params.primary[0] : params.primary;
+  const deepSub = Array.isArray(params.sub) ? params.sub[0] : params.sub;
+  const deepEditRow = Array.isArray(params.editRow) ? params.editRow[0] : params.editRow;
+  const deepAdd = Array.isArray(params.add) ? params.add[0] : params.add;
+  const { scrollToAnchor } = useDashboardScroll();
+  const expenseDetailRef = useRef(null);
   const currency = getCurrencySymbol(bundle.financials.currencyCode);
   const { financials, insights } = bundle;
   const sections = financials.sections || {};
   const household = sections.household || null;
-  const { frequency, setFrequency } = useDashboardFrequency('monthly');
 
   const committedMonthly = committedMonthlyLoad(financials);
   const annualCommitted = committedMonthly * 12;
-  const headlineInsight = getHeadlineInsight(insights, t);
+  const tabInsight = getTabInsight('expenses', insights, t);
   const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
 
   const fixedPanels = useMemo(
@@ -63,6 +72,34 @@ export default function ExpensesContent({ bundle }) {
 
   const [primaryTab, setPrimaryTab] = useState(OVERVIEW_TAB_KEY);
   const [secondaryTab, setSecondaryTab] = useState(fixedPanels[0]?.key || '');
+  const [addFlowActive, setAddFlowActive] = useState(false);
+  const [pendingAddCategoryKey, setPendingAddCategoryKey] = useState(null);
+
+  const clearAddFlow = useCallback(() => {
+    setAddFlowActive(false);
+    setPendingAddCategoryKey(null);
+  }, []);
+
+  useEffect(() => {
+    if (deepPrimary === 'fixed' || deepPrimary === 'recurring') {
+      setPrimaryTab(deepPrimary);
+      clearAddFlow();
+    }
+    if (deepSub) {
+      setSecondaryTab(deepSub);
+    }
+  }, [deepPrimary, deepSub, clearAddFlow]);
+
+  useEffect(() => {
+    if (deepAdd !== '1' || !deepSub) return;
+    const primary = deepPrimary === 'fixed' || deepPrimary === 'recurring'
+      ? deepPrimary
+      : resolveExpensePrimaryTab(deepSub);
+    setPrimaryTab(primary);
+    setSecondaryTab(deepSub);
+    setPendingAddCategoryKey(deepSub);
+    setAddFlowActive(false);
+  }, [deepAdd, deepSub, deepPrimary]);
 
   const isOverview = primaryTab === OVERVIEW_TAB_KEY;
   const activePanels = primaryTab === 'fixed' ? fixedPanels : recurringPanels;
@@ -73,7 +110,7 @@ export default function ExpensesContent({ bundle }) {
   );
 
   useEffect(() => {
-    if (isOverview) return;
+    if (isOverview || addFlowActive) return;
     const keys = activePanels.map((p) => p.key);
     if (!keys.length) {
       setSecondaryTab('');
@@ -82,75 +119,152 @@ export default function ExpensesContent({ bundle }) {
     if (!keys.includes(secondaryTab)) {
       setSecondaryTab(keys[0]);
     }
-  }, [primaryTab, activePanels, secondaryTab, isOverview]);
+  }, [primaryTab, activePanels, secondaryTab, isOverview, addFlowActive]);
 
   const activePanel = activePanels.find((p) => p.key === secondaryTab) || null;
 
+  useEffect(() => {
+    if (!pendingAddCategoryKey || !activePanel) return;
+    if (activePanel.key !== pendingAddCategoryKey) return;
+
+    const timer = setTimeout(() => scrollToAnchor(expenseDetailRef), 320);
+    return () => clearTimeout(timer);
+  }, [pendingAddCategoryKey, activePanel, scrollToAnchor]);
+
+  useEffect(() => {
+    if (!deepPrimary || deepPrimary === OVERVIEW_TAB_KEY) return;
+    if (deepPrimary !== 'fixed' && deepPrimary !== 'recurring') return;
+    if (!deepSub || isOverview) return;
+    if (secondaryTab !== deepSub || !activePanel) return;
+    if (deepEditRow || deepAdd === '1') return;
+
+    const timer = setTimeout(() => scrollToAnchor(expenseDetailRef), 320);
+    return () => clearTimeout(timer);
+  }, [
+    deepPrimary,
+    deepSub,
+    deepEditRow,
+    deepAdd,
+    isOverview,
+    secondaryTab,
+    activePanel,
+    scrollToAnchor,
+  ]);
+
+  const handleBreakdownSectionPress = (sectionKey) => {
+    const nav = resolveExpenseSectionNavigation(sectionKey, overviewPanels);
+    if (!nav) return;
+    clearAddFlow();
+    setPrimaryTab(nav.primaryTab);
+    setSecondaryTab(nav.secondaryTab);
+  };
+
+  const handlePrimaryTabChange = (key) => {
+    clearAddFlow();
+    setPrimaryTab(key);
+    if (key === 'fixed') setSecondaryTab(fixedPanels[0]?.key || '');
+    if (key === 'recurring') setSecondaryTab(recurringPanels[0]?.key || '');
+  };
+
+  const handleAddCategorySelect = (panel) => {
+    const primary = resolveExpensePrimaryTab(panel.key);
+    setAddFlowActive(false);
+    setPrimaryTab(primary);
+    setSecondaryTab(panel.key);
+    setPendingAddCategoryKey(panel.key);
+  };
+
+  const toggleAddFlow = () => {
+    if (addFlowActive) {
+      clearAddFlow();
+      return;
+    }
+    setAddFlowActive(true);
+    setPendingAddCategoryKey(null);
+  };
+
   const heroValue = formatDashboardAmount(committedMonthly, frequency, currency, daysInMonth);
-  const periodLabel = t(PERIOD_LABEL_KEYS[frequency] || PERIOD_LABEL_KEYS.monthly);
-  const tabHelperKey = isOverview
-    ? 'dashboard.expensesScreen.tabs.helper.overview'
-    : primaryTab === 'fixed'
-      ? 'dashboard.expensesScreen.tabs.helper.fixed'
-      : 'dashboard.expensesScreen.tabs.helper.recurring';
-  const fixedLabel = formatDashboardAmount(financials.fixedCosts, 'monthly', currency, daysInMonth);
-  const debtLabel = formatDashboardAmount(financials.debtPayments, 'monthly', currency, daysInMonth);
+
+  const panelKey = addFlowActive
+    ? ADD_PICKER_KEY
+    : isOverview
+      ? OVERVIEW_TAB_KEY
+      : `${primaryTab}-${secondaryTab}`;
 
   return (
-    <View>
+    <TabSectionStack>
       <TabHeroMetric
         tone="expense"
         label={t('dashboard.expensesScreen.committedCosts')}
         value={heroValue}
-        periodLabel={periodLabel}
-        secondaryLabel={t('dashboard.expensesScreen.committedBreakdown', {
-          fixed: fixedLabel,
-          debt: debtLabel,
-        })}
+        animationKey={frequency}
+        trailing={setFrequency ? (
+          <DashboardFrequencyHeaderControls
+            layout="inline"
+            scope="expenses"
+            value={frequency}
+            onChange={setFrequency}
+            tone="expense"
+          />
+        ) : null}
+        frequencyCaption={setFrequency ? t('dashboard.frequencyHelper.expenses.summary') : null}
         tertiaryLabel={t('dashboard.expensesScreen.committedAnnual', {
           amount: formatDashboardAmount(annualCommitted, 'monthly', currency, daysInMonth),
         })}
-      >
-        <DashboardFrequencyToggle
-          value={frequency}
-          onChange={setFrequency}
-          style={{ marginTop: 10, marginBottom: 0 }}
-        />
-      </TabHeroMetric>
-
-      <SectionAIInsightCard insight={headlineInsight} />
-
-      <ExpenseUnderlineTabBar
-        tabs={primaryTabs}
-        activeKey={primaryTab}
-        onChange={(key) => {
-          setPrimaryTab(key);
-          if (key === 'fixed') setSecondaryTab(fixedPanels[0]?.key || '');
-          if (key === 'recurring') setSecondaryTab(recurringPanels[0]?.key || '');
-        }}
-        accessibilityLabel={t('dashboard.expensesScreen.tabs.primaryA11y')}
       />
 
-      <Text style={{ ...T.helper, color: C.muted, marginTop: 8, marginBottom: 4 }}>
-        {t(tabHelperKey)}
-      </Text>
+      {tabInsight ? <AIInsightSection paragraphs={tabInsight.paragraphs} /> : null}
 
-      {!isOverview ? (
-        <View style={{ marginTop: 4 }}>
+      <SurfaceCard>
+        <InCardSectionHeader title={t('dashboard.expensesScreen.costCommitments')} />
+        <OverviewMetricCards
+          financials={financials}
+          insights={insights}
+          currency={currency}
+          daysInMonth={daysInMonth}
+          showHeroPanels={false}
+          embedded
+          cardLabelPrefix="dashboard.expensesScreen.costCommitmentsCards"
+          secondaryMetricIds={['committedTotal', 'cashAfterBills', 'fixedLoad', 'recurring']}
+        />
+      </SurfaceCard>
+
+      <TabSectionStack tight>
+        <ExpenseUnderlineTabBar
+          tabs={primaryTabs}
+          activeKey={addFlowActive ? null : primaryTab}
+          onChange={handlePrimaryTabChange}
+          accessibilityLabel={t('dashboard.expensesScreen.tabs.primaryA11y')}
+          trailingAction={{
+            label: t('dashboard.expensesScreen.tabs.add'),
+            active: addFlowActive,
+            onPress: toggleAddFlow,
+            accessibilityLabel: t('dashboard.expensesScreen.tabs.addA11y'),
+          }}
+        />
+
+        {!isOverview && !addFlowActive ? (
           <ExpenseUnderlineTabBar
             tabs={secondaryTabs}
             activeKey={secondaryTab}
-            onChange={setSecondaryTab}
+            onChange={(key) => {
+              clearAddFlow();
+              setSecondaryTab(key);
+            }}
             accessibilityLabel={t('dashboard.expensesScreen.tabs.secondaryA11y')}
           />
-        </View>
-      ) : null}
+        ) : null}
+      </TabSectionStack>
 
-      <DashboardTabPanel
-        panelKey={isOverview ? OVERVIEW_TAB_KEY : `${primaryTab}-${secondaryTab}`}
-        style={{ marginTop: 12 }}
-      >
-        {isOverview ? (
+      <DashboardTabPanel panelKey={panelKey}>
+        {addFlowActive ? (
+          <ExpenseAddCategoryPicker
+            fixedPanels={fixedPanels}
+            recurringPanels={recurringPanels}
+            onSelect={handleAddCategorySelect}
+            t={t}
+          />
+        ) : isOverview ? (
           <ExpensesCategoryPanel
             variant="overview"
             panels={overviewPanels}
@@ -159,22 +273,38 @@ export default function ExpensesContent({ bundle }) {
             currencyCode={financials.currencyCode}
             t={t}
             frequency={frequency}
-            setFrequency={setFrequency}
             daysInMonth={daysInMonth}
+            onSectionPress={handleBreakdownSectionPress}
           />
         ) : activePanel ? (
-          <ExpensesCategoryPanel
-            variant="detail"
-            categoryLabel={activePanel.label}
-            categoryKey={activePanel.key}
-            lineItems={activePanel.lineItems}
-            sectionId={activePanel.sectionId}
-            currency={currency}
-            currencyCode={financials.currencyCode}
-            t={t}
-          />
+          <View ref={expenseDetailRef} collapsable={false}>
+            {activePanel.key === 'debts' ? (
+              <CycleObligationsCard
+                obligations={financials.openObligations}
+                currency={currency}
+              />
+            ) : null}
+            <ExpensesCategoryPanel
+              variant="detail"
+              categoryLabel={activePanel.label}
+              categoryKey={activePanel.key}
+              lineItems={activePanel.lineItems}
+              sectionId={activePanel.sectionId}
+              currency={currency}
+              currencyCode={financials.currencyCode}
+              t={t}
+              frequency={frequency}
+              daysInMonth={daysInMonth}
+              initialEditingRowId={
+                deepSub === activePanel.key ? deepEditRow || undefined : undefined
+              }
+              initialAdding={pendingAddCategoryKey === activePanel.key}
+              onAddDone={() => setPendingAddCategoryKey(null)}
+              onAddCancel={() => setPendingAddCategoryKey(null)}
+            />
+          </View>
         ) : null}
       </DashboardTabPanel>
-    </View>
+    </TabSectionStack>
   );
 }

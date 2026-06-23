@@ -1,40 +1,83 @@
+import { useRef, useCallback, useMemo } from 'react';
 import { View } from 'react-native';
-import { Text } from '@gluestack-ui/themed';
-import { useI18n } from '../../lib/i18n';
 import { buildTrackerPreviews } from '../../lib/trackerPreview';
-import { C, T } from '../../constants/onboarding-theme';
-import SurfaceCard from '../ui/SurfaceCard';
-import DashboardSectionHeader from './DashboardSectionHeader';
+import { useDashboardScroll } from '../../lib/dashboardScroll';
+import { useI18n } from '../../lib/i18n';
+import { getTabInsight } from '../../lib/insights';
+import DailySpendLogCard from './DailySpendLogCard';
+import TrackerPaceSplitCard from './TrackerPaceSplitCard';
 import TrackerPeriodCard from './TrackerPeriodCard';
 import MonthEndHistoryList from './MonthEndHistoryList';
+import CycleTrackerShell from './cycles/CycleTrackerShell';
+import CycleCalendar from './cycles/CycleCalendar';
+import TabSectionStack from './TabSectionStack';
+import AIInsightSection from './AIInsightSection';
 
 export default function TrackerContent({ bundle, currency }) {
   const { t } = useI18n();
+  const scrollAnchorRef = useRef(null);
+  const calendarRef = useRef(null);
+  const { scrollToAnchor } = useDashboardScroll();
+  const handleGoBackAndLog = useCallback(() => {
+    calendarRef.current?.jumpToFirstUnset?.();
+    scrollToAnchor(scrollAnchorRef);
+  }, [scrollToAnchor]);
   const budget = bundle.financials.budget || {};
-  const previews = buildTrackerPreviews({
-    budget,
-    effectiveMonthlyFlexible: bundle.financials.effectiveMonthlyFlexible
-      ?? bundle.financials.monthlyFlexible,
-    dailyLogs: bundle.financials.dailyLogs || [],
+  const cyclesEnabled = budget.cyclesEnabled === true;
+  const activeCycle = bundle.financials.activeCycle ?? null;
+  const dailyLogs = bundle.financials.dailyLogs || [];
+
+  const handleLogDueDay = useCallback((isoDate) => {
+    calendarRef.current?.openSpendForDate?.(isoDate);
+    scrollToAnchor(scrollAnchorRef);
+  }, [scrollToAnchor]);
+
+  const monthPreviews = useMemo(() => {
+    if (cyclesEnabled) return null;
+    return buildTrackerPreviews({
+      budget,
+      effectiveMonthlyFlexible: bundle.financials.effectiveMonthlyFlexible
+        ?? bundle.financials.monthlyFlexible,
+      dailyLogs,
+    });
+  }, [cyclesEnabled, budget, bundle.financials, dailyLogs]);
+
+  const tabInsight = getTabInsight('tracker', bundle.insights, t, {
+    financials: bundle.financials,
   });
 
-  return (
-    <View style={{ gap: 16 }}>
-      <DashboardSectionHeader title={t('dashboard.trackerScreen.intro.title')} />
-      <SurfaceCard>
-        <Text style={{ ...T.helper, color: C.muted }}>
-          {t('dashboard.trackerScreen.intro.body')}
-        </Text>
-        <Text style={{ ...T.caption, color: C.muted, marginTop: 12 }}>
-          {t('dashboard.trackerScreen.intro.loggingSoon')}
-        </Text>
-      </SurfaceCard>
-
-      <TrackerPeriodCard period="daily" previews={previews} currency={currency} />
-      <TrackerPeriodCard period="weekly" previews={previews} currency={currency} />
-      <TrackerPeriodCard period="monthly" previews={previews} currency={currency} />
-
-      <MonthEndHistoryList budget={budget} currency={currency} />
+  const calendarSlot = (
+    <View ref={scrollAnchorRef} collapsable={false}>
+      <CycleCalendar
+        ref={calendarRef}
+        activeCycle={cyclesEnabled ? activeCycle : null}
+        dailyLogs={dailyLogs}
+        currency={currency}
+        budget={budget}
+      />
     </View>
+  );
+
+  const footerSlot = !cyclesEnabled && monthPreviews ? (
+    <>
+      <DailySpendLogCard financials={bundle.financials} currency={currency} />
+      <TrackerPaceSplitCard previews={monthPreviews} currency={currency} detailed />
+      <TrackerPeriodCard period="monthly" previews={monthPreviews} currency={currency} />
+      <MonthEndHistoryList budget={budget} currency={currency} />
+    </>
+  ) : null;
+
+  return (
+    <TabSectionStack>
+      {tabInsight ? <AIInsightSection paragraphs={tabInsight.paragraphs} /> : null}
+      <CycleTrackerShell
+        bundle={bundle}
+        currency={currency}
+        onGoBackAndLog={handleGoBackAndLog}
+        onLogDueDay={handleLogDueDay}
+        calendarSlot={calendarSlot}
+        footerSlot={footerSlot}
+      />
+    </TabSectionStack>
   );
 }

@@ -11,6 +11,8 @@ import { C, R, T, tabularNums } from '../../constants/onboarding-theme';
 function CascadeRow({
   label,
   value,
+  amountValue,
+  currency,
   onPress,
   accessibilityHint,
   emphasis = false,
@@ -18,68 +20,73 @@ function CascadeRow({
   warning = false,
   subLabel,
   indent = false,
-  dividerBefore = false,
+  isLast = false,
 }) {
   const valueColor = deficit ? C.danger : emphasis ? C.primary : C.primary;
+  const resolvedValueLabel = typeof amountValue === 'number'
+    ? formatCurrency(amountValue, currency)
+    : value;
+  const valueStyle = {
+    fontSize: emphasis ? 17 : 15,
+    fontWeight: '700',
+    color: valueColor,
+    ...tabularNums,
+    flexShrink: 0,
+  };
 
   return (
-    <>
-      {dividerBefore ? (
-        <View
-          style={{ height: 1, backgroundColor: C.divider, marginVertical: 10 }}
-          accessibilityRole="none"
-        />
-      ) : null}
-      <Pressable
-        onPress={onPress}
-        disabled={!onPress}
-        accessibilityRole={onPress ? 'button' : 'text'}
-        accessibilityLabel={`${label}, ${value}`}
-        accessibilityHint={accessibilityHint}
-        style={({ pressed, hovered }) => ({
-          flexDirection: 'row',
-          alignItems: 'flex-start',
-          justifyContent: 'space-between',
-          gap: 12,
-          paddingVertical: 10,
-          paddingHorizontal: indent ? 8 : 4,
-          borderRadius: R.input,
-          backgroundColor: pressed && onPress ? C.bg : hovered && onPress ? C.bg : 'transparent',
-          opacity: pressed && onPress ? 0.85 : 1,
-        })}
-      >
-        <View style={{ flex: 1, minWidth: 0 }}>
-          <Text
-            style={{
-              ...T.caption,
-              color: warning ? C.accent : C.muted,
-              fontSize: emphasis ? 13 : 12,
-              fontWeight: emphasis ? '600' : '400',
-            }}
-            numberOfLines={2}
-          >
-            {label}
-          </Text>
-          {subLabel ? (
-            <Text style={{ ...T.caption, color: C.muted, marginTop: 4, fontSize: 11 }} numberOfLines={3}>
-              {subLabel}
-            </Text>
-          ) : null}
-        </View>
+    <Pressable
+      onPress={onPress}
+      disabled={!onPress}
+      accessibilityRole={onPress ? 'button' : 'text'}
+      accessibilityLabel={`${label}, ${resolvedValueLabel}`}
+      accessibilityHint={accessibilityHint}
+      style={({ pressed, hovered }) => ({
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        justifyContent: 'space-between',
+        gap: 12,
+        paddingVertical: 14,
+        paddingHorizontal: indent ? 12 : 4,
+        marginHorizontal: indent ? 4 : 0,
+        borderRadius: R.input,
+        backgroundColor: pressed && onPress
+          ? C.tableRowHover
+          : hovered && onPress
+            ? C.tableRowHover
+            : 'transparent',
+        borderBottomWidth: isLast ? 0 : 1,
+        borderBottomColor: C.tableRowBorder,
+        opacity: pressed && onPress ? 0.85 : 1,
+      })}
+    >
+      <View style={{ flex: 1, minWidth: 0 }}>
         <Text
           style={{
-            fontSize: emphasis ? 16 : 15,
-            fontWeight: emphasis ? '700' : '600',
-            color: valueColor,
-            ...tabularNums,
-            flexShrink: 0,
+            fontSize: emphasis ? 15 : 14,
+            fontWeight: emphasis ? '600' : '500',
+            color: warning ? C.heroExpenseBadge : C.text,
           }}
-          numberOfLines={1}
+          numberOfLines={2}
         >
+          {label}
+        </Text>
+        {subLabel ? (
+          <Text style={{ ...T.caption, color: C.muted, marginTop: 4 }} numberOfLines={3}>
+            {subLabel}
+          </Text>
+        ) : null}
+      </View>
+      {typeof amountValue === 'number' ? (
+        <Text style={valueStyle} numberOfLines={1}>
+          {formatCurrency(amountValue, currency)}
+        </Text>
+      ) : (
+        <Text style={valueStyle} numberOfLines={1}>
           {value}
         </Text>
-      </Pressable>
-    </>
+      )}
+    </Pressable>
   );
 }
 
@@ -93,101 +100,105 @@ export default function HouseholdLedgerStrip({ financials, currency, insights })
 
   const go = (route) => navigateFromDashboard(router, route);
 
+  const rows = [
+    {
+      key: 'income',
+      label: t('dashboard.ledgerCascade.income'),
+      value: formatCurrency(cascade.income, currency),
+      amountValue: cascade.income,
+      onPress: () => go('income'),
+      hint: t('dashboard.ledgerCascade.openIncome'),
+    },
+    {
+      key: 'committed',
+      label: t('dashboard.ledgerCascade.committed'),
+      value: formatCurrency(cascade.committed, currency),
+      amountValue: cascade.committed,
+      onPress: () => go('costs'),
+      hint: t('dashboard.ledgerCascade.openExpenses'),
+      subLabel: t('dashboard.ledgerCascade.committedHint'),
+      indent: true,
+    },
+    {
+      key: 'available',
+      label: t('dashboard.ledgerCascade.available'),
+      value: formatCurrency(cascade.available, currency),
+      amountValue: cascade.available,
+      onPress: () => go('budget'),
+      hint: t('dashboard.ledgerCascade.openBudget'),
+      emphasis: true,
+      deficit: cascade.isOvercommitted,
+    },
+    ...(cascade.showCostReduction ? [{
+      key: 'costReduction',
+      label: t('dashboard.ledgerCascade.costsReduced'),
+      value: formatCurrency(cascade.costReduction, currency),
+      amountValue: cascade.costReduction,
+      onPress: () => go('goals'),
+      hint: t('dashboard.ledgerCascade.openGoals'),
+      subLabel: cascade.costReduction > 0
+        ? t('dashboard.ledgerCascade.costsReducedSince')
+        : t('dashboard.ledgerCascade.costsReducedNone'),
+      indent: true,
+    }] : []),
+    ...(cascade.showSaved ? [{
+      key: 'saved',
+      label: t('dashboard.ledgerCascade.saved'),
+      value: formatCurrency(cascade.saved, currency),
+      amountValue: cascade.saved,
+      onPress: () => go('goals'),
+      hint: t('dashboard.ledgerCascade.openGoals'),
+      warning: cascade.savedIsInformational,
+      subLabel: cascade.savedIsInformational
+        ? t('dashboard.ledgerCascade.savedIncluded')
+        : t('dashboard.ledgerCascade.savedDeducted'),
+      indent: true,
+    }] : []),
+    {
+      key: 'toSpend',
+      label: t('dashboard.ledgerCascade.toSpend'),
+      value: formatCurrency(cascade.toSpend, currency),
+      amountValue: cascade.toSpend,
+      onPress: () => go('budget'),
+      hint: t('dashboard.ledgerCascade.openBudget'),
+      subLabel: cascade.savedIsInformational
+        ? t('dashboard.ledgerCascade.toSpendIncludedGoal')
+        : undefined,
+      indent: true,
+    },
+    ...(cascade.showUnallocated ? [{
+      key: 'unallocated',
+      label: t('dashboard.ledgerCascade.unallocated'),
+      value: formatCurrency(cascade.unallocated, currency),
+      amountValue: cascade.unallocated,
+      onPress: () => go('budget'),
+      hint: t('dashboard.ledgerCascade.openBudget'),
+      emphasis: true,
+    }] : []),
+  ];
+
   return (
-    <View style={{ marginBottom: 20 }}>
-      <View
-        accessibilityRole="summary"
-        accessibilityLabel={t('dashboard.ledgerCascade.a11y')}
-        style={{
-          borderRadius: R.card,
-          borderWidth: 1,
-          borderColor: C.border,
-          backgroundColor: C.surface,
-          paddingHorizontal: 12,
-          paddingVertical: 8,
-        }}
-      >
+    <View
+      accessibilityRole="summary"
+      accessibilityLabel={t('dashboard.ledgerCascade.a11y')}
+    >
+      {rows.map((row, idx) => (
         <CascadeRow
-          label={t('dashboard.ledgerCascade.income')}
-          value={formatCurrency(cascade.income, currency)}
-          onPress={() => go('income')}
-          accessibilityHint={t('dashboard.ledgerCascade.openIncome')}
+          key={row.key}
+          label={row.label}
+          value={row.value}
+          amountValue={row.amountValue}
+          currency={currency}
+          onPress={row.onPress}
+          accessibilityHint={row.hint}
+          emphasis={row.emphasis}
+          deficit={row.deficit}
+          warning={row.warning}
+          subLabel={row.subLabel}
+          indent={row.indent}
+          isLast={idx === rows.length - 1}
         />
-
-        <CascadeRow
-          label={t('dashboard.ledgerCascade.committed')}
-          value={formatCurrency(cascade.committed, currency)}
-          onPress={() => go('costs')}
-          accessibilityHint={t('dashboard.ledgerCascade.openExpenses')}
-          subLabel={t('dashboard.ledgerCascade.committedHint')}
-          indent
-        />
-
-        <CascadeRow
-          label={t('dashboard.ledgerCascade.available')}
-          value={formatCurrency(cascade.available, currency)}
-          onPress={() => go('budget')}
-          accessibilityHint={t('dashboard.ledgerCascade.openBudget')}
-          emphasis
-          deficit={cascade.isOvercommitted}
-          dividerBefore
-        />
-
-        {cascade.showCostReduction ? (
-          <CascadeRow
-            label={t('dashboard.ledgerCascade.costsReduced')}
-            value={formatCurrency(cascade.costReduction, currency)}
-            onPress={() => go('goals')}
-            accessibilityHint={t('dashboard.ledgerCascade.openGoals')}
-            subLabel={
-              cascade.costReduction > 0
-                ? t('dashboard.ledgerCascade.costsReducedSince')
-                : t('dashboard.ledgerCascade.costsReducedNone')
-            }
-            indent
-          />
-        ) : null}
-
-        {cascade.showSaved ? (
-          <CascadeRow
-            label={t('dashboard.ledgerCascade.saved')}
-            value={formatCurrency(cascade.saved, currency)}
-            onPress={() => go('goals')}
-            accessibilityHint={t('dashboard.ledgerCascade.openGoals')}
-            warning={cascade.savedIsInformational}
-            subLabel={
-              cascade.savedIsInformational
-                ? t('dashboard.ledgerCascade.savedIncluded')
-                : t('dashboard.ledgerCascade.savedDeducted')
-            }
-            indent
-          />
-        ) : null}
-
-        <CascadeRow
-          label={t('dashboard.ledgerCascade.toSpend')}
-          value={formatCurrency(cascade.toSpend, currency)}
-          onPress={() => go('budget')}
-          accessibilityHint={t('dashboard.ledgerCascade.openBudget')}
-          subLabel={
-            cascade.savedIsInformational
-              ? t('dashboard.ledgerCascade.toSpendIncludedGoal')
-              : undefined
-          }
-          indent
-        />
-
-        {cascade.showUnallocated ? (
-          <CascadeRow
-            label={t('dashboard.ledgerCascade.unallocated')}
-            value={formatCurrency(cascade.unallocated, currency)}
-            onPress={() => go('budget')}
-            accessibilityHint={t('dashboard.ledgerCascade.openBudget')}
-            emphasis
-            dividerBefore
-          />
-        ) : null}
-      </View>
+      ))}
     </View>
   );
 }

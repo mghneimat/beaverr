@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Pressable, Text } from 'react-native';
+import { Pressable, Text, Platform } from 'react-native';
 import { C } from '../../constants/onboarding-theme';
 
 /**
@@ -16,6 +16,10 @@ import { C } from '../../constants/onboarding-theme';
  * @param {string} [props.fontWeight='600'] - Label font weight
  * @param {boolean} [props.darker=false] - Stronger overlay for Yes/No toggles
  * @param {number} [props.borderRadius=0] - Border radius (0 = flush inside container)
+ * @param {'default'|'segment'} [props.variant='default'] - segment = inset track, not CTA-style
+ * @param {number} [props.minHeight=44] - Minimum touch height
+ * @param {boolean} [props.expand=true] - When false, pill sizes to label width
+ * @param {boolean} [props.hideSelectedSurface=false] - Segment only: text state, external indicator
  */
 export default function PillToggle({
   label,
@@ -27,22 +31,64 @@ export default function PillToggle({
   fontWeight = '500',
   darker = false,
   borderRadius = 0,
+  variant = 'default',
+  minHeight = 44,
+  expand = true,
+  hideSelectedSurface = false,
 }) {
   const [hovered, setHovered] = useState(false);
   const [pressed, setPressed] = useState(false);
 
-  // When selected: navy background with white text (UI Examples style)
-  // When unselected: light background with border
-  const bgColor = selected
-    ? C.pillSelectedBg
-    : hovered
-      ? C.bg
-      : pressed
-        ? C.bg
-        : C.pillUnselectedBg;
+  const isSegment = variant === 'segment';
 
-  const borderWidth = selected ? 0 : 1;
-  const borderColor = C.pillUnselectedBorder;
+  let bgColor;
+  let borderWidth;
+  let borderColor;
+  let textColor;
+
+  if (isSegment) {
+    if (hideSelectedSurface) {
+      bgColor = pressed
+        ? C.overlayHoverDarker
+        : hovered
+          ? C.overlayHover
+          : 'transparent';
+      borderWidth = 0;
+      textColor = selected ? C.primary : C.muted;
+    } else {
+      if (selected) {
+        bgColor = pressed
+          ? C.overlayPressed
+          : hovered
+            ? C.surfaceTint
+            : C.surface;
+      } else {
+        bgColor = pressed
+          ? C.overlayHoverDarker
+          : hovered
+            ? C.overlayHover
+            : 'transparent';
+      }
+      borderWidth = selected ? 1 : 0;
+      borderColor = C.border;
+      textColor = selected ? C.primary : C.muted;
+    }
+  } else {
+    bgColor = selected
+      ? pressed
+        ? C.pillSelectedPressed
+        : C.pillSelectedBg
+      : hovered
+        ? C.surfaceTint
+        : pressed
+          ? C.surfaceTint
+          : C.pillUnselectedBg;
+    borderWidth = selected ? 0 : 1;
+    borderColor = C.pillUnselectedBorder;
+    textColor = selected ? C.pillSelectedText : C.pillUnselectedText;
+  }
+
+  const resolvedFontWeight = isSegment && selected ? '600' : fontWeight;
 
   return (
     <Pressable
@@ -55,8 +101,8 @@ export default function PillToggle({
       onHoverIn={() => setHovered(true)}
       onHoverOut={() => setHovered(false)}
       style={{
-        flex: 1,
-        minHeight: 44,
+        ...(expand ? { flex: 1 } : {}),
+        minHeight,
         paddingVertical,
         paddingHorizontal,
         borderRadius,
@@ -65,12 +111,14 @@ export default function PillToggle({
         borderColor,
         alignItems: 'center',
         justifyContent: 'center',
+        zIndex: hideSelectedSurface ? 1 : undefined,
+        ...(Platform.OS === 'web' ? { cursor: 'pointer' } : {}),
       }}
     >
       <Text style={{
         fontSize,
-        fontWeight,
-        color: selected ? C.pillSelectedText : C.pillUnselectedText,
+        fontWeight: resolvedFontWeight,
+        color: textColor,
       }}>
         {label}
       </Text>

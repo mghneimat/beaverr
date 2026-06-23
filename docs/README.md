@@ -1,4 +1,4 @@
-# PocketOS - Phase 1, Increment 1
+# Beaverr — Phase 1, Increment 1
 
 A household financial clarity tool built with Expo + React Native + NativeWind.
 
@@ -53,7 +53,7 @@ A household financial clarity tool built with Expo + React Native + NativeWind.
 ### Installation
 
 ```bash
-cd C:\Users\momen\pocket-os
+cd C:\Users\momen\beaverr
 npm install
 ```
 
@@ -88,7 +88,7 @@ npm run test:watch
 ## Project Structure
 
 ```
-pocket-os/
+beaverr/
 ├── app/                          # Expo Router screens
 │   ├── (onboarding)/            # Onboarding flow
 │   │   ├── _layout.jsx
@@ -126,7 +126,7 @@ pocket-os/
 ## Key Features
 
 ### Launch Routing
-On app load, the root layout checks `pocketos_onboarding` in localStorage:
+On app load, the root layout checks `beaverr_onboarding` in localStorage:
 - If `completed: false` or missing → redirect to welcome screen
 - If `completed: true` → redirect to dashboard
 
@@ -173,4 +173,4 @@ This project follows:
 - **Separation of Concerns**
 - **YAGNI** - You Aren't Gonna Need It
 
-See `pocketos-project-plan.md` for full architectural details.
+See `beaverr-project-plan.md` for full architectural details.

@@ -290,7 +290,7 @@ export default function HamburgerMenu() {
                           alignItems: 'center',
                           justifyContent: 'space-between',
                           backgroundColor: locale === lang.code
-                            ? C.chipSelectedBg
+                            ? C.navSelectedBg
                             : pressed
                               ? C.bg
                               : 'transparent',

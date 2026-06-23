@@ -6,6 +6,7 @@ import { formatCurrency, toMonthly } from '../../lib/finance';
 import { categoryMonthlyTotal, EDIT_SECTION_ROUTES } from '../../lib/householdBudget';
 import { C, R, T, tabularNums } from '../../constants/onboarding-theme';
 import ExpandableCategoryRow from './ExpandableCategoryRow';
+import { subscriptionDisplayName } from '../../lib/subscriptionCatalog';
 
 const FILTERS = ['all', 'subscriptions', 'insurance', 'housing', 'transport', 'other'];
 
@@ -55,18 +56,18 @@ export default function ExpensesBreakdown({
             style={({ pressed }) => ({
               paddingVertical: 10,
               paddingHorizontal: 14,
-              borderRadius: R.chip,
-              borderWidth: 1.5,
+              borderRadius: R.pill,
+              borderWidth: filter === key ? 0 : 1.5,
               borderColor: filter === key ? C.chipSelectedBorder : C.border,
-              backgroundColor: filter === key ? C.chipSelectedBg : pressed ? C.overlayHover : C.surface,
+              backgroundColor: filter === key ? C.chipSelectedBg : pressed ? C.overlayHover : C.pillUnselectedBg,
               minHeight: 40,
               justifyContent: 'center',
             })}
           >
             <Text style={{
               fontSize: 13,
-              fontWeight: '500',
-              color: filter === key ? C.primary : C.muted,
+              fontWeight: filter === key ? '600' : '500',
+              color: filter === key ? C.chipSelectedText : C.muted,
             }}>
               {t(`dashboard.expensesScreen.filters.${key}`)}
             </Text>
@@ -107,9 +108,7 @@ export default function ExpensesBreakdown({
               {isExpanded && cat.category === 'subscriptions' ? (
                 <View style={{ paddingHorizontal: 16, paddingBottom: 12 }}>
                   {(financials.sections?.subs || []).filter((s) => s.cost).map((sub, idx) => {
-                    const transKey = `onboarding.subscriptions.q11.services.${sub.name}`;
-                    const translated = t(transKey);
-                    const label = translated !== transKey ? translated : (sub.name || 'Subscription');
+                    const label = subscriptionDisplayName(sub, t);
                     const monthlyAmount = toMonthly(parseFloat(sub.cost), sub.frequency || 'monthly');
                     const hasAlert = alertIds.has(`subscription_renewal-${idx}`);
                     return (

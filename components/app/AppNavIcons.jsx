@@ -8,12 +8,39 @@ import {
   CLIPBOARD_CLOCK_NODES,
   GOAL_NODES,
   WALLET_NODES,
+  PIGGY_BANK_NODES,
   CHART_LINE_NODES,
   CLIPBOARD_PEN_NODES,
   BELL_NODES,
+  ALARM_CLOCK_NODES,
+  CIRCLE_USER_NODES,
+  USER_NODES,
   COLUMNS_2_NODES,
   LANGUAGES_NODES,
   STICKY_NOTE_X_NODES,
+  BADGE_CHECK_NODES,
+  CREDIT_CARD_NODES,
+  SLIDERS_HORIZONTAL_NODES,
+  SUN_NODES,
+  CIRCLE_HELP_NODES,
+  LOG_OUT_NODES,
+  ZAP_NODES,
+  LOCK_NODES,
+  TRASH_2_NODES,
+  REFRESH_CCW_NODES,
+  REFRESH_CW_OFF_NODES,
+  ROTATE_CW_NODES,
+  ARROW_RIGHT_LEFT_NODES,
+  ARROW_BIG_DOWN_DASH_NODES,
+  LINK_NODES,
+  LINK_2_NODES,
+  UNLINK_NODES,
+  UNLINK_2_NODES,
+  LINK_2_OFF_NODES,
+  SQUARE_PEN_NODES,
+  WALLET_CARDS_NODES,
+  SPARKLES_NODES,
+  SPLIT_NODES,
 } from './lucidePaths';
 
 function lucideNavIcon(nodes) {
@@ -29,12 +56,39 @@ export const BudgetIcon = lucideNavIcon(SCALE_NODES);
 export const TrackerIcon = lucideNavIcon(CLIPBOARD_CLOCK_NODES);
 export const GoalsIcon = lucideNavIcon(GOAL_NODES);
 export const SavingsIcon = lucideNavIcon(WALLET_NODES);
+export const PiggyBankIcon = lucideNavIcon(PIGGY_BANK_NODES);
+export const TrashIcon = lucideNavIcon(TRASH_2_NODES);
+export const RefreshCcwIcon = lucideNavIcon(REFRESH_CCW_NODES);
+export const RefreshCwOffIcon = lucideNavIcon(REFRESH_CW_OFF_NODES);
+export const RotateCwIcon = lucideNavIcon(ROTATE_CW_NODES);
+export const ArrowRightLeftIcon = lucideNavIcon(ARROW_RIGHT_LEFT_NODES);
+export const ArrowBigDownDashIcon = lucideNavIcon(ARROW_BIG_DOWN_DASH_NODES);
+export const LinkIcon = lucideNavIcon(LINK_NODES);
+export const Link2Icon = lucideNavIcon(LINK_2_NODES);
+export const UnlinkIcon = lucideNavIcon(UNLINK_NODES);
+export const Unlink2Icon = lucideNavIcon(UNLINK_2_NODES);
+export const Link2OffIcon = lucideNavIcon(LINK_2_OFF_NODES);
+export const SquarePenIcon = lucideNavIcon(SQUARE_PEN_NODES);
+export const WalletCardsIcon = lucideNavIcon(WALLET_CARDS_NODES);
 export const SummaryIcon = lucideNavIcon(CHART_LINE_NODES);
 export const QuestionnaireIcon = lucideNavIcon(CLIPBOARD_PEN_NODES);
 export const AlertsIcon = lucideNavIcon(BELL_NODES);
+export const RemindersIcon = lucideNavIcon(ALARM_CLOCK_NODES);
+export const ProfileIcon = lucideNavIcon(CIRCLE_USER_NODES);
+export const UserIcon = lucideNavIcon(USER_NODES);
 export const SidebarToggleIcon = lucideNavIcon(COLUMNS_2_NODES);
 export const LanguagesIcon = lucideNavIcon(LANGUAGES_NODES);
 export const RevokeConsentIcon = lucideNavIcon(STICKY_NOTE_X_NODES);
+export const BadgeCheckIcon = lucideNavIcon(BADGE_CHECK_NODES);
+export const CreditCardIcon = lucideNavIcon(CREDIT_CARD_NODES);
+export const SlidersIcon = lucideNavIcon(SLIDERS_HORIZONTAL_NODES);
+export const SunIcon = lucideNavIcon(SUN_NODES);
+export const CircleHelpIcon = lucideNavIcon(CIRCLE_HELP_NODES);
+export const LogOutIcon = lucideNavIcon(LOG_OUT_NODES);
+export const ZapIcon = lucideNavIcon(ZAP_NODES);
+export const LockIcon = lucideNavIcon(LOCK_NODES);
+export const SparklesIcon = lucideNavIcon(SPARKLES_NODES);
+export const SplitIcon = lucideNavIcon(SPLIT_NODES);
 
 /** Panel + chevron left — collapse sidebar */
 export function SidebarCollapseIcon({ color, size = 18 }) {

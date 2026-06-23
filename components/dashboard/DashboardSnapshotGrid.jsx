@@ -12,7 +12,7 @@ import {
 } from '../../lib/incomeGoals';
 import { BudgetIcon, CostsIcon, GoalsIcon, IncomeIcon } from '../app/AppNavIcons';
 import MetricExplainCard from './MetricExplainCard';
-import { DASHBOARD_CARD_TONES } from './dashboardCardTones';
+import { getDashboardCardTones } from './dashboardCardTones';
 
 export default function DashboardSnapshotGrid({
   financials,
@@ -41,6 +41,7 @@ export default function DashboardSnapshotGrid({
       const deadline = formatDateDisplay(inc.goalDate, false, t);
       return {
         value: formatCurrency(inc.goalAmount, currency),
+        amountValue: Number(inc.goalAmount) || 0,
         footerLabel: t('dashboard.home.kpi.goalByDeadline', { date: deadline }),
       };
     }
@@ -48,6 +49,7 @@ export default function DashboardSnapshotGrid({
     if (hasOngoingSavingsGoal(inc)) {
       return {
         value: formatCurrency(inc.savingsMonthlyTarget, currency),
+        amountValue: Number(inc.savingsMonthlyTarget) || 0,
         footerLabel: t('dashboard.home.kpi.goalMonthly'),
       };
     }
@@ -62,15 +64,19 @@ export default function DashboardSnapshotGrid({
     ? { width: '48%', flexGrow: 1, flexBasis: '45%' }
     : { flex: 1, minWidth: 140 };
 
+  const cardTones = getDashboardCardTones();
+
   const cards = [
     {
       id: 'income',
       tone: 'income',
       label: t('dashboard.home.kpi.totalIncome'),
       value: formatCurrency(financials.totalIncome, currency),
+      amountValue: financials.totalIncome,
+      amountCurrency: currency,
       footerLabel: t('dashboard.home.kpi.perMonth'),
       Icon: IncomeIcon,
-      iconColor: DASHBOARD_CARD_TONES.income.iconColor,
+      iconColor: cardTones.income.iconColor,
       route: 'income',
       metricId: 'totalIncome',
     },
@@ -79,9 +85,11 @@ export default function DashboardSnapshotGrid({
       tone: 'expense',
       label: t('dashboard.home.kpi.committedCosts'),
       value: formatCurrency(committedMonthlyLoad(financials), currency),
+      amountValue: committedMonthlyLoad(financials),
+      amountCurrency: currency,
       footerLabel: t('dashboard.home.kpi.committedCostsHint'),
       Icon: CostsIcon,
-      iconColor: DASHBOARD_CARD_TONES.expense.iconColor,
+      iconColor: cardTones.expense.iconColor,
       route: 'costs',
       metricId: 'totalExpenses',
     },
@@ -90,9 +98,11 @@ export default function DashboardSnapshotGrid({
       tone: 'goal',
       label: t('dashboard.home.kpi.savingGoal'),
       value: savingsGoal.value,
+      amountValue: savingsGoal.amountValue,
+      amountCurrency: currency,
       footerLabel: savingsGoal.footerLabel,
       Icon: GoalsIcon,
-      iconColor: DASHBOARD_CARD_TONES.goal.iconColor,
+      iconColor: cardTones.goal.iconColor,
       route: 'goals',
       metricId: 'savingsGoalPlan',
     },
@@ -103,13 +113,15 @@ export default function DashboardSnapshotGrid({
       value: surplus < 0
         ? `−${formatCurrency(Math.abs(surplus), currency)}`
         : formatCurrency(surplus, currency),
+      amountValue: surplus,
+      amountCurrency: currency,
       footerLabel: t('dashboard.home.health.budgetFlexibilityLabel'),
       statusLabel: insights.flags.negativeSurplus
         ? t('dashboard.home.health.status.deficit')
         : null,
       statusColor: insights.flags.negativeSurplus ? C.danger : undefined,
       Icon: BudgetIcon,
-      iconColor: DASHBOARD_CARD_TONES.flexibility.iconColor,
+      iconColor: cardTones.flexibility.iconColor,
       route: 'budget',
       metricId: 'monthlyBuffer',
     },
@@ -127,6 +139,8 @@ export default function DashboardSnapshotGrid({
               label={card.label}
               labelIcon={<Icon color={card.iconColor} size={16} />}
               value={card.value}
+              amountValue={card.amountValue}
+              amountCurrency={card.amountCurrency}
               footerLabel={card.footerLabel}
               statusLabel={card.statusLabel}
               statusColor={card.statusColor}

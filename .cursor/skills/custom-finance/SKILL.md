@@ -1,14 +1,14 @@
 ---
 name: custom-finance
 description: >-
-  Manages PocketOS financial math via lib/finance.js — toMonthly frequency conversion,
+  Manages Beaverr financial math via lib/finance.js — toMonthly frequency conversion,
   formatCurrency display, totalMonthlyCosts, availableBudget, debtPayoff, dailyAllowance.
   MUST apply when adding or editing income/cost/budget/debt calculations, monthly totals,
   currency formatting, payoff timelines, or daily spend — even if the user does not mention
   finance.js, toMonthly, or formatCurrency.
 ---
 
-# PocketOS Custom Financial Calculation Library
+# Beaverr Custom Financial Calculation Library
 
 All monetary math and currency display goes through **`lib/finance.js`** — not inline multipliers, not `Intl.NumberFormat` in screens, not duplicated helpers.
 
@@ -34,11 +34,15 @@ Pairs with [custom-storage](../custom-storage/SKILL.md) (load data) and [custom-
 | Export | Purpose |
 |--------|---------|
 | `toMonthly(amount, frequency)` | Convert any frequency → monthly equivalent |
-| `formatCurrency(amount, currency?)` | Display: space-separated thousands + symbol (default `Kč`) |
+| `roundMoney(amount)` | Round to 2 decimal places at parse/save boundaries |
+| `formatCurrency(amount, currency?)` | Display: always 2dp, comma decimal, space thousands (e.g. `12 500,00 Kč`) |
+| `sanitizeAmountInput(text)` | Live input filter — digits + optional `,`/`.`, max 2 fractional digits |
+| `formatAmountInput(amount)` | Input blur display without symbol (e.g. `123,45`) |
 | `totalMonthlyCosts(costs)` | Sum `{ amount, frequency }[]` via `toMonthly` |
 | `availableBudget(income, fixedCosts, debtPayments)` | `income − fixedCosts − debtPayments` (may be negative) |
 | `debtPayoff(balance, monthlyPayment, apr)` | Amortization timeline; `Infinity` if unpayable |
-| `dailyAllowance(monthlyBudget, daysInMonth?)` | `monthlyBudget / daysInMonth` (default 30) |
+| `divideMoney(numerator, divisor)` | Full-precision division — use in pace/jar/split math; never round mid-chain |
+| `dailyAllowance(monthlyBudget, daysInMonth?)` | `divideMoney(monthlyBudget, daysInMonth)` (default 30 days) |
 
 ```jsx
 import { toMonthly, formatCurrency, totalMonthlyCosts, availableBudget } from '../../lib/finance';
@@ -111,12 +115,12 @@ See [examples.md](examples.md) for budget.jsx-style normalizers.
 | `debtPayoff` edge cases | Handle `months === Infinity` and `payoffDate === null` in UI |
 | Currency symbol | `formatCurrency(12500, 'CZK')` → `"12 500 CZK"` — symbol is opaque string; app often uses `'CZK'` or `'Kč'` |
 | Empty amounts | `formatCurrency(null)` → `"—"`; use for missing data rows |
-| Rounding | `formatCurrency` rounds to integer; use `Math.round` before display if showing computed totals |
+| Rounding policy (A) | **No** `Math.round` inside calculation chains. Use `divideMoney` for splits; `roundMoney` only at input parse, storage writes, jar `dayEndHistory`, and `formatCurrency` display |
 
 ## Anti-patterns
 
 - `amount * 12` or `amount / 3` inline for annual/quarterly
-- `new Intl.NumberFormat(...)` in JSX for PocketOS money display
+- `new Intl.NumberFormat(...)` in JSX for Beaverr money display
 - Summing raw amounts with mixed frequencies without `toMonthly`
 - Duplicating income rollup in multiple files — extract normalizer or reuse budget pattern
 - Adding finance logic to `lib/storage.js` or `lib/schema.js`

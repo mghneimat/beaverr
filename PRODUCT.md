@@ -12,7 +12,7 @@ Typical context: sitting down in the evening or weekend to set up or review the 
 
 ## Product Purpose
 
-Bida walks a household through a structured financial setup: income, housing, transport, subscriptions, health, children, pets, debts, and a flexible monthly budget with rollover rules. Data is stored locally during onboarding and surfaced in an app shell (sidebar navigation) for ongoing review.
+Beaverr walks a household through a structured financial setup: income, housing, transport, subscriptions, health, children, pets, debts, and a flexible monthly budget with rollover rules. Data is stored locally during onboarding and surfaced in an app shell (sidebar navigation) for ongoing review.
 
 Success looks like: a user finishes setup understanding their monthly free cash, fixed obligations, and flexible budget; they return to the app to check status and adjust inputs without re-entering everything. The budget summary (Q14) is the core payoff moment; the dashboard must eventually carry that value forward after onboarding.
 

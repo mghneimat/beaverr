@@ -3,8 +3,10 @@ import { View, Pressable } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
 import AnimatedRow from '../onboarding/AnimatedRow';
 import { textButtonStyle } from '../../lib/pressableHover';
-import { C, R, T, tabularNums } from '../../constants/onboarding-theme';
-import DashboardSectionHeader from './DashboardSectionHeader';
+import { C, T, tabularNums } from '../../constants/onboarding-theme';
+import InCardSectionHeader from './InCardSectionHeader';
+import SurfaceCard from '../ui/SurfaceCard';
+import { MaytechTableFrame, MaytechTableHeaderBand } from './BreakdownTablePrimitives';
 
 const ACTION_WIDTH = 52;
 const COLUMN_GAP = 12;
@@ -29,45 +31,38 @@ export default function LedgerDataTable({
   };
 
   return (
-    <View style={{ marginBottom: 20 }}>
+    <SurfaceCard>
       {title ? (
-        <DashboardSectionHeader title={title} trailing={titleTrailing} />
+        <InCardSectionHeader title={title} trailing={titleTrailing} />
       ) : null}
 
-      <View style={{
-        borderWidth: 1,
-        borderColor: C.border,
-        borderRadius: R.card,
-        overflow: 'hidden',
-        backgroundColor: C.surface,
-      }}>
-        <View style={{
-          flexDirection: 'row',
-          paddingVertical: 10,
-          paddingHorizontal: 14,
-          backgroundColor: C.bg,
-          borderBottomWidth: 1,
-          borderBottomColor: C.divider,
-          gap: COLUMN_GAP,
-        }}>
-          {columns.map((col) => (
-            <Text
-              key={col.key}
-              style={{
-                ...T.caption,
-                fontWeight: '600',
-                color: C.muted,
-                flex: col.flex ?? 1,
-                flexBasis: 0,
-                textAlign: col.align || 'left',
-              }}
-              numberOfLines={1}
-            >
-              {col.label}
-            </Text>
-          ))}
-          {editable ? <View style={{ width: ACTION_WIDTH }} /> : null}
-        </View>
+      <MaytechTableFrame>
+        <MaytechTableHeaderBand>
+          <View style={{
+            flexDirection: 'row',
+            gap: COLUMN_GAP,
+          }}>
+            {columns.map((col) => (
+              <Text
+                key={col.key}
+                style={{
+                  ...T.caption,
+                  fontWeight: '600',
+                  color: C.muted,
+                  flex: col.flex ?? 1,
+                  flexBasis: 0,
+                  textAlign: col.align || 'left',
+                  textTransform: 'uppercase',
+                  letterSpacing: 0.4,
+                }}
+                numberOfLines={1}
+              >
+                {col.label}
+              </Text>
+            ))}
+            {editable ? <View style={{ width: ACTION_WIDTH }} /> : null}
+          </View>
+        </MaytechTableHeaderBand>
 
         {rows.length === 0 ? (
           <Text style={{ ...T.helper, textAlign: 'center', paddingVertical: 24, paddingHorizontal: 16 }}>
@@ -76,16 +71,17 @@ export default function LedgerDataTable({
         ) : rows.map((row, idx) => {
           const isOpen = expandedId === row.id;
           return (
-            <View key={row.id} style={{ borderTopWidth: idx > 0 ? 1 : 0, borderTopColor: C.divider }}>
+            <View key={row.id}>
               <View style={{
                 flexDirection: 'row',
                 alignItems: 'center',
-                paddingVertical: 12,
-                paddingHorizontal: 14,
+                paddingVertical: 14,
+                paddingHorizontal: 16,
                 gap: COLUMN_GAP,
                 backgroundColor: C.surface,
-              }}>
-                {columns.map((col) => (
+                borderBottomWidth: idx < rows.length - 1 || isOpen ? 1 : 0,
+                borderBottomColor: C.tableRowBorder,
+              }}>{columns.map((col) => (
                   <Text
                     key={col.key}
                     style={{
@@ -152,7 +148,7 @@ export default function LedgerDataTable({
             </View>
           );
         })}
-      </View>
-    </View>
+      </MaytechTableFrame>
+    </SurfaceCard>
   );
 }

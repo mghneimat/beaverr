@@ -1,19 +1,30 @@
 import { useEffect } from 'react';
 import { useRouter } from 'expo-router';
-import { getData } from '../lib/storage';
-import { View, ActivityIndicator } from 'react-native';
-import { C } from '../constants/onboarding-theme';
+import { getOnboardingState, isDashboardUnlocked, isQuestionnaireComplete, getSavedResumeRoute } from '../lib/onboardingProgress';
+import { restoreNavHistoryForResume } from '../lib/onboardingNavigation';
+import { ensureStorageMigrated } from '../lib/storage';
+import { useI18n } from '../lib/i18n';
+import AppLoadingScreen from '../components/app/AppLoadingScreen';
 
 export default function Index() {
   const router = useRouter();
+  const { t } = useI18n();
 
   useEffect(() => {
     async function checkOnboarding() {
       try {
-        const onboarding = await getData('pocketos_onboarding');
-        const completed = onboarding?.completed === true;
+        await ensureStorageMigrated();
+        const onboarding = await getOnboardingState();
         
-        if (completed) {
+        if (isDashboardUnlocked(onboarding)) {
+          if (!isQuestionnaireComplete(onboarding)) {
+            const resume = getSavedResumeRoute(onboarding);
+            if (resume?.startsWith('/(onboarding)')) {
+              await restoreNavHistoryForResume(onboarding);
+              router.replace(resume);
+              return;
+            }
+          }
           router.replace('/(app)/dashboard');
         } else {
           router.replace('/(onboarding)/welcome');
@@ -28,9 +39,5 @@ export default function Index() {
     checkOnboarding();
   }, []);
 
-  return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: C.bg }}>
-      <ActivityIndicator size="large" color={C.primary} />
-    </View>
-  );
+  return <AppLoadingScreen label={t('common.loading')} />;
 }

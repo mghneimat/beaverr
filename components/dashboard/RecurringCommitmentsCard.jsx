@@ -3,7 +3,7 @@ import { Text } from '@gluestack-ui/themed';
 import { formatCurrency } from '../../lib/finance';
 import { C, T, tabularNums } from '../../constants/onboarding-theme';
 import SurfaceCard from '../ui/SurfaceCard';
-import DashboardSectionHeader from './DashboardSectionHeader';
+import InCardSectionHeader from './InCardSectionHeader';
 
 export default function RecurringCommitmentsCard({
   title,
@@ -21,9 +21,8 @@ export default function RecurringCommitmentsCard({
   if (!items.length) return null;
 
   return (
-    <View style={{ marginBottom: 16 }}>
-      <DashboardSectionHeader title={title} />
-      <SurfaceCard>
+    <SurfaceCard style={{ marginBottom: 16 }}>
+      <InCardSectionHeader title={title} />
       {insight ? (
         <Text style={{ ...T.helper, marginBottom: 12 }}>{insight}</Text>
       ) : null}
@@ -73,7 +72,6 @@ export default function RecurringCommitmentsCard({
           <Text style={{ fontSize: 14, fontWeight: '600', color: C.accent }}>{reviewLabel}</Text>
         </Pressable>
       ) : null}
-      </SurfaceCard>
-    </View>
+    </SurfaceCard>
   );
 }

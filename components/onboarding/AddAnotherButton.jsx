@@ -1,5 +1,7 @@
-import { Pressable, Text } from 'react-native';
-import { C, R } from '../../constants/onboarding-theme';
+import { Text } from 'react-native';
+import { C, R, T } from '../../constants/onboarding-theme';
+import OnboardingPressable from './OnboardingPressable';
+import { addButtonBg } from './pressableFeedback';
 
 /**
  * Standardised "Add another" dashed-border button.
@@ -12,9 +14,9 @@ import { C, R } from '../../constants/onboarding-theme';
  */
 export default function AddAnotherButton({ label, onPress, style }) {
   return (
-    <Pressable
+    <OnboardingPressable
       onPress={onPress}
-      style={({ pressed }) => ([{
+      style={({ pressed, hovered }) => ([{
         width: '100%',
         alignSelf: 'stretch',
         paddingVertical: 12,
@@ -23,12 +25,12 @@ export default function AddAnotherButton({ label, onPress, style }) {
         borderColor: C.addBorder,
         borderStyle: 'dashed',
         alignItems: 'center',
-        backgroundColor: pressed ? C.addPressed : 'transparent',
+        backgroundColor: addButtonBg({ pressed, hovered }),
       }, style])}
     >
-      <Text style={{ fontSize: 14, color: C.addText, fontWeight: '500' }}>
+      <Text style={{ ...T.btnAdd, color: C.addText }}>
         {label}
       </Text>
-    </Pressable>
+    </OnboardingPressable>
   );
 }

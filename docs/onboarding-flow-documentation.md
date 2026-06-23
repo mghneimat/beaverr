@@ -1,3 +1,5 @@
+> **Archived reference.** This document describes an earlier PocketOS onboarding flow and is kept for historical context only. For the current Beaverr product spec, see `onboarding-extraction.md`, `beaverr-project-plan.md`, `PRODUCT.md`, and `DESIGN.md`.
+
 # PocketOS Onboarding Flow — Complete Documentation
 
 > **Purpose**: This document describes the entire onboarding flow for the PocketOS mobile application. It is intended to be consumed by an AI service to generate UI screens.
@@ -499,30 +501,30 @@ btnAdd() => {
 import { getData, setData } from '../lib/storage';
 
 // Save data
-await setData('pocketos_household', { type: 'solo', ... });
+await setData('beaverr_household', { type: 'solo', ... });
 
 // Load data
-const data = await getData('pocketos_household');
+const data = await getData('beaverr_household');
 ```
 
 ### Storage Keys
 
 | Key | Screen(s) | Data Shape |
 |-----|-----------|------------|
-| `pocketos_household` | household | `{ type, partnerName, hasChildren, numChildren, children: [{ name, ageGroup }] }` |
-| `pocketos_location` | location | `{ country, city, currency }` |
-| `pocketos_occupation` | occupation | `{ user: { status, otherText }, partner: { status, otherText } \| null }` |
-| `pocketos_income` | income | `{ income: [{ amount, frequency }], partnerIncome: [{ amount, frequency }], otherIncome: [{ source, amount, frequency }], savings, financialGoal }` |
-| `pocketos_housing` | housing | `{ status, rentAmount, rentFrequency, utilities, internet, mortgageAmount, mortgageFrequency, otherCosts, familyContributions, governmentTaxes }` |
-| `pocketos_transport` | transport | `{ hasVehicle, counts: { passenger, motorcycle, bicycle }, vehicles: [{ category, fuelType, fuelCost, fuelFreq, insuranceCost, insuranceFreq, parkingCost, parkingFreq, maintenanceCost, maintenanceFreq }], publicTransport }` |
-| `pocketos_health` | health | `{ user: { type, ... }, partner: { type, ... }, children: [{ type, ... }] }` |
-| `pocketos_children_costs` | children-costs | `{ children: [{ name, ageGroup, costs: [{ type, amount, frequency }] }] }` |
-| `pocketos_pets` | pets | `{ hasPets, pets: [{ type, name, costs: { food, vet, grooming, other }, insurance, dogTax }] }` |
-| `pocketos_subscriptions` | subscriptions | `{ subscriptions: [{ service, cost, frequency, autoRenews, renewalDate }] }` |
-| `pocketos_other_costs` | other-costs | `{ costs: [{ type, amount, frequency, dueDate }] }` |
-| `pocketos_debts` | debts | `{ hasDebts, debts: [{ type, balance, minPayment, apr, promoEndDate, paymentDueDay, notes }] }` |
-| `pocketos_budget` | budget | `{ flexibleBudget: [{ category, amount }], rolloverStrategy: 'free' \| 'capped' \| 'reset', capMultiplier }` |
-| `pocketos_onboarding` | review | `{ completed: true }` |
+| `beaverr_household` | household | `{ type, partnerName, hasChildren, numChildren, children: [{ name, ageGroup }] }` |
+| `beaverr_location` | location | `{ country, city, currency }` |
+| `beaverr_occupation` | occupation | `{ user: { status, otherText }, partner: { status, otherText } \| null }` |
+| `beaverr_income` | income | `{ income: [{ amount, frequency }], partnerIncome: [{ amount, frequency }], otherIncome: [{ source, amount, frequency }], savings, financialGoal }` |
+| `beaverr_housing` | housing | `{ status, rentAmount, rentFrequency, utilities, internet, mortgageAmount, mortgageFrequency, otherCosts, familyContributions, governmentTaxes }` |
+| `beaverr_transport` | transport | `{ hasVehicle, counts: { passenger, motorcycle, bicycle }, vehicles: [{ category, fuelType, fuelCost, fuelFreq, insuranceCost, insuranceFreq, parkingCost, parkingFreq, maintenanceCost, maintenanceFreq }], publicTransport }` |
+| `beaverr_health` | health | `{ user: { type, ... }, partner: { type, ... }, children: [{ type, ... }] }` |
+| `beaverr_children_costs` | children-costs | `{ children: [{ name, ageGroup, costs: [{ type, amount, frequency }] }] }` |
+| `beaverr_pets` | pets | `{ hasPets, pets: [{ type, name, costs: { food, vet, grooming, other }, insurance, dogTax }] }` |
+| `beaverr_subscriptions` | subscriptions | `{ subscriptions: [{ service, cost, frequency, autoRenews, renewalDate }] }` |
+| `beaverr_other_costs` | other-costs | `{ costs: [{ type, amount, frequency, dueDate }] }` |
+| `beaverr_debts` | debts | `{ hasDebts, debts: [{ type, balance, minPayment, apr, promoEndDate, paymentDueDay, notes }] }` |
+| `beaverr_budget` | budget | `{ flexibleBudget: [{ category, amount }], rolloverStrategy: 'free' \| 'capped' \| 'reset', capMultiplier }` |
+| `beaverr_onboarding` | review | `{ completed: true }` |
 
 ---
 
@@ -1581,9 +1583,9 @@ Returns `monthlyBudget / daysInMonth`.
 **Step 1 — Flexible Budget**:
 
 - Shows an **expandable summary table** with:
-  - **Income breakdown**: Total monthly income from `pocketos_income`
+  - **Income breakdown**: Total monthly income from `beaverr_income`
   - **Fixed costs by category**: Housing, transport, health, children, pets, subscriptions, other costs
-  - **Debt payments**: From `pocketos_debts`
+  - **Debt payments**: From `beaverr_debts`
   - **Available budget**: Calculated via `availableBudget()` utility
 - Users can allocate remaining income into flexible budget categories
 - Each category: `{ category: string, amount: number }`
@@ -1695,8 +1697,8 @@ Returns `monthlyBudget / daysInMonth`.
 **Data loading**: Loads all data from AsyncStorage using all storage keys.
 
 **Actions**:
-- "Looks good" → Sets `pocketos_onboarding.completed = true`, navigates to dashboard
-- "I'll finish this later" → Sets `pocketos_onboarding.completed = true`, navigates to dashboard
+- "Looks good" → Sets `beaverr_onboarding.completed = true`, navigates to dashboard
+- "I'll finish this later" → Sets `beaverr_onboarding.completed = true`, navigates to dashboard
 
 **Progress**: 100%
 

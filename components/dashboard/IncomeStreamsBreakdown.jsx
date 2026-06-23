@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from 'react';
-import { View, Pressable, Platform } from 'react-native';
+import { View } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
 import { buildIncomeSectionGroups } from '../../lib/incomePanels';
 import {
@@ -12,18 +12,21 @@ import {
   isFlatBreakdownSection,
   shouldHideBreakdownExpandAll,
 } from '../../lib/breakdownExpand';
-import BudgetExpandChevron from '../onboarding/BudgetExpandChevron';
 import AnimatedCollapse from './AnimatedCollapse';
-import DashboardSectionHeader from './DashboardSectionHeader';
+import InCardSectionHeader from './InCardSectionHeader';
 import DashboardTableExportActions from './DashboardTableExportActions';
-import DashboardFrequencyToggle from './DashboardFrequencyToggle';
+import SurfaceCard from '../ui/SurfaceCard';
 import { formatDashboardAmount } from './formatDashboardAmount';
 import { formatSharePct } from '../../lib/formatSharePct';
 import { useBreakdownTableColumns } from '../../lib/dashboardLayout';
-import { C, R, T, tabularNums } from '../../constants/onboarding-theme';
-import { BreakdownCell, BreakdownRow } from './BreakdownTablePrimitives';
-
-const EMPTY_ROW_HEIGHT = 44;
+import { C, T } from '../../constants/onboarding-theme';
+import {
+  BreakdownExpandAllButton,
+  BreakdownPillColumnHeaders,
+  BreakdownPillRow,
+  BreakdownPillSubRow,
+  BreakdownPillRowSlot,
+} from './BreakdownTablePrimitives';
 
 /**
  * Expandable income breakdown — Main income / Other sources with line items.
@@ -35,10 +38,10 @@ export default function IncomeStreamsBreakdown({
   currency,
   t,
   frequency = 'monthly',
-  setFrequency,
   daysInMonth = 30,
   frequencyColumnLabel,
   emptyLabel,
+  onSectionPress,
 }) {
   const sections = useMemo(
     () => buildIncomeSectionGroups(streams, t),
@@ -52,7 +55,8 @@ export default function IncomeStreamsBreakdown({
 
   const [expanded, setExpanded] = useState(initialExpand.expanded);
   const [allExpanded, setAllExpanded] = useState(initialExpand.allExpanded);
-  const { narrow, amountColW, shareColW, tableMaxW } = useBreakdownTableColumns();
+  const [selectedSectionKey, setSelectedSectionKey] = useState(null);
+  const { amountColMinW, shareColMinW } = useBreakdownTableColumns();
 
   useEffect(() => {
     setExpanded(initialExpand.expanded);
@@ -79,8 +83,8 @@ export default function IncomeStreamsBreakdown({
 
   const toggleLabel = (label, isOpen) => (
     isOpen
-      ? t('onboarding.budget.q14.a11y.collapseRow', { label })
-      : t('onboarding.budget.q14.a11y.expandRow', { label })
+      ? t('onboarding.budget.budgetSplit.a11y.collapseRow', { label })
+      : t('onboarding.budget.budgetSplit.a11y.expandRow', { label })
   );
 
   const exportMeta = {
@@ -94,212 +98,110 @@ export default function IncomeStreamsBreakdown({
   const handleExportXlsx = () => exportIncomeBreakdownXlsx(streams, t, exportMeta);
   const handleExportPdf = () => exportIncomeBreakdownPdf(streams, t, exportMeta);
 
+  const handleSectionSelect = (section) => {
+    setSelectedSectionKey((prev) => (prev === section.key ? null : section.key));
+  };
+
+  const handleSectionNavigate = (sectionKey) => {
+    onSectionPress?.(sectionKey);
+    setSelectedSectionKey(null);
+  };
+
   return (
-    <View style={{ marginBottom: 20 }}>
+    <SurfaceCard style={{ overflow: 'visible' }}>
       {title ? (
-        <DashboardSectionHeader
+        <InCardSectionHeader
           title={title}
           trailing={hasData ? (
-            <DashboardTableExportActions
-              onExportCsv={handleExportCsv}
-              onExportXlsx={handleExportXlsx}
-              onExportPdf={handleExportPdf}
-            />
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+              <DashboardTableExportActions
+                onExportCsv={handleExportCsv}
+                onExportXlsx={handleExportXlsx}
+                onExportPdf={handleExportPdf}
+              />
+              {!hideExpandAll ? (
+                <BreakdownExpandAllButton
+                  allExpanded={allExpanded}
+                  onToggle={toggleAll}
+                  t={t}
+                />
+              ) : null}
+            </View>
           ) : null}
-          dividerStyle={{ marginBottom: 12 }}
         />
       ) : null}
 
-      {setFrequency ? (
-        <DashboardFrequencyToggle
-          value={frequency}
-          onChange={setFrequency}
-          style={{ marginTop: 0, marginBottom: 12 }}
-        />
-      ) : null}
+      {!hasData ? (
+        <Text style={{ ...T.helper, textAlign: 'center', paddingVertical: 24, paddingHorizontal: 16 }}>
+          {emptyLabel}
+        </Text>
+      ) : (
+        <View style={{ gap: 8, overflow: 'visible', width: '100%', alignSelf: 'stretch' }}>
+          <BreakdownPillColumnHeaders
+            nameLabel={t('dashboard.incomeScreen.table.source')}
+            amountLabel={amountHeader}
+            shareLabel={t('dashboard.incomeScreen.table.share')}
+            amountColMinW={amountColMinW}
+            shareColMinW={shareColMinW}
+          />
+          {sections.map((section, sectionIdx) => {
+            const flat = isFlatBreakdownSection(section);
+            const isOpen = flat || (expanded[section.key] ?? false);
+            const sectionPct = formatSharePct(section.total, panelTotal);
+            const selected = selectedSectionKey === section.key;
 
-      <View style={{
-        borderWidth: 1,
-        borderColor: C.border,
-        borderRadius: R.card,
-        overflow: 'hidden',
-        backgroundColor: C.surface,
-      }}>
-        {hasData && !hideExpandAll ? (
-          <Pressable
-            onPress={toggleAll}
-            accessibilityRole="button"
-            accessibilityLabel={allExpanded
-              ? t('onboarding.budget.q14.a11y.collapseAll')
-              : t('onboarding.budget.q14.a11y.expandAll')}
-            style={({ pressed, hovered }) => ({
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
-              paddingVertical: 12,
-              minHeight: 44,
-              backgroundColor: pressed
-                ? C.overlayPressed
-                : hovered
-                  ? C.overlayHover
-                  : C.bg,
-              borderBottomWidth: 1,
-              borderBottomColor: C.divider,
-              ...(Platform.OS === 'web' ? { cursor: 'pointer' } : {}),
-            })}
-          >
-            <Text style={{ fontSize: 12, fontWeight: '600', color: C.primary, marginRight: 6 }}>
-              {allExpanded
-                ? t('onboarding.budget.q14.collapseAll')
-                : t('onboarding.budget.q14.expandAll')}
-            </Text>
-            <BudgetExpandChevron expanded={allExpanded} />
-          </Pressable>
-        ) : null}
+            return (
+              <BreakdownPillRowSlot
+                key={section.key}
+                selected={selected}
+                actionVisible={selected && !!onSectionPress}
+                actionLabel={t('dashboard.breakdown.openSection', { label: section.label })}
+                actionA11yLabel={t('dashboard.breakdown.openSectionA11y', { label: section.label })}
+                onAction={() => handleSectionNavigate(section.key)}
+              >
+                <BreakdownPillRow
+                  sectionKey={section.key}
+                  scope="income"
+                  label={section.label}
+                  amount={formatDashboardAmount(section.total, frequency, currency, daysInMonth)}
+                  share={sectionPct}
+                  index={sectionIdx}
+                  selected={selected}
+                  expandable={!flat}
+                  expanded={isOpen}
+                  amountColMinW={amountColMinW}
+                  shareColMinW={shareColMinW}
+                  onSelect={onSectionPress ? () => handleSectionSelect(section) : undefined}
+                  onExpandPress={!flat ? () => toggle(section.key) : undefined}
+                  selectA11yLabel={t('dashboard.breakdown.selectSectionA11y', { label: section.label })}
+                  expandA11yLabel={toggleLabel(section.label, isOpen)}
+                />
 
-        <View style={{
-          paddingVertical: 10,
-          paddingHorizontal: 14,
-          backgroundColor: C.bg,
-          borderBottomWidth: 1,
-          borderBottomColor: C.divider,
-        }}>
-          <BreakdownRow tableMaxW={tableMaxW}>
-            <BreakdownCell flex={1} narrow={narrow}>
-              <Text style={{ ...T.caption, fontWeight: '600', color: C.muted }} numberOfLines={1}>
-                {t('dashboard.incomeScreen.table.source')}
-              </Text>
-            </BreakdownCell>
-            <BreakdownCell width={amountColW} align="center" narrow={narrow}>
-              <Text style={{ ...T.caption, fontWeight: '600', color: C.muted, textAlign: 'center' }} numberOfLines={1}>
-                {amountHeader}
-              </Text>
-            </BreakdownCell>
-            <BreakdownCell width={shareColW} align="center" narrow={narrow}>
-              <Text style={{ ...T.caption, fontWeight: '600', color: C.muted, textAlign: 'center' }} numberOfLines={1}>
-                {t('dashboard.incomeScreen.table.share')}
-              </Text>
-            </BreakdownCell>
-          </BreakdownRow>
-        </View>
-
-        {!hasData ? (
-          <Text style={{ ...T.helper, textAlign: 'center', paddingVertical: 24, paddingHorizontal: 16 }}>
-            {emptyLabel}
-          </Text>
-        ) : (
-          <>
-            {sections.map((section, sectionIdx) => {
-              const flat = isFlatBreakdownSection(section);
-              const isOpen = flat || (expanded[section.key] ?? false);
-              const sectionPct = formatSharePct(section.total, panelTotal);
-
-              const headerRow = (
-                <BreakdownRow tableMaxW={tableMaxW}>
-                  <BreakdownCell flex={1} narrow={narrow}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', flexShrink: 1, minWidth: 0 }}>
-                      <Text style={{ fontSize: 15, fontWeight: '600', color: C.primary, flexShrink: 1 }} numberOfLines={2}>
-                        {section.label}
-                      </Text>
-                      {!flat ? <BudgetExpandChevron expanded={isOpen} /> : null}
-                    </View>
-                  </BreakdownCell>
-                  <BreakdownCell width={amountColW} align="center" narrow={narrow}>
-                    <Text style={{ fontSize: 14, fontWeight: '600', color: C.primary, textAlign: 'center', ...tabularNums }} numberOfLines={1}>
-                      {formatDashboardAmount(section.total, frequency, currency, daysInMonth)}
-                    </Text>
-                  </BreakdownCell>
-                  <BreakdownCell width={shareColW} align="center" narrow={narrow}>
-                    <Text style={{ fontSize: 14, fontWeight: '600', color: C.muted, textAlign: 'center', ...tabularNums }}>
-                      {sectionPct}
-                    </Text>
-                  </BreakdownCell>
-                </BreakdownRow>
-              );
-
-              const headerStyle = ({ pressed, hovered }) => ({
-                paddingVertical: 12,
-                paddingHorizontal: 14,
-                minHeight: 44,
-                backgroundColor: flat
-                  ? C.surface
-                  : pressed
-                    ? C.overlayPressed
-                    : hovered
-                      ? C.overlayHover
-                      : C.surface,
-                ...(Platform.OS === 'web' && !flat ? { cursor: 'pointer' } : {}),
-              });
-
-              return (
-                <View key={section.key} style={{ borderTopWidth: sectionIdx > 0 ? 1 : 0, borderTopColor: C.divider }}>
-                  {flat ? (
-                    <View style={headerStyle({})}>{headerRow}</View>
-                  ) : (
-                    <Pressable
-                      onPress={() => toggle(section.key)}
-                      accessibilityRole="button"
-                      accessibilityLabel={toggleLabel(section.label, isOpen)}
-                      accessibilityState={{ expanded: isOpen }}
-                      style={headerStyle}
-                    >
-                      {headerRow}
-                    </Pressable>
-                  )}
-
+                {!flat ? (
                   <AnimatedCollapse
                     visible={isOpen}
                     fallbackHeight={Math.max(section.items.length * 40, 40)}
                   >
-                    {section.items.map((item, itemIdx) => {
-                      const itemPct = formatSharePct(item.monthlyAmount, panelTotal);
-                      const isLast = itemIdx === section.items.length - 1;
-                      return (
-                        <View
+                    <View style={{ marginTop: 4, marginBottom: 4 }}>
+                      {section.items.map((item, itemIdx) => (
+                        <BreakdownPillSubRow
                           key={item.id}
-                          style={{
-                            paddingVertical: 8,
-                            paddingHorizontal: 14,
-                            backgroundColor: C.bg,
-                            borderTopWidth: 1,
-                            borderTopColor: C.divider,
-                            borderBottomWidth: isLast ? 1 : 0,
-                            borderBottomColor: C.divider,
-                          }}
-                        >
-                          <BreakdownRow style={{ paddingLeft: narrow ? 8 : 14 }} tableMaxW={tableMaxW}>
-                            <BreakdownCell flex={1} narrow={narrow}>
-                              <Text style={{ ...T.caption, color: C.muted }} numberOfLines={2}>
-                                {item.label}
-                              </Text>
-                            </BreakdownCell>
-                            <BreakdownCell width={amountColW} align="center" narrow={narrow}>
-                              <Text style={{ ...T.caption, color: C.text, fontWeight: '500', textAlign: 'center', ...tabularNums }} numberOfLines={1}>
-                                {formatDashboardAmount(item.monthlyAmount, frequency, currency, daysInMonth)}
-                              </Text>
-                            </BreakdownCell>
-                            <BreakdownCell width={shareColW} align="center" narrow={narrow}>
-                              <Text style={{ ...T.caption, color: C.muted, fontWeight: '500', textAlign: 'center', ...tabularNums }}>
-                                {itemPct}
-                              </Text>
-                            </BreakdownCell>
-                          </BreakdownRow>
-                        </View>
-                      );
-                    })}
+                          label={item.label}
+                          amount={formatDashboardAmount(item.monthlyAmount, frequency, currency, daysInMonth)}
+                          share={formatSharePct(item.monthlyAmount, panelTotal)}
+                          amountColMinW={amountColMinW}
+                          shareColMinW={shareColMinW}
+                          isLast={itemIdx === section.items.length - 1}
+                        />
+                      ))}
+                    </View>
                   </AnimatedCollapse>
-                </View>
-              );
-            })}
-            <View style={{
-              minHeight: EMPTY_ROW_HEIGHT,
-              backgroundColor: C.surface,
-              borderTopWidth: 1,
-              borderTopColor: C.divider,
-            }} />
-          </>
-        )}
-      </View>
-    </View>
+                ) : null}
+              </BreakdownPillRowSlot>
+            );
+          })}
+        </View>
+      )}
+    </SurfaceCard>
   );
 }

@@ -1,9 +1,9 @@
 import {
   clampBudgetSpendingRatio,
   splitFlexibleBudget,
+  splitFromSpendingAmount,
   resolveBudgetSpendingRatio,
   snapSpendingMonthly,
-  getSpendingSteps,
 } from '../../lib/budgetSplit';
 
 describe('splitFlexibleBudget', () => {
@@ -23,27 +23,42 @@ describe('splitFlexibleBudget', () => {
     });
   });
 
-  it('snaps spending to 500 increments', () => {
+  it('rounds spending to 2 decimal places', () => {
     expect(splitFlexibleBudget(10300, 0.79)).toEqual({
-      spendingMonthly: 8000,
-      savingsShift: 2300,
-      ratio: 8000 / 10300,
+      spendingMonthly: 8137,
+      savingsShift: 2163,
+      ratio: 8137 / 10300,
     });
   });
 });
 
 describe('snapSpendingMonthly', () => {
-  it('snaps to nearest 500', () => {
-    expect(snapSpendingMonthly(10000, 8240)).toBe(8000);
-    expect(snapSpendingMonthly(10000, 8760)).toBe(9000);
+  it('rounds to 2 decimal places within available budget', () => {
+    expect(snapSpendingMonthly(10000, 8240.4)).toBe(8240.4);
+    expect(snapSpendingMonthly(10000, 8240.6)).toBe(8240.6);
   });
 
-  it('includes full available amount as a step when not divisible by 500', () => {
-    expect(getSpendingSteps(10300)).toEqual([
-      0, 500, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500,
-      5000, 5500, 6000, 6500, 7000, 7500, 8000, 8500, 9000, 9500, 10000, 10300,
-    ]);
-    expect(snapSpendingMonthly(10300, 10200)).toBe(10300);
+  it('clamps to available budget', () => {
+    expect(snapSpendingMonthly(10300, 10400)).toBe(10300);
+    expect(snapSpendingMonthly(10300, -50)).toBe(0);
+  });
+});
+
+describe('splitFromSpendingAmount', () => {
+  it('derives savings and ratio from a spending amount', () => {
+    expect(splitFromSpendingAmount(10300, 8137)).toEqual({
+      spendingMonthly: 8137,
+      savingsShift: 2163,
+      ratio: 8137 / 10300,
+    });
+  });
+
+  it('clamps spending to available budget', () => {
+    expect(splitFromSpendingAmount(5000, 6200)).toEqual({
+      spendingMonthly: 5000,
+      savingsShift: 0,
+      ratio: 1,
+    });
   });
 });
 

@@ -1,8 +1,9 @@
 import { View } from 'react-native';
-import { C, R, S } from '../../constants/onboarding-theme';
+import { C, R, S, SHADOW } from '../../constants/onboarding-theme';
+import { compactChildren } from '../../lib/compactChildren';
 
 /**
- * Flat bordered container — token-aligned card (no ghost shadow).
+ * Elevated white card — soft shadow, no border (Balshet-style).
  */
 export function SurfaceCard({ children, style, padded = true }) {
   return (
@@ -10,14 +11,13 @@ export function SurfaceCard({ children, style, padded = true }) {
       style={{
         backgroundColor: C.surface,
         borderRadius: R.card,
-        borderWidth: 1,
-        borderColor: C.border,
         padding: padded ? S.cardPad : 0,
         overflow: 'hidden',
+        ...SHADOW.card,
         ...style,
       }}
     >
-      {children}
+      {compactChildren(children)}
     </View>
   );
 }

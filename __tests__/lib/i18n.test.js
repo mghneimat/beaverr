@@ -7,12 +7,12 @@ import { translate } from '../../lib/i18n';
 describe('i18n translate function', () => {
   test('returns translation for valid key in English', () => {
     const result = translate('en', 'app.name');
-    expect(result).toBe('Bida');
+    expect(result).toBe('Beaverr');
   });
 
   test('returns translation for valid key in Czech', () => {
     const result = translate('cs', 'app.name');
-    expect(result).toBe('Bida');
+    expect(result).toBe('Beaverr');
   });
 
   test('returns nested translation', () => {
@@ -37,7 +37,7 @@ describe('i18n translate function', () => {
 
   test('returns same string when no interpolation needed', () => {
     const result = translate('en', 'app.tagline', {});
-    expect(result).toBe('Your wallet patron');
+    expect(result).toBe('Not rich. Just ready.');
   });
 
   test('resolves dashboard metric explain keys in English', () => {

@@ -7,6 +7,7 @@ import { amountToString } from '../../lib/sectionEditStorage';
 import { patchPrimaryIncome, patchOtherIncomeRow, addOtherIncomeRow } from '../../lib/inlineIncomeSave';
 import { runInlineSave } from '../../lib/inlineSaveImpact';
 import { emitSaveFeedback } from '../../lib/dashboardSaveFeedback';
+import { emitDashboardToast } from '../../lib/dashboardToast';
 import AmountFrequencyFields from '../section-edit/AmountFrequencyFields';
 import LabeledInput from '../onboarding/LabeledInput';
 import PrimaryButton from '../ui/PrimaryButton';
@@ -51,6 +52,7 @@ export default function IncomeItemEditPanel({ row, currency, currencyCode, onDon
         }
       });
       emitSaveFeedback({ after, delta, currencyCode: currencyCode || 'CZK' });
+      emitDashboardToast('saved');
       onDone?.();
     } catch (err) {
       setError(t('common.error'));

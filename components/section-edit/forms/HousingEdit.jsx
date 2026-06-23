@@ -84,7 +84,7 @@ export default function HousingEdit() {
             </Text>
             <Text style={{ ...T.fieldLabel, marginBottom: 8 }}>
               {t('sectionEdit.housing.type', {
-                type: t(`onboarding.housing.q6.${type}`),
+                type: t(`onboarding.housing.housingStatus.${type}`),
               })}
             </Text>
 

@@ -33,7 +33,7 @@ export default function Index() {
 
   useEffect(() => {
     async function route() {
-      const onboarding = await getData('pocketos_onboarding');
+      const onboarding = await getData('beaverr_onboarding');
       if (onboarding?.completed) {
         router.replace('/(app)/dashboard');
       } else {
@@ -85,13 +85,13 @@ export default function LocationScreen() {
   const [city, setCity] = useState('');
 
   useEffect(() => {
-    getData('pocketos_location').then((data) => {
+    getData('beaverr_location').then((data) => {
       if (data?.city) setCity(data.city);
     });
   }, []);
 
   async function handleContinue() {
-    await setData('pocketos_location', { city });
+    await setData('beaverr_location', { city });
     router.replace('/(onboarding)/occupation');
   }
 

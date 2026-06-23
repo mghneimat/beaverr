@@ -1,181 +1,97 @@
-import { useState, useEffect, useRef } from 'react';
-import { View, Text, Pressable, Animated, Easing } from 'react-native';
-import { useOnboardingLayout } from '../../lib/onboardingLayout';
-import { useReducedMotion } from '../../lib/useReducedMotion';
-import { useRouter } from 'expo-router';
+import { useState, useCallback, useRef } from 'react';
+import { View, Text } from 'react-native';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { useI18n } from '../../lib/i18n';
 import { getData, setData } from '../../lib/storage';
-import { toMonthly, formatCurrency, committedMonthlyLoad } from '../../lib/finance';
+import { patchOnboardingState } from '../../lib/onboardingProgress';
+import { navigateBack, navigateForward } from '../../lib/onboardingNavigation';
+import { notifyDashboardRefresh } from '../../lib/dashboardRefresh';
+import { committedMonthlyLoad } from '../../lib/finance';
 import { loadHouseholdFinancials } from '../../lib/householdBudget';
 import { snapshotCommittedBaseline } from '../../lib/costReductionProgress';
 import QuestionScreen from '../../components/onboarding/QuestionScreen';
-import { C, S, T, R } from '../../constants/onboarding-theme';
+import ConfirmedAmicoIllustration from '../../components/onboarding/ConfirmedAmicoIllustration';
+import { useOnboardingLayout } from '../../lib/onboardingLayout';
+import ReviewSummaryBar from '../../components/onboarding/review/ReviewSummaryBar';
+import ReviewAlertBanner from '../../components/onboarding/review/ReviewAlertBanner';
+import ReviewSectionCard from '../../components/onboarding/review/ReviewSectionCard';
+import { C, T } from '../../constants/onboarding-theme';
+import {
+  buildReviewFinancials,
+  buildReviewAlerts,
+  buildSectionSubtitle,
+  buildSectionRows,
+  buildChildrenBlocks,
+  buildDebtBlocks,
+  buildPetBlocks,
+  filterVisibleReviewSections,
+  sectionHasWarning,
+} from '../../lib/reviewOnboardingData';
+import { clearReviewUiState } from '../../lib/reviewUiState';
 
-/** Maps children-costs field keys to i18n keys under onboarding.childrenCosts.q9.field */
-const FIELD_I18N_MAP = {
-  daycare: 'nursery',
-  nanny: 'nanny',
-  nappies: 'diapers',
-  babySupplies: 'formula',
-  kindergarten: 'kindergarten',
-  afterHours: 'afterSchool',
-  extracurricular: 'extracurricular',
-  schoolFees: 'schoolSupplies',
-  schoolSupplies: 'schoolSupplies',
-  afterSchool: 'afterSchool',
-  tutoring: 'extracurricular',
-  drivingLessons: 'transport',
-  uniFees: 'savings',
-};
+const STORAGE_KEYS = [
+  'beaverr_household', 'beaverr_location', 'beaverr_occupation',
+  'beaverr_income', 'beaverr_housing', 'beaverr_transport',
+  'beaverr_health', 'beaverr_children_costs', 'beaverr_pets',
+  'beaverr_subscriptions', 'beaverr_other_costs', 'beaverr_debts',
+  'beaverr_budget',
+];
 
-/** Collapsible review section */
-function ReviewSection({ icon, title, children, defaultOpen = true }) {
-  const reduceMotion = useReducedMotion();
-  const [open, setOpen] = useState(defaultOpen);
-  const anim = useRef(new Animated.Value(defaultOpen ? 1 : 0)).current;
-
-  useEffect(() => {
-    if (reduceMotion) {
-      anim.setValue(open ? 1 : 0);
-      return;
-    }
-    Animated.timing(anim, {
-      toValue: open ? 1 : 0,
-      duration: 280,
-      easing: Easing.bezier(0.16, 1, 0.3, 1),
-      useNativeDriver: false,
-    }).start();
-  }, [open, reduceMotion]);
-
-  const body = (
-    <View style={{ paddingHorizontal: 16, paddingBottom: 16 }}>
-      {children}
-    </View>
-  );
-
-  return (
-    <View style={{ marginBottom: 12, backgroundColor: C.surface, borderRadius: R.card, borderWidth: 1, borderColor: C.border, overflow: 'hidden' }}>
-      <Pressable
-        onPress={() => setOpen(!open)}
-        accessibilityRole="button"
-        accessibilityState={{ expanded: open }}
-        accessibilityLabel={title}
-        style={({ pressed }) => ({
-          flexDirection: 'row',
-          alignItems: 'center',
-          padding: 16,
-          minHeight: 44,
-          backgroundColor: pressed ? C.overlayHover : 'transparent',
-        })}
-      >
-        <Text style={{ fontSize: 18, marginRight: 10 }}>{icon}</Text>
-        <Text style={{ flex: 1, fontSize: 15, fontWeight: '600', color: C.primary }} numberOfLines={2}>{title}</Text>
-        <Text style={{ fontSize: 14, color: C.muted }}>{open ? '▲' : '▼'}</Text>
-      </Pressable>
-      {reduceMotion ? (
-        open ? body : null
-      ) : (
-        <Animated.View style={{
-          maxHeight: anim.interpolate({ inputRange: [0, 1], outputRange: [0, 1000] }),
-          opacity: anim,
-          overflow: 'hidden',
-        }}>
-          {body}
-        </Animated.View>
-      )}
-    </View>
-  );
-}
-
-/** A single data row */
-function DataRow({ label, value }) {
-  const layout = useOnboardingLayout();
-
-  if (layout.isNarrow) {
-    return (
-      <View style={{ paddingVertical: 8 }}>
-        <Text style={{ ...T.caption, color: C.muted }} numberOfLines={3}>{label}</Text>
-        <Text style={{ ...T.caption, color: C.text, fontWeight: '500', marginTop: 2 }} numberOfLines={2}>
-          {value || '—'}
-        </Text>
-      </View>
-    );
+async function loadAllReviewData() {
+  const data = {};
+  for (const key of STORAGE_KEYS) {
+    data[key] = await getData(key);
   }
-
-  return (
-    <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6, gap: 12 }}>
-      <Text style={{ ...T.caption, color: C.muted, flex: 1, minWidth: 0 }} numberOfLines={2}>{label}</Text>
-      <Text style={{ ...T.caption, color: C.text, fontWeight: '500', textAlign: 'right', flexShrink: 0, maxWidth: '50%' }} numberOfLines={2}>
-        {value || '—'}
-      </Text>
-    </View>
-  );
+  return data;
 }
 
 export default function ReviewScreen() {
   const { t } = useI18n();
   const router = useRouter();
-
-  const handleBack = () => {
-    router.replace('/(onboarding)/budget');
-  };
+  const layout = useOnboardingLayout();
 
   const [allData, setAllData] = useState({});
   const [loading, setLoading] = useState(true);
+  const hasLoadedRef = useRef(false);
 
-  useEffect(() => {
-    (async () => {
-      const keys = [
-        'pocketos_household', 'pocketos_location', 'pocketos_occupation',
-        'pocketos_income', 'pocketos_costs', 'pocketos_transport',
-        'pocketos_health', 'pocketos_children_costs', 'pocketos_pets',
-        'pocketos_subscriptions', 'pocketos_other_costs', 'pocketos_debts',
-        'pocketos_budget',
-      ];
-      const data = {};
-      for (const key of keys) {
-        data[key] = await getData(key);
-      }
-      setAllData(data);
-      setLoading(false);
-    })();
+  const reload = useCallback(async () => {
+    if (!hasLoadedRef.current) setLoading(true);
+    const data = await loadAllReviewData();
+    setAllData(data);
+    hasLoadedRef.current = true;
+    setLoading(false);
   }, []);
 
+  useFocusEffect(
+    useCallback(() => {
+      reload();
+    }, [reload]),
+  );
+
+  const handleBack = () => {
+    clearReviewUiState();
+    navigateBack();
+  };
+
   const handleComplete = async () => {
+    clearReviewUiState();
     const financials = await loadHouseholdFinancials(t);
     await snapshotCommittedBaseline(committedMonthlyLoad(financials));
 
-    await setData('pocketos_onboarding', {
+    await patchOnboardingState({
       completed: true,
+      dashboardUnlocked: true,
+      questionnaireComplete: true,
+      questionnaireEverCompleted: true,
       currentStep: 'review',
       percentComplete: 100,
+      resumeRoute: null,
+      navHistory: [],
     });
 
     router.replace('/(app)/dashboard');
+    notifyDashboardRefresh();
   };
-
-  const handleLater = async () => {
-    router.replace('/(app)/dashboard');
-  };
-
-  const h = allData['pocketos_household'];
-  const loc = allData['pocketos_location'];
-  const occ = allData['pocketos_occupation'];
-  const inc = allData['pocketos_income'];
-  const costs = allData['pocketos_costs'] || [];
-  const transport = allData['pocketos_transport'];
-  const health = allData['pocketos_health'];
-  const childrenCosts = allData['pocketos_children_costs'];
-  const pets = allData['pocketos_pets'] || [];
-  const subs = allData['pocketos_subscriptions'] || [];
-  const otherCosts = allData['pocketos_other_costs'] || [];
-  const debts = allData['pocketos_debts'] || [];
-  const budget = allData['pocketos_budget'];
-
-  const userMonthly = toMonthly(inc?.user?.amount || 0, inc?.user?.frequency || 'monthly');
-  const partnerMonthly = toMonthly(inc?.partner?.amount || 0, inc?.partner?.frequency || 'monthly');
-  const otherMonthly = (inc?.otherSources || []).reduce((sum, s) => sum + toMonthly(s.amount || 0, s.frequency || 'monthly'), 0);
-  const totalIncome = userMonthly + partnerMonthly + otherMonthly;
 
   if (loading) {
     return (
@@ -189,205 +105,75 @@ export default function ReviewScreen() {
     );
   }
 
+  const financials = buildReviewFinancials(allData, t);
+  const alerts = buildReviewAlerts(allData, financials, t);
+  const ctx = { allData, financials, t };
+  const sections = filterVisibleReviewSections(allData, ctx);
+
   return (
     <QuestionScreen
+      illustration={(
+        <ConfirmedAmicoIllustration
+          width={layout.illustrationWidth}
+          a11yKey="onboarding.review.formIllustrationA11y"
+        />
+      )}
       chapter={t('onboarding.review.chapter')}
-      title={t('onboarding.review.q15.title')}
-      helper={t('onboarding.review.q15.helper')}
+      title={t('onboarding.review.review.title')}
+      helper={t('onboarding.review.review.helper')}
       onContinue={handleComplete}
       onBack={handleBack}
       continueDisabled={false}
+      continueLabel={t('onboarding.review.review.cta')}
+      animationKey="review"
+      resumeRoute="/(onboarding)/review"
+      exitPatch={{ currentStep: 'review', percentComplete: 99 }}
     >
       <View>
-        {/* Household */}
-        <ReviewSection icon="👫" title={t('onboarding.review.q15.sections.household')}>
-          <DataRow label={t('onboarding.review.q15.labels.type')} value={h?.type ? t(`onboarding.household.type.${h.type}`) : '—'} />
-          <DataRow label={t('onboarding.review.q15.labels.partner')} value={h?.partnerName || '—'} />
-          <DataRow label={t('onboarding.review.q15.labels.children')} value={h?.children?.length ? String(h.children.length) : t('common.no')} />
-        </ReviewSection>
+        {alerts.map((alert) => (
+          <ReviewAlertBanner
+            key={alert.id}
+            message={alert.message}
+            editLabel={alert.editLabel}
+            editRoute={alert.editRoute}
+          />
+        ))}
 
-        {/* Location & Occupation */}
-        <ReviewSection icon="📍" title={t('onboarding.review.q15.sections.location')}>
-          <DataRow label={t('onboarding.review.q15.labels.country')} value={loc?.country || '—'} />
-          <DataRow label={t('onboarding.review.q15.labels.city')} value={loc?.city || '—'} />
-          <DataRow label={t('onboarding.review.q15.labels.currency')} value={loc?.currency || '—'} />
-          <DataRow label={t('onboarding.review.q15.labels.occupation')} value={occ?.user ? t(`onboarding.occupation.${occ.user}`) : '—'} />
-          {occ?.partner && <DataRow label={t('onboarding.review.q15.labels.partnerOccupation')} value={t(`onboarding.occupation.${occ.partner}`)} />}
-        </ReviewSection>
+        <ReviewSummaryBar
+          totalIncome={financials.totalIncome}
+          totalExpenses={financials.totalExpenses}
+          monthlyBalance={financials.monthlyBalance}
+          currency={financials.currency}
+          t={t}
+        />
 
-        {/* Income */}
-        <ReviewSection icon="💰" title={t('onboarding.review.q15.sections.income')}>
-          {inc?.user && <DataRow label={t('onboarding.review.q15.labels.yourIncome')} value={formatCurrency(userMonthly, 'CZK') + '/mo'} />}
-          {inc?.partner && <DataRow label={t('onboarding.review.q15.labels.partnerIncome')} value={formatCurrency(partnerMonthly, 'CZK') + '/mo'} />}
-          {inc?.otherSources?.map((s, i) => (
-            <DataRow key={i} label={s.label || `${t('onboarding.review.q15.labels.otherIncome')} ${i + 1}`} value={formatCurrency(toMonthly(s.amount, s.frequency), 'CZK') + '/mo'} />
-          ))}
-          <DataRow label={t('onboarding.review.q15.labels.totalIncome')} value={formatCurrency(totalIncome, 'CZK') + '/mo'} />
-          {inc?.savingsBalance > 0 && <DataRow label={t('onboarding.review.q15.labels.savingsBalance')} value={formatCurrency(inc.savingsBalance, 'CZK')} />}
-          {inc?.savingsTarget > 0 && <DataRow label={t('onboarding.review.q15.labels.savingsTarget')} value={formatCurrency(inc.savingsTarget, 'CZK') + '/mo'} />}
-          {inc?.goal && <DataRow label={t('onboarding.review.q15.labels.goal')} value={`${formatCurrency(inc.goal.amount, 'CZK')} ${t('onboarding.review.q15.labels.by')} ${inc.goal.targetDate || '—'}`} />}
-        </ReviewSection>
+        {sections.map((section) => {
+          const subtitle = buildSectionSubtitle(section.id, ctx);
+          const warning = sectionHasWarning(section.id, financials);
+          const rows = section.id === 'childrenCosts' ? [] : buildSectionRows(section.id, ctx);
+          const childBlocks = section.id === 'childrenCosts' ? buildChildrenBlocks(ctx) : [];
+          const debtBlocks = section.id === 'debts' ? buildDebtBlocks(ctx) : [];
+          const petBlocks = section.id === 'pets' ? buildPetBlocks(ctx) : [];
 
-        {/* Transport */}
-        <ReviewSection icon="🚗" title={t('onboarding.review.q15.sections.transport')}>
-          {transport?.hasVehicle ? (
-            <>
-              <DataRow label={t('onboarding.review.q15.labels.fuel')} value={transport.fuelCost ? formatCurrency(transport.fuelCost, 'CZK') + '/mo' : '—'} />
-              {transport.hasInsurance && <DataRow label={t('onboarding.review.q15.labels.insurance')} value={transport.insurancePremium ? formatCurrency(transport.insurancePremium, 'CZK') + `/${transport.insuranceFrequency}` : '—'} />}
-              {transport.hasParking && <DataRow label={t('onboarding.review.q15.labels.parking')} value={transport.parkingAmount ? formatCurrency(transport.parkingAmount, 'CZK') + `/${transport.parkingFrequency}` : '—'} />}
-            </>
-          ) : (
-            <Text style={{ ...T.caption, color: C.muted }}>{t('onboarding.review.q15.labels.noVehicle')}</Text>
-          )}
-          {transport?.hasPublicTransport && (
-            <DataRow label={t('onboarding.review.q15.labels.publicTransport')} value={transport.ptAmount ? formatCurrency(transport.ptAmount, 'CZK') + `/${transport.ptFrequency}` : '—'} />
-          )}
-        </ReviewSection>
-
-        {/* Health */}
-        <ReviewSection icon="🏥" title={t('onboarding.review.q15.sections.health')}>
-          {health && typeof health === 'object' ? (
-            Object.entries(health).map(([key, val]) => {
-              let label = key;
-              if (key === 'user') {
-                label = t('onboarding.health.you');
-              } else if (key === 'partner') {
-                label = h?.partnerName || t('onboarding.review.q15.labels.partner');
-              } else if (key.startsWith('child_')) {
-                const childIdx = parseInt(key.replace('child_', ''), 10);
-                const child = h?.children?.[childIdx];
-                label = child?.displayName || `${t('onboarding.health.child')} ${childIdx + 1}`;
-              }
-              return (
-                <DataRow key={key} label={label} value={val && val.confirmed ? (val.coverage === 'employer' ? t('onboarding.review.q15.labels.covered') : val.premium ? formatCurrency(val.premium, 'CZK') + `/${val.frequency}` : t('onboarding.review.q15.labels.private')) : t('onboarding.review.q15.labels.notConfirmed')} />
-              );
-            })
-          ) : (
-            <Text style={{ ...T.caption, color: C.muted }}>{t('onboarding.review.q15.labels.none')}</Text>
-          )}
-        </ReviewSection>
-
-        {/* Children's Costs */}
-        {h?.children?.length > 0 && (
-          <ReviewSection icon="👶" title={t('onboarding.review.q15.sections.childrenCosts')}>
-            {childrenCosts ? (
-              Object.entries(childrenCosts).map(([key, fields]) => {
-                const childIdx = parseInt(key.replace('child_', ''), 10);
-                const child = h?.children?.[childIdx];
-                const childLabel = child?.displayName || `Child ${childIdx + 1}`;
-                return (
-                  <View key={key} style={{ marginBottom: 8 }}>
-                    <Text style={{ ...T.fieldLabel, color: C.primary, marginBottom: 4 }}>{childLabel}</Text>
-                    {fields && typeof fields === 'object' && !Array.isArray(fields)
-                      ? Object.entries(fields).filter(([_, v]) => v && v.amount).map(([field, val]) => {
-                          const isOther = field.startsWith('other_');
-                          const i18nField = FIELD_I18N_MAP[field] || field;
-                          const label = isOther
-                            ? t('onboarding.childrenCosts.q9.field.other')
-                            : t(`onboarding.childrenCosts.q9.field.${i18nField}`);
-                          return (
-                            <DataRow key={field} label={label} value={formatCurrency(val.amount, 'CZK') + `/${val.frequency}`} />
-                          );
-                        })
-                      : null}
-                  </View>
-                );
-              })
-            ) : (
-              <Text style={{ ...T.caption, color: C.muted }}>{t('onboarding.review.q15.labels.none')}</Text>
-            )}
-          </ReviewSection>
-        )}
-
-        {/* Pets */}
-        {pets.length > 0 && (
-          <ReviewSection icon="🐾" title={t('onboarding.review.q15.sections.pets')}>
-            {pets.map((pet, i) => (
-              <View key={i} style={{ marginBottom: 8 }}>
-                <Text style={{ ...T.fieldLabel, color: C.primary, marginBottom: 4 }}>
-                  {pet.name || `${t('onboarding.pets.q10a.petLabel')} ${i + 1}`} ({pet.type})
-                </Text>
-                {pet.foodAmount ? <DataRow label={t('onboarding.review.q15.labels.food')} value={formatCurrency(pet.foodAmount, 'CZK') + `/${pet.foodFrequency}`} /> : null}
-                {pet.vetAmount ? <DataRow label={t('onboarding.review.q15.labels.vet')} value={formatCurrency(pet.vetAmount, 'CZK') + `/${pet.vetFrequency}`} /> : null}
-              </View>
-            ))}
-          </ReviewSection>
-        )}
-
-        {/* Subscriptions */}
-        {subs.length > 0 && (
-          <ReviewSection icon="📺" title={t('onboarding.review.q15.sections.subscriptions')}>
-            {subs.map((sub, i) => (
-              <DataRow key={i} label={t(`onboarding.subscriptions.q11.services.${sub.name}`)} value={sub.cost ? formatCurrency(sub.cost, 'CZK') + `/${sub.frequency}` : '—'} />
-            ))}
-          </ReviewSection>
-        )}
-
-        {/* Other Costs */}
-        {otherCosts.length > 0 && (
-          <ReviewSection icon="📋" title={t('onboarding.review.q15.sections.otherCosts')}>
-            {otherCosts.map((c, i) => (
-              <DataRow key={i} label={t(`onboarding.otherCosts.q12.costs.${c.name}`)} value={c.amount ? formatCurrency(c.amount, 'CZK') + `/${c.frequency}` : '—'} />
-            ))}
-          </ReviewSection>
-        )}
-
-        {/* Debts */}
-        {debts.length > 0 && (
-          <ReviewSection icon="💳" title={t('onboarding.review.q15.sections.debts')}>
-            {debts.map((d, i) => (
-              <View key={i} style={{ marginBottom: 8 }}>
-                <Text style={{ ...T.fieldLabel, color: C.primary, marginBottom: 4 }}>
-                  {t(`onboarding.debts.q13a.${d.type}`)} — {formatCurrency(d.balance, 'CZK')}
-                </Text>
-                <DataRow label={t('onboarding.review.q15.labels.minPayment')} value={formatCurrency(d.minPayment, 'CZK') + '/mo'} />
-                {d.apr > 0 && <DataRow label={t('onboarding.review.q15.labels.apr')} value={`${d.apr}%`} />}
-              </View>
-            ))}
-          </ReviewSection>
-        )}
-
-        {/* Budget */}
-        <ReviewSection icon="📊" title={t('onboarding.review.q15.sections.budget')}>
-          <DataRow label={t('onboarding.review.q15.labels.monthlyBudget')} value={budget?.monthlyFlexible ? formatCurrency(budget.monthlyFlexible, 'CZK') + '/mo' : '—'} />
-          <DataRow label={t('onboarding.review.q15.labels.rollover')} value={budget?.rolloverStrategy ? t(`onboarding.budget.q14a.${budget.rolloverStrategy}`) : '—'} />
-          {budget?.rolloverStrategy === 'capped' && budget?.rolloverCapType === 'multiplier' && budget?.rolloverMultiplier ? (
-            <DataRow label={t('onboarding.review.q15.labels.multiplier')} value={`×${budget.rolloverMultiplier}`} />
-          ) : null}
-          {budget?.rolloverStrategy === 'capped' && budget?.rolloverCapType === 'amount' && budget?.rolloverCapAmount ? (
-            <DataRow label={t('onboarding.review.q15.labels.rolloverCap')} value={formatCurrency(budget.rolloverCapAmount, 'CZK')} />
-          ) : null}
-          {budget?.rolloverStrategy === 'reset' && budget?.resetUnspentDestination ? (
-            <DataRow
-              label={t('onboarding.review.q15.labels.resetDestination')}
-              value={
-                budget.resetUnspentDestination === 'otherGoal'
-                  ? (budget.resetOtherGoalNote || t('onboarding.budget.q14a.resetToOtherGoal'))
-                  : budget.resetUnspentDestination === 'savings'
-                    ? t('onboarding.budget.q14a.resetToSavings')
-                    : t('onboarding.budget.q14a.resetLooseMoney')
-              }
+          return (
+            <ReviewSectionCard
+              key={section.id}
+              title={t(section.titleKey)}
+              subtitle={subtitle}
+              sectionId={section.id}
+              sectionKey={section.sectionKey}
+              scope={section.scope}
+              iconEmoji={section.iconEmoji}
+              warning={warning}
+              defaultOpen={false}
+              rows={rows}
+              childBlocks={childBlocks}
+              debtBlocks={debtBlocks}
+              petBlocks={petBlocks}
             />
-          ) : null}
-        </ReviewSection>
-      </View>
-
-      {/* Secondary: I'll finish this later */}
-      <Pressable
-        onPress={handleLater}
-        accessibilityRole="button"
-        accessibilityLabel={t('onboarding.review.q15.skip')}
-        style={({ pressed }) => ({
-          marginTop: 12,
-          minHeight: 44,
-          paddingVertical: 10,
-          alignItems: 'center',
-          justifyContent: 'center',
-          opacity: pressed ? 0.7 : 1,
+          );
         })}
-      >
-        <Text style={{ ...T.btnSkip, color: C.muted }}>{t('onboarding.review.q15.skip')}</Text>
-      </Pressable>
+      </View>
     </QuestionScreen>
   );
 }

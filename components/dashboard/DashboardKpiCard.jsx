@@ -11,7 +11,7 @@ export default function DashboardKpiCard({
   value,
   subtitle,
   icon,
-  iconBg = C.chipSelectedBg,
+  iconBg = C.infoWashBg,
   onPress,
   accessibilityLabel,
 }) {

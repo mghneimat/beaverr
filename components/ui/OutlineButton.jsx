@@ -4,7 +4,7 @@ import { Text } from '@gluestack-ui/themed';
 import { C, R, T } from '../../constants/onboarding-theme';
 
 /**
- * Secondary outline button — matches onboarding skip/outline pattern.
+ * Secondary pill button — white fill, border (Balshet filter-button style).
  */
 export function OutlineButton({
   children,
@@ -31,11 +31,11 @@ export function OutlineButton({
         {
           minHeight: 44,
           paddingVertical: 12,
-          paddingHorizontal: 20,
+          paddingHorizontal: 24,
           borderRadius: R.button,
           borderWidth: 1.5,
           borderColor: C.border,
-          backgroundColor: pressed ? C.overlayPressed : hovered ? C.overlayHover : 'transparent',
+          backgroundColor: pressed ? C.surfaceTint : hovered ? C.surface : C.surface,
           alignItems: 'center',
           justifyContent: 'center',
           opacity: disabled ? 0.5 : 1,
@@ -43,7 +43,7 @@ export function OutlineButton({
         style,
       ]}
     >
-      <Text style={{ ...T.btnPrimary, color: C.primary, fontWeight: '500' }}>
+      <Text style={{ ...T.btnPrimary, color: C.primary }}>
         {children}
       </Text>
     </Pressable>

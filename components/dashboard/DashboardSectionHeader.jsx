@@ -1,14 +1,9 @@
 import { View } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
-import { C } from '../../constants/onboarding-theme';
+import { C, T } from '../../constants/onboarding-theme';
 
 /** Shared subsection title style for all dashboard tabs. */
-export const dashboardSectionTitleStyle = {
-  fontSize: 17,
-  fontWeight: '600',
-  color: C.primary,
-  flex: 1,
-};
+export const dashboardSectionTitleStyle = T.cardTitle;
 
 /**
  * Section-wide header with optional trailing actions and divider below.
@@ -32,7 +27,7 @@ export default function DashboardSectionHeader({
       }, contentStyle]}>
         <Text
           accessibilityRole={accessibilityRole}
-          style={dashboardSectionTitleStyle}
+          style={[dashboardSectionTitleStyle, { flex: 1 }]}
           numberOfLines={2}
         >
           {title}

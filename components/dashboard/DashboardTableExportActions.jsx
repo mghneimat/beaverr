@@ -10,9 +10,13 @@ import { Text } from '@gluestack-ui/themed';
 import { useI18n } from '../../lib/i18n';
 import { C, R } from '../../constants/onboarding-theme';
 import { elevationShadow } from '../../lib/shadow';
+import {
+  CardHeaderChevron,
+  cardHeaderActionLabelStyle,
+  cardHeaderActionStyle,
+} from './CardHeaderActionButton';
 
 const MENU_WIDTH = 260;
-const TRIGGER_MIN_WIDTH = 128;
 
 function ExportOption({ format, onPress }) {
   const [hovered, setHovered] = useState(false);
@@ -32,10 +36,11 @@ function ExportOption({ format, onPress }) {
       style={{
         flexDirection: 'row',
         alignItems: 'center',
+        justifyContent: 'center',
         minHeight: 40,
         paddingHorizontal: 14,
         paddingVertical: 10,
-        borderRadius: 8,
+        borderRadius: R.pill,
         marginHorizontal: 4,
         backgroundColor: active ? C.overlayHover : 'transparent',
         ...(Platform.OS === 'web' ? { cursor: 'pointer' } : {}),
@@ -63,9 +68,9 @@ export default function DashboardTableExportActions({ onExportCsv, onExportXlsx,
   const triggerRef = useRef(null);
 
   const options = [
-    { key: 'csv', format: t('onboarding.budget.q14.exportCsv'), onPress: onExportCsv },
-    { key: 'xlsx', format: t('onboarding.budget.q14.exportXlsx'), onPress: onExportXlsx },
-    { key: 'pdf', format: t('onboarding.budget.q14.exportPdf'), onPress: onExportPdf },
+    { key: 'csv', format: t('onboarding.budget.budgetSplit.exportCsv'), onPress: onExportCsv },
+    { key: 'xlsx', format: t('onboarding.budget.budgetSplit.exportXlsx'), onPress: onExportXlsx },
+    { key: 'pdf', format: t('onboarding.budget.budgetSplit.exportPdf'), onPress: onExportPdf },
   ];
 
   const close = () => {
@@ -103,39 +108,16 @@ export default function DashboardTableExportActions({ onExportCsv, onExportXlsx,
           accessibilityRole="button"
           accessibilityLabel={t('dashboard.common.export')}
           accessibilityState={{ expanded: open }}
-          style={({ pressed, hovered }) => ({
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 6,
-            minWidth: TRIGGER_MIN_WIDTH,
-            minHeight: 36,
-            paddingVertical: 6,
-            paddingHorizontal: 18,
-            borderRadius: 8,
-            backgroundColor: open || pressed
-              ? C.overlayPressed
-              : hovered
-                ? C.overlayHover
-                : 'transparent',
-            ...(Platform.OS === 'web' ? { cursor: 'pointer' } : {}),
+          style={({ pressed, hovered }) => cardHeaderActionStyle({
+            pressed,
+            hovered,
+            active: open,
           })}
         >
-          <Text style={{
-            fontSize: 13,
-            fontWeight: '600',
-            color: open ? C.accent : C.primary,
-          }}>
+          <Text style={cardHeaderActionLabelStyle(open)}>
             {t('dashboard.common.export')}
           </Text>
-          <Text style={{
-            fontSize: 10,
-            fontWeight: '700',
-            color: open ? C.accent : C.muted,
-            transform: [{ rotate: open ? '180deg' : '0deg' }],
-          }}>
-            ▾
-          </Text>
+          <CardHeaderChevron expanded={open} color={C.muted} active={open} />
         </Pressable>
       </View>
 

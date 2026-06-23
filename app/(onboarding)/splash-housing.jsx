@@ -1,21 +1,31 @@
-import React from 'react';
-import { useRouter } from 'expo-router';
+import React, { useCallback } from 'react';
 import { useI18n } from '../../lib/i18n';
+import { useOnboardingLayout } from '../../lib/onboardingLayout';
+import { navigateForward } from '../../lib/onboardingNavigation';
+import { navigateBackFromSectionSplash } from '../../lib/onboardingResume';
 import SplashScreen from '../../components/onboarding/SplashScreen';
+import ComingHomeIllustration from '../../components/onboarding/ComingHomeIllustration';
 
 /** Section 4 splash — Housing */
 export default function SplashHousingScreen() {
   const { t } = useI18n();
-  const router = useRouter();
+  const layout = useOnboardingLayout();
+
+  const handleBack = useCallback(
+    () => navigateBackFromSectionSplash('/(onboarding)/splash-housing'),
+    [],
+  );
 
   return (
     <SplashScreen
+      illustration={<ComingHomeIllustration width={layout.illustrationWidth} />}
+      animationKey="splash-housing"
       heading={t('onboarding.s4.heading')}
+      description={t('onboarding.s4.body')}
       cta={t('common.continue')}
-      onContinue={() => router.replace('/(onboarding)/housing')}
+      onContinue={() => navigateForward('/(onboarding)/housing')}
+      onBack={handleBack}
       chapter={t('onboarding.housing.chapter')}
-      onBack={() => router.replace('/(onboarding)/income')}
-      progress={55}
     />
   );
 }

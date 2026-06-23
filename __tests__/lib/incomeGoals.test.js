@@ -1,12 +1,38 @@
 import {
   GOAL_TYPES,
   SAVE_MODES,
+  DEFAULT_GOAL_INTENTS,
   buildIncomeGoalPayload,
+  deriveGoalTypeFromIntents,
   getMonthlySavingsReservation,
+  hasClarityOnlyFocus,
   hasTargetSavingsGoal,
+  normalizeGoalIntents,
   normalizeIncomeGoalFields,
   restoreGoalSelection,
+  toggleGoalIntent,
 } from '../../lib/incomeGoals';
+
+describe('deriveGoalTypeFromIntents', () => {
+  it('returns null for clarity only', () => {
+    expect(deriveGoalTypeFromIntents({ clarity: true, spendLess: false, buildMore: false })).toBeNull();
+  });
+
+  it('maps spend less only', () => {
+    expect(deriveGoalTypeFromIntents({ clarity: true, spendLess: true, buildMore: false }))
+      .toBe(GOAL_TYPES.REDUCE_COSTS);
+  });
+
+  it('maps build more only', () => {
+    expect(deriveGoalTypeFromIntents({ clarity: false, spendLess: false, buildMore: true }))
+      .toBe(GOAL_TYPES.SAVE_MONEY);
+  });
+
+  it('maps spend less and build more', () => {
+    expect(deriveGoalTypeFromIntents({ clarity: true, spendLess: true, buildMore: true }))
+      .toBe(GOAL_TYPES.REDUCE_AND_SAVE);
+  });
+});
 
 describe('normalizeIncomeGoalFields', () => {
   it('maps legacy target goal', () => {
@@ -23,12 +49,54 @@ describe('normalizeIncomeGoalFields', () => {
       hasGoal: false,
     })).toEqual({ goalType: GOAL_TYPES.SAVE_MONEY, saveMode: SAVE_MODES.ONGOING });
   });
+
+  it('derives goal type from stored intents', () => {
+    expect(normalizeIncomeGoalFields({
+      goalIntents: { clarity: true, spendLess: true, buildMore: true },
+      saveMode: SAVE_MODES.TARGET,
+    })).toEqual({ goalType: GOAL_TYPES.REDUCE_AND_SAVE, saveMode: SAVE_MODES.TARGET });
+  });
+});
+
+describe('normalizeGoalIntents', () => {
+  it('defaults to clarity for empty payload', () => {
+    expect(normalizeGoalIntents(null)).toEqual(DEFAULT_GOAL_INTENTS);
+  });
+
+  it('restores stored intents', () => {
+    expect(normalizeGoalIntents({
+      goalIntents: { clarity: false, spendLess: true, buildMore: false },
+    })).toEqual({ clarity: false, spendLess: true, buildMore: false });
+  });
+
+  it('migrates legacy reduce-costs goal', () => {
+    expect(normalizeGoalIntents({ goalType: GOAL_TYPES.REDUCE_COSTS })).toEqual({
+      clarity: false,
+      spendLess: true,
+      buildMore: false,
+    });
+  });
 });
 
 describe('buildIncomeGoalPayload', () => {
+  it('stores goal intents and derived type', () => {
+    const payload = buildIncomeGoalPayload({
+      goalIntents: { clarity: true, spendLess: true, buildMore: false },
+      saveMode: null,
+      savingsBalance: '10000',
+      savingsMonthlyTarget: '',
+      goalDescription: '',
+      goalAmount: '',
+      goalDate: '',
+    });
+
+    expect(payload.goalIntents).toEqual({ clarity: true, spendLess: true, buildMore: false });
+    expect(payload.goalType).toBe(GOAL_TYPES.REDUCE_COSTS);
+  });
+
   it('stores ongoing monthly target only for ongoing mode', () => {
     const payload = buildIncomeGoalPayload({
-      goalType: GOAL_TYPES.SAVE_MONEY,
+      goalIntents: { clarity: false, spendLess: false, buildMore: true },
       saveMode: SAVE_MODES.ONGOING,
       savingsBalance: '10000',
       savingsMonthlyTarget: '3000',
@@ -42,10 +110,10 @@ describe('buildIncomeGoalPayload', () => {
     expect(payload.hasGoal).toBe(false);
   });
 
-  it('clears save fields for reduce-costs goal', () => {
+  it('clears save fields for clarity-only intents', () => {
     const payload = buildIncomeGoalPayload({
-      goalType: GOAL_TYPES.REDUCE_COSTS,
-      saveMode: null,
+      goalIntents: { clarity: true, spendLess: false, buildMore: false },
+      saveMode: SAVE_MODES.TARGET,
       savingsBalance: '10000',
       savingsMonthlyTarget: '3000',
       goalDescription: 'Car',
@@ -53,7 +121,7 @@ describe('buildIncomeGoalPayload', () => {
       goalDate: '01/2028',
     });
 
-    expect(payload.goalType).toBe(GOAL_TYPES.REDUCE_COSTS);
+    expect(payload.goalType).toBeNull();
     expect(payload.savingsMonthlyTarget).toBeNull();
     expect(payload.goalAmount).toBeNull();
   });
@@ -62,6 +130,7 @@ describe('buildIncomeGoalPayload', () => {
 describe('getMonthlySavingsReservation', () => {
   it('uses ongoing monthly target', () => {
     expect(getMonthlySavingsReservation({
+      goalIntents: { clarity: false, spendLess: false, buildMore: true },
       goalType: GOAL_TYPES.SAVE_MONEY,
       saveMode: SAVE_MODES.ONGOING,
       savingsMonthlyTarget: 4000,
@@ -70,6 +139,7 @@ describe('getMonthlySavingsReservation', () => {
 
   it('uses computed gap for target goals', () => {
     expect(getMonthlySavingsReservation({
+      goalIntents: { clarity: false, spendLess: false, buildMore: true },
       goalType: GOAL_TYPES.SAVE_MONEY,
       saveMode: SAVE_MODES.TARGET,
       goalAmount: 100000,
@@ -79,13 +149,39 @@ describe('getMonthlySavingsReservation', () => {
 });
 
 describe('restoreGoalSelection', () => {
-  it('restores explicit goal type from storage', () => {
+  it('restores explicit intents from storage', () => {
     expect(restoreGoalSelection({
-      goalType: GOAL_TYPES.REDUCE_AND_SAVE,
+      goalIntents: { clarity: true, spendLess: false, buildMore: true },
       saveMode: SAVE_MODES.TARGET,
+      goalType: GOAL_TYPES.SAVE_MONEY,
     })).toEqual({
-      goalType: GOAL_TYPES.REDUCE_AND_SAVE,
+      goalIntents: { clarity: true, spendLess: false, buildMore: true },
+      goalType: GOAL_TYPES.SAVE_MONEY,
       saveMode: SAVE_MODES.TARGET,
+    });
+  });
+});
+
+describe('hasClarityOnlyFocus', () => {
+  it('is true when only clarity is selected', () => {
+    expect(hasClarityOnlyFocus({
+      goalIntents: { clarity: true, spendLess: false, buildMore: false },
+    })).toBe(true);
+  });
+
+  it('is false when build more is selected', () => {
+    expect(hasClarityOnlyFocus({
+      goalIntents: { clarity: true, spendLess: false, buildMore: true },
+    })).toBe(false);
+  });
+});
+
+describe('toggleGoalIntent', () => {
+  it('toggles the selected intent', () => {
+    expect(toggleGoalIntent(DEFAULT_GOAL_INTENTS, 'clarity')).toEqual({
+      clarity: false,
+      spendLess: false,
+      buildMore: false,
     });
   });
 });
@@ -93,6 +189,7 @@ describe('restoreGoalSelection', () => {
 describe('hasTargetSavingsGoal', () => {
   it('requires amount and date', () => {
     expect(hasTargetSavingsGoal({
+      goalIntents: { clarity: false, spendLess: false, buildMore: true },
       goalType: GOAL_TYPES.SAVE_MONEY,
       saveMode: SAVE_MODES.TARGET,
       goalAmount: 250000,

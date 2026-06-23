@@ -1,97 +1,66 @@
-import { View, Pressable, Text } from 'react-native';
+import { View, Text } from 'react-native';
 
 import { useI18n } from '../../lib/i18n';
 
 import { C, R, T } from '../../constants/onboarding-theme';
-
-
+import OnboardingPressable from './OnboardingPressable';
+import { chipBg } from './pressableFeedback';
 
 /**
-
  * Themed export action bar for the flexible budget summary table.
-
  * All format buttons share the same chip style as onboarding suggestion chips.
-
  *
-
  * @param {Object} props
-
  * @param {() => void} props.onExportCsv
-
  * @param {() => void} props.onExportXlsx
-
  * @param {() => void} props.onExportPdf
-
  */
-
 export default function BudgetExportBar({ onExportCsv, onExportXlsx, onExportPdf }) {
-
   const { t } = useI18n();
 
-
-
   const buttons = [
-
-    { key: 'csv', label: t('onboarding.budget.q14.exportCsv'), onPress: onExportCsv },
-
-    { key: 'xlsx', label: t('onboarding.budget.q14.exportXlsx'), onPress: onExportXlsx },
-
-    { key: 'pdf', label: t('onboarding.budget.q14.exportPdf'), onPress: onExportPdf },
-
+    { key: 'csv', label: t('onboarding.budget.budgetSplit.exportCsv'), onPress: onExportCsv },
+    { key: 'xlsx', label: t('onboarding.budget.budgetSplit.exportXlsx'), onPress: onExportXlsx },
+    { key: 'pdf', label: t('onboarding.budget.budgetSplit.exportPdf'), onPress: onExportPdf },
   ];
 
-
-
   return (
-
     <View style={{ marginBottom: 16 }}>
-
       <Text style={{ ...T.fieldLabel, color: C.muted, marginBottom: 8 }}>
-
-        {t('onboarding.budget.q14.exportLabel')}
-
+        {t('onboarding.budget.budgetSplit.exportLabel')}
       </Text>
-
       <View style={{ flexDirection: 'row', gap: 8 }}>
-
         {buttons.map((btn) => (
-
-          <Pressable
+          <OnboardingPressable
             key={btn.key}
             onPress={btn.onPress}
             accessibilityRole="button"
             accessibilityLabel={btn.label}
-            style={({ pressed }) => ({
+            style={({ pressed, hovered }) => ({
               flex: 1,
               minHeight: 44,
               paddingVertical: 10,
               paddingHorizontal: 8,
               borderRadius: R.chip,
               borderWidth: 1.5,
-              borderColor: pressed ? C.primary : C.border,
-              backgroundColor: pressed ? C.chipSelectedBg : C.surface,
+              borderColor: pressed || hovered ? C.primary : C.border,
+              backgroundColor: pressed || hovered ? C.surfaceTint : C.surface,
               alignItems: 'center',
               justifyContent: 'center',
             })}
           >
-            {({ pressed }) => (
+            {({ pressed, hovered }) => (
               <Text style={{
                 fontSize: 13,
                 fontWeight: '500',
-                color: pressed ? C.primary : C.muted,
+                color: pressed || hovered ? C.primary : C.muted,
               }}>
                 {btn.label}
               </Text>
             )}
-          </Pressable>
-
+          </OnboardingPressable>
         ))}
-
       </View>
-
     </View>
-
   );
-
 }
-

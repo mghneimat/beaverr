@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { View, TextInput, Platform } from 'react-native';
 import { webFocusRing } from '../../lib/a11y';
+import { useOnboardingScroll } from '../../lib/onboardingScroll';
 import {
   FormControl,
   FormControlLabel,
@@ -11,7 +12,11 @@ import {
   FormControlErrorText,
   Text,
 } from '@gluestack-ui/themed';
-import { C, T, S, R } from '../../constants/onboarding-theme';
+import { C, T, S, R, INPUT_FIELD } from '../../constants/onboarding-theme';
+import AnimatedCollapse from '../dashboard/AnimatedCollapse';
+import { sanitizeAmountInput } from '../../lib/finance';
+import { parseAmount, amountToString } from '../../lib/sectionEditStorage';
+import { useClearOnboardingValidation } from '../../lib/onboardingValidationClear';
 
 /**
  * Gluestack-backed labeled input — full parity with legacy LabeledInput.
@@ -36,43 +41,101 @@ export function FormInput({
   containerStyle,
   helperText,
   errorText,
+  onErrorClear,
   disabled = false,
   size = 'md',
   inGroup = false,
   accessibilityLabel,
+  onFocus,
+  onBlur,
 }) {
   const [focused, setFocused] = useState(false);
+  const inputRef = useRef(null);
+  const fieldAnchorRef = useRef(null);
+  const { scrollToAnchor } = useOnboardingScroll();
+  const clearValidation = useClearOnboardingValidation();
   const hasCurrency = !!currency;
+  const isAmountInput = hasCurrency;
   const isInvalid = !!errorText;
-  const borderW = inCard ? 2 : 2.5;
+  const borderW = isInvalid ? 2 : 1.5;
+  const fieldRadius = inCard ? R.input : R.pill;
+
+  const fieldBorderColor = isInvalid ? C.danger : focused ? C.accent : C.border;
+
+  useEffect(() => {
+    if (!errorText) return;
+    inputRef.current?.focus?.();
+  }, [errorText]);
 
   const groupedLargeBg = inGroup ? 'transparent' : C.surface;
+
+  const fieldPadH = inCard ? 14 : INPUT_FIELD.paddingHorizontal;
+  const fieldPadV = INPUT_FIELD.paddingVertical;
+  const fieldMinH = INPUT_FIELD.minHeight;
+  const hasValue = Boolean((value || '').length);
+  /** Keep empty multiline fields single-line (centered placeholder) until the user types. */
+  const effectiveMultiline = multiline && hasValue;
+  const textAlignVertical = effectiveMultiline ? 'top' : 'center';
+  const multilineFieldRadius = multiline ? R.input : fieldRadius;
+
+  const amountKeyboardType = Platform.OS === 'web' ? 'numeric' : 'decimal-pad';
+
+  const handleChangeText = (text) => {
+    if (!onChangeText) return;
+    if (errorText) {
+      onErrorClear?.();
+      clearValidation?.();
+    }
+    onChangeText(isAmountInput ? sanitizeAmountInput(text) : text);
+  };
+
+  const handleFocus = () => {
+    setFocused(true);
+    if (Platform.OS !== 'web') {
+      scrollToAnchor(fieldAnchorRef);
+    }
+    onFocus?.();
+  };
+
+  const handleBlur = () => {
+    setFocused(false);
+    if (isAmountInput && onChangeText && value) {
+      const parsed = parseAmount(value);
+      if (parsed != null) {
+        onChangeText(amountToString(parsed));
+      }
+    }
+    onBlur?.();
+  };
 
   const containerBase = inCard
     ? {
         backgroundColor: C.bg,
         borderWidth: borderW,
         borderColor: C.border,
-        borderRadius: 8,
-        paddingHorizontal: 12,
-        paddingVertical: 10,
+        borderRadius: R.input,
+        paddingHorizontal: fieldPadH,
+        paddingVertical: fieldPadV,
+        minHeight: fieldMinH,
       }
     : large
     ? {
         backgroundColor: groupedLargeBg,
         borderWidth: borderW,
         borderColor: C.border,
-        borderRadius: R.input,
-        paddingHorizontal: 14,
-        paddingVertical: 8,
+        borderRadius: fieldRadius,
+        paddingHorizontal: INPUT_FIELD.paddingHorizontal,
+        paddingVertical: fieldPadV,
+        minHeight: fieldMinH,
       }
     : {
         backgroundColor: C.surface,
         borderWidth: borderW,
         borderColor: C.border,
-        borderRadius: R.input,
-        paddingHorizontal: 16,
-        paddingVertical: 14,
+        borderRadius: fieldRadius,
+        paddingHorizontal: INPUT_FIELD.paddingHorizontal,
+        paddingVertical: fieldPadV,
+        minHeight: fieldMinH,
       };
 
   const currencyStyle = large
@@ -90,33 +153,36 @@ export function FormInput({
   const inputBase = inCard
     ? {
         backgroundColor: C.bg,
-        borderWidth: 1,
+        borderWidth: borderW,
         borderColor: C.border,
-        borderRadius: 8,
-        paddingHorizontal: 12,
-        paddingVertical: 10,
+        borderRadius: R.input,
+        paddingHorizontal: fieldPadH,
+        paddingVertical: fieldPadV,
+        minHeight: fieldMinH,
         fontSize: 15,
         color: C.text,
       }
     : large
     ? {
         backgroundColor: groupedLargeBg,
-        borderWidth: 1.5,
+        borderWidth: borderW,
         borderColor: C.border,
-        borderRadius: R.input,
-        paddingHorizontal: 14,
-        paddingVertical: 8,
+        borderRadius: fieldRadius,
+        paddingHorizontal: INPUT_FIELD.paddingHorizontal,
+        paddingVertical: fieldPadV,
+        minHeight: fieldMinH,
         color: C.text,
         fontSize: 22,
         fontWeight: '600',
       }
     : {
         backgroundColor: C.surface,
-        borderWidth: 1.5,
+        borderWidth: borderW,
         borderColor: C.border,
-        borderRadius: R.input,
-        paddingHorizontal: 16,
-        paddingVertical: 14,
+        borderRadius: fieldRadius,
+        paddingHorizontal: INPUT_FIELD.paddingHorizontal,
+        paddingVertical: fieldPadV,
+        minHeight: fieldMinH,
         color: C.text,
         fontSize: 17,
         fontWeight: '400',
@@ -132,31 +198,40 @@ export function FormInput({
               flexDirection: 'row',
               alignItems: 'center',
               gap: large ? 8 : 6,
-              borderColor: focused ? C.accent : isInvalid ? C.danger : C.border,
+              borderColor: fieldBorderColor,
               borderWidth: borderW,
               opacity: disabled ? 0.6 : 1,
+              ...webFocusRing(focused, { invalid: isInvalid }),
             },
           ]}
         >
           <Text style={currencyStyle}>{currency}</Text>
           <TextInput
+            ref={inputRef}
             value={value}
-            onChangeText={onChangeText}
+            onChangeText={handleChangeText}
             placeholder={placeholder}
             placeholderTextColor={placeholderTextColor ?? C.placeholder}
-            keyboardType={numeric ? 'numeric' : 'default'}
+            keyboardType={isAmountInput ? amountKeyboardType : 'default'}
+            {...(Platform.OS === 'web' && isAmountInput ? { inputMode: 'decimal' } : {})}
             maxLength={maxLength}
-            multiline={multiline}
+            multiline={effectiveMultiline}
             editable={!disabled}
             accessibilityLabel={accessibilityLabel ?? label}
-            onFocus={() => setFocused(true)}
-            onBlur={() => setFocused(false)}
+            autoComplete={Platform.OS === 'web' && isAmountInput ? 'off' : undefined}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+            returnKeyType="done"
+            blurOnSubmit={!effectiveMultiline}
+            onSubmitEditing={() => {
+              if (!effectiveMultiline) inputRef.current?.blur?.();
+            }}
             style={[
               inCard
-                ? { fontSize: 15, color: C.text, paddingVertical: 0 }
+                ? { fontSize: 15, color: C.text, paddingVertical: 0, textAlignVertical }
                 : large
-                ? { fontSize: 22, fontWeight: '600', color: C.text, paddingVertical: 0 }
-                : { fontSize: 17, fontWeight: '400', color: C.text, paddingVertical: 0 },
+                ? { fontSize: 22, fontWeight: '600', color: C.text, paddingVertical: 0, textAlignVertical }
+                : { fontSize: 17, fontWeight: '400', color: C.text, paddingVertical: 0, textAlignVertical },
               {
                 flex: 1,
                 paddingVertical: 0,
@@ -172,37 +247,70 @@ export function FormInput({
       );
     }
 
+    const innerInputStyle = inCard
+      ? { fontSize: 15, color: C.text, paddingVertical: 0, textAlignVertical }
+      : large
+        ? { fontSize: 22, fontWeight: '600', color: C.text, paddingVertical: 0, textAlignVertical }
+        : { fontSize: 17, fontWeight: '400', color: C.text, paddingVertical: 0, textAlignVertical };
+
     return (
-      <TextInput
-        value={value}
-        onChangeText={onChangeText}
-        placeholder={placeholder}
-        placeholderTextColor={placeholderTextColor ?? C.placeholder}
-        keyboardType={numeric ? 'numeric' : 'default'}
-        maxLength={maxLength}
-        multiline={multiline}
-        editable={!disabled}
-        accessibilityLabel={accessibilityLabel ?? label}
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
+      <View
         style={[
-          inputBase,
           {
-            borderColor: focused ? C.accent : isInvalid ? C.danger : C.border,
+            backgroundColor: inCard ? (inGroup ? 'transparent' : C.bg) : large ? groupedLargeBg : (inGroup ? 'transparent' : C.surface),
             borderWidth: borderW,
-            outlineStyle: 'none',
-            outlineWidth: 0,
+            borderColor: fieldBorderColor,
+            borderRadius: multilineFieldRadius,
+            minHeight: fieldMinH,
+            paddingHorizontal: inCard ? fieldPadH : INPUT_FIELD.paddingHorizontal,
+            paddingVertical: fieldPadV,
+            justifyContent: effectiveMultiline ? 'flex-start' : 'center',
             opacity: disabled ? 0.6 : 1,
-            ...(Platform.OS === 'web' ? { minHeight: large ? 48 : 44 } : {}),
           },
-          webFocusRing(focused),
-          inputStyle,
+          webFocusRing(focused, { invalid: isInvalid }),
         ]}
-      />
+      >
+        <TextInput
+          ref={inputRef}
+          value={value}
+          onChangeText={handleChangeText}
+          placeholder={placeholder}
+          placeholderTextColor={placeholderTextColor ?? C.placeholder}
+          keyboardType={isAmountInput ? amountKeyboardType : 'default'}
+          {...(Platform.OS === 'web' && isAmountInput ? { inputMode: 'decimal' } : {})}
+          maxLength={maxLength}
+          multiline={effectiveMultiline}
+          editable={!disabled}
+          accessibilityLabel={accessibilityLabel ?? label}
+          autoComplete={Platform.OS === 'web' && isAmountInput ? 'off' : undefined}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+          returnKeyType={effectiveMultiline ? 'default' : 'done'}
+          blurOnSubmit={!effectiveMultiline}
+          onSubmitEditing={() => {
+            if (!effectiveMultiline) inputRef.current?.blur?.();
+          }}
+          style={[
+            innerInputStyle,
+            {
+              width: '100%',
+              borderWidth: 0,
+              paddingVertical: 0,
+              backgroundColor: 'transparent',
+              outlineStyle: 'none',
+              outlineWidth: 0,
+              ...(Platform.OS === 'web' ? { outline: 'none', boxShadow: 'none' } : {}),
+              textAlignVertical,
+            },
+            inputStyle,
+          ]}
+        />
+      </View>
     );
   };
 
   return (
+    <View ref={fieldAnchorRef} collapsable={false} {...(Platform.OS === 'web' && isAmountInput ? { dataSet: { amountInput: 'true' } } : {})}>
     <FormControl
       isInvalid={isInvalid}
       isDisabled={disabled}
@@ -227,21 +335,32 @@ export function FormInput({
 
       {renderInput()}
 
-      {helperText && !isInvalid ? (
-        <FormControlHelper>
-          <FormControlHelperText style={T.hint}>{helperText}</FormControlHelperText>
-        </FormControlHelper>
-      ) : null}
+      <AnimatedCollapse visible={!!helperText && !isInvalid} fallbackHeight={20}>
+        {helperText ? (
+          <FormControlHelper style={{ marginTop: 4 }}>
+            <FormControlHelperText style={T.hint}>{helperText}</FormControlHelperText>
+          </FormControlHelper>
+        ) : null}
+      </AnimatedCollapse>
 
-      {errorText ? (
-        <FormControlError>
-          <FormControlErrorText style={{ color: C.danger, fontSize: 13 }}>
-            {errorText}
-          </FormControlErrorText>
-        </FormControlError>
-      ) : null}
+      <AnimatedCollapse visible={!!errorText} fallbackHeight={18}>
+        {errorText ? (
+          <FormControlError style={{ marginTop: 4, paddingTop: 0 }}>
+            <FormControlErrorText
+              accessibilityRole="alert"
+              accessibilityLiveRegion="polite"
+              style={{ color: C.danger, fontSize: 13, lineHeight: 16 }}
+            >
+              {errorText}
+            </FormControlErrorText>
+          </FormControlError>
+        ) : null}
+      </AnimatedCollapse>
     </FormControl>
+    </View>
   );
 }
+
+FormInput.displayName = 'FormInput';
 
 export default FormInput;

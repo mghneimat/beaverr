@@ -3,8 +3,11 @@ import { Text } from '@gluestack-ui/themed';
 import { useRouter } from 'expo-router';
 import { useI18n } from '../../lib/i18n';
 import { dismissAlert, snoozeAlert } from '../../lib/alerts';
+import { getTabInsight } from '../../lib/insights';
 import { C, R, T } from '../../constants/onboarding-theme';
 import SurfaceCard from '../ui/SurfaceCard';
+import TabSectionStack from './TabSectionStack';
+import AIInsightSection from './AIInsightSection';
 
 const URGENCY_COLORS = {
   high: C.danger,
@@ -16,6 +19,7 @@ export default function AlertsContent({ bundle, onRefresh }) {
   const { t } = useI18n();
   const router = useRouter();
   const active = bundle.alerts.filter((a) => a.status === 'active');
+  const tabInsight = getTabInsight('alerts', bundle.insights, t, { alerts: bundle.alerts });
 
   const handleDismiss = async (id) => {
     await dismissAlert(id);
@@ -38,7 +42,8 @@ export default function AlertsContent({ bundle, onRefresh }) {
   }
 
   return (
-    <View style={{ gap: 12 }}>
+    <TabSectionStack>
+      {tabInsight ? <AIInsightSection paragraphs={tabInsight.paragraphs} /> : null}
       {active.map((alert) => (
         <SurfaceCard key={alert.id}>
           <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10 }}>
@@ -108,6 +113,6 @@ export default function AlertsContent({ bundle, onRefresh }) {
           </View>
         </SurfaceCard>
       ))}
-    </View>
+    </TabSectionStack>
   );
 }

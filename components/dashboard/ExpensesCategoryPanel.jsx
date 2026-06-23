@@ -1,30 +1,24 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { View } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
 import { formatCurrency } from '../../lib/finance';
 import { resolveCategorySectionId } from '../../lib/sectionEditRegistry';
 import { buildExpenseChartSections, getExpenseAddTemplate } from '../../lib/expensePanels';
 import { C, R, T } from '../../constants/onboarding-theme';
-import DashboardSectionHeader from './DashboardSectionHeader';
-import DashboardFrequencyToggle from './DashboardFrequencyToggle';
+import SurfaceCard from '../ui/SurfaceCard';
+import InCardSectionHeader from './InCardSectionHeader';
 import ExpensesDonutChart from './ExpensesDonutChart';
 import ExpensesCategoryBreakdown from './ExpensesCategoryBreakdown';
-import LedgerDataTable from './LedgerDataTable';
+import LedgerPillDataTable from './LedgerPillDataTable';
 import ExpenseItemEditPanel from './ExpenseItemEditPanel';
-import PrimaryButton from '../ui/PrimaryButton';
+import { canDeleteExpenseRow, deleteExpenseRow } from '../../lib/inlineExpenseSave';
+import { formatExpenseEndDateCell, formatExpenseNextPaymentCell } from '../../lib/expenseTableCells';
 
 function frequencyLabel(freq, t) {
   if (!freq) return t('common.monthly');
   const key = `common.${freq}`;
   const translated = t(key);
   return translated !== key ? translated : freq;
-}
-
-function formatDateCell(row, t) {
-  if (row.endDate) return t('dashboard.expensesScreen.endsOn', { date: row.endDate });
-  if (row.dueDate) return t('dashboard.expensesScreen.dueOn', { date: row.dueDate });
-  if (row.renewalDate) return t('dashboard.expensesScreen.renewsOn', { date: row.renewalDate });
-  return t('dashboard.expensesScreen.noDate');
 }
 
 function buildRowMeta(subtabKey, item, subtabLabel, sectionId) {
@@ -38,6 +32,8 @@ function buildRowMeta(subtabKey, item, subtabLabel, sectionId) {
     renewalDate: item.renewalDate || null,
     dueDate: item.dueDate || null,
     endDate: item.endDate || null,
+    chargeDay: item.chargeDay || null,
+    nextPaymentOverride: item.nextPaymentOverride || null,
     source: item.source,
     editKind: item.editKind,
     editRef: item.editRef || null,
@@ -45,6 +41,52 @@ function buildRowMeta(subtabKey, item, subtabLabel, sectionId) {
     supportsFrequency: item.supportsFrequency,
     sectionId: item.sectionId || sectionId || resolveCategorySectionId(subtabKey),
   };
+}
+
+function AddExpenseForm({
+  addTemplate,
+  categoryKey,
+  categoryLabel,
+  currency,
+  currencyCode,
+  t,
+  onDone,
+  onCancel,
+  embedded = false,
+}) {
+  const form = (
+    <ExpenseItemEditPanel
+      row={addTemplate}
+      currency={currency}
+      currencyCode={currencyCode}
+      mode="add"
+      categoryKey={categoryKey}
+      onDone={onDone}
+      onCancel={onCancel}
+    />
+  );
+
+  if (embedded) {
+    return (
+      <View style={{
+        alignSelf: 'stretch',
+        width: '100%',
+        paddingHorizontal: 14,
+        paddingVertical: 16,
+        borderRadius: R.input,
+        backgroundColor: C.surfaceTint,
+      }}>
+        {form}
+      </View>
+    );
+  }
+
+  return (
+    <SurfaceCard style={{ marginTop: 16 }}>
+      <InCardSectionHeader title={t('dashboard.expensesScreen.addExpense', { type: categoryLabel })} />
+      {form}
+    </SurfaceCard>
+  );
 }
 
 export default function ExpensesCategoryPanel({
@@ -59,11 +101,29 @@ export default function ExpensesCategoryPanel({
   currencyCode,
   t,
   frequency = 'monthly',
-  setFrequency,
   daysInMonth = 30,
+  onSectionPress,
+  initialEditingRowId,
+  initialAdding = false,
+  onAddDone,
+  onAddCancel,
 }) {
-  const [adding, setAdding] = useState(false);
+  const [adding, setAdding] = useState(initialAdding);
   const isOverview = variant === 'overview' || variant === 'overall';
+
+  useEffect(() => {
+    setAdding(initialAdding);
+  }, [categoryKey, initialAdding]);
+
+  const finishAdd = () => {
+    setAdding(false);
+    onAddDone?.();
+  };
+
+  const cancelAdd = () => {
+    setAdding(false);
+    onAddCancel?.();
+  };
 
   const panelTotal = useMemo(() => {
     if (isOverview) {
@@ -89,7 +149,8 @@ export default function ExpensesCategoryPanel({
         name: item.subcategory,
         amount: formatCurrency(item.rawAmount, currency),
         frequency: frequencyLabel(item.frequency, t),
-        date: formatDateCell(meta, t),
+        endDate: formatExpenseEndDateCell(meta, t),
+        nextPayment: formatExpenseNextPaymentCell(meta, t),
       },
     };
   }), [lineItems, categoryKey, categoryLabel, sectionId, currency, t]);
@@ -98,121 +159,102 @@ export default function ExpensesCategoryPanel({
     { key: 'name', label: t('dashboard.expensesScreen.table.name'), flex: 1 },
     { key: 'amount', label: t('dashboard.expensesScreen.table.amount'), flex: 1, align: 'center' },
     { key: 'frequency', label: t('common.frequency'), flex: 1, align: 'center' },
-    { key: 'date', label: t('dashboard.expensesScreen.table.date'), flex: 1, align: 'center' },
+    { key: 'endDate', label: t('dashboard.expensesScreen.table.endDate'), flex: 1, align: 'center' },
+    { key: 'nextPayment', label: t('dashboard.expensesScreen.table.nextPayment'), flex: 1, align: 'center' },
   ];
 
   const addTemplate = categoryKey ? getExpenseAddTemplate(categoryKey, categoryLabel) : null;
 
   if (!isOverview && lineItems.length === 0 && !adding) {
     return (
-      <View style={{
-        marginTop: 24,
-        padding: 20,
-        borderRadius: R.card,
-        borderWidth: 1,
-        borderColor: C.border,
-        backgroundColor: C.surface,
-        alignItems: 'center',
-        gap: 16,
-      }}>
+      <SurfaceCard style={{ marginTop: 16, alignItems: 'center', gap: 12 }}>
         <Text style={{ ...T.body, color: C.muted, textAlign: 'center' }}>
           {t('dashboard.expensesScreen.subtabEmpty', { type: categoryLabel })}
         </Text>
         <Text style={{ ...T.helper, color: C.muted, textAlign: 'center' }}>
           {t('dashboard.expensesScreen.emptyHint')}
         </Text>
-        <PrimaryButton onPress={() => setAdding(true)}>
-          {t('dashboard.expensesScreen.addExpense', { type: categoryLabel })}
-        </PrimaryButton>
-      </View>
+      </SurfaceCard>
     );
   }
 
-  if (!isOverview && lineItems.length === 0 && adding && addTemplate) {
-    return (
-      <View style={{
-        marginTop: 24,
-        padding: 20,
-        borderRadius: R.card,
-        borderWidth: 1,
-        borderColor: C.border,
-        backgroundColor: C.surface,
-      }}>
-        <Text style={{ ...T.fieldLabel, marginBottom: 8 }}>
-          {t('dashboard.expensesScreen.addExpense', { type: categoryLabel })}
-        </Text>
-        <Text style={{ ...T.helper, color: C.muted, marginBottom: 16 }}>
-          {t('dashboard.expensesScreen.emptyHint')}
-        </Text>
-        <ExpenseItemEditPanel
-          row={addTemplate}
+  if (!isOverview && adding && addTemplate) {
+    if (lineItems.length === 0) {
+      return (
+        <AddExpenseForm
+          addTemplate={addTemplate}
+          categoryKey={categoryKey}
+          categoryLabel={categoryLabel}
           currency={currency}
           currencyCode={currencyCode}
-          mode="add"
-          categoryKey={categoryKey}
-          onDone={() => setAdding(false)}
-          onCancel={() => setAdding(false)}
+          t={t}
+          onDone={finishAdd}
+          onCancel={cancelAdd}
         />
-      </View>
-    );
+      );
+    }
   }
+
+  const tableFooter = adding && addTemplate ? (
+    <AddExpenseForm
+      addTemplate={addTemplate}
+      categoryKey={categoryKey}
+      categoryLabel={categoryLabel}
+      currency={currency}
+      currencyCode={currencyCode}
+      t={t}
+      onDone={finishAdd}
+      onCancel={cancelAdd}
+      embedded
+    />
+  ) : null;
 
   return (
     <View style={{ marginTop: 16 }}>
       {isOverview ? (
         <>
-          <DashboardSectionHeader title={t('dashboard.expensesScreen.chartTitle')} />
-          <View style={{
-            marginBottom: 16,
-            borderRadius: R.card,
-            borderWidth: 1,
-            borderColor: C.border,
-            backgroundColor: C.surface,
-            overflow: 'hidden',
-          }}>
-            {setFrequency ? (
-              <View style={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 0 }}>
-                <DashboardFrequencyToggle
-                  value={frequency}
-                  onChange={setFrequency}
-                  style={{ marginTop: 0, marginBottom: 0 }}
-                />
-              </View>
-            ) : null}
+          <SurfaceCard style={{ marginBottom: 16 }}>
+            <InCardSectionHeader title={t('dashboard.expensesScreen.chartTitle')} />
             <ExpensesDonutChart
               segments={chartSegments}
               total={chartTotal}
               currency={currency}
               frequency={frequency}
               daysInMonth={daysInMonth}
+              chartKey={`expenses-${frequency}-${chartTotal}`}
               emptyLabel={t('dashboard.expensesScreen.empty')}
               nameLabel={t('dashboard.expensesScreen.table.expense')}
               amountLabel={frequencyColumnLabel}
               shareLabel={t('dashboard.expensesScreen.table.share')}
             />
-          </View>
-        </>
-      ) : null}
+          </SurfaceCard>
 
-      {isOverview ? (
-        <ExpensesCategoryBreakdown
-          title={t('dashboard.expensesScreen.tableTitle')}
-          panels={panels}
-          panelTotal={panelTotal}
-          currency={currency}
-          t={t}
-          frequency={frequency}
-          setFrequency={setFrequency}
-          daysInMonth={daysInMonth}
-          frequencyColumnLabel={frequencyColumnLabel}
-          emptyLabel={t('dashboard.expensesScreen.empty')}
-        />
+          <ExpensesCategoryBreakdown
+            title={t('dashboard.expensesScreen.tableTitle')}
+            panels={panels}
+            panelTotal={panelTotal}
+            currency={currency}
+            t={t}
+            frequency={frequency}
+            daysInMonth={daysInMonth}
+            frequencyColumnLabel={frequencyColumnLabel}
+            emptyLabel={t('dashboard.expensesScreen.empty')}
+            onSectionPress={onSectionPress}
+          />
+        </>
       ) : (
-        <LedgerDataTable
+        <LedgerPillDataTable
+          title={categoryLabel}
+          footer={tableFooter}
+          footerAlign="end"
           columns={detailColumns}
           rows={detailRows}
           emptyLabel={t('dashboard.expensesScreen.empty')}
-          editLabel={t('common.edit')}
+          iconSectionKey={sectionId || categoryKey || 'other'}
+          iconScope="expense"
+          currencyCode={currencyCode}
+          canDeleteRow={canDeleteExpenseRow}
+          onDeleteRow={deleteExpenseRow}
           renderEditPanel={(row, { onDone, onCancel }) => (
             <ExpenseItemEditPanel
               row={row}
@@ -222,6 +264,7 @@ export default function ExpensesCategoryPanel({
               onCancel={onCancel}
             />
           )}
+          initialEditingRowId={initialEditingRowId}
         />
       )}
     </View>

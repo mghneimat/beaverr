@@ -52,7 +52,7 @@ describe('snapshotCommittedBaseline', () => {
     getData.mockResolvedValue({});
     const baseline = await snapshotCommittedBaseline(34864);
     expect(baseline).toBe(34864);
-    expect(setData).toHaveBeenCalledWith('pocketos_budget', { committedBaseline: 34864 });
+    expect(setData).toHaveBeenCalledWith('beaverr_budget', { committedBaseline: 34864 });
   });
 
   test('preserves existing baseline', async () => {

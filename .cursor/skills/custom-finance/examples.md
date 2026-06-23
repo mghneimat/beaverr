@@ -1,4 +1,4 @@
-# Finance Examples — PocketOS
+# Finance Examples — Beaverr
 
 Import from `lib/finance.js` only. Pair with `getData` from `lib/storage.js` for persisted values.
 
@@ -78,12 +78,12 @@ setMonthlyFlexible(String(Math.round(flexible)));
 import { toMonthly, formatCurrency } from '../../lib/finance';
 
 <DataRow
-  label={t('onboarding.review.q15.labels.yourIncome')}
+  label={t('onboarding.review.review.labels.yourIncome')}
   value={formatCurrency(userMonthly, 'CZK') + '/mo'}
 />
 
 <DataRow
-  label={t('onboarding.review.q15.labels.minPayment')}
+  label={t('onboarding.review.review.labels.minPayment')}
   value={formatCurrency(d.minPayment, 'CZK') + '/mo'}
 />
 ```
@@ -105,7 +105,7 @@ const streamingMonthlyTotal = subscriptions
   .filter(s => s.category === 'streaming')
   .reduce((sum, s) => sum + toMonthly(parseFloat(s.cost) || 0, s.frequency), 0);
 
-t('onboarding.subscriptions.q11.streamingFlag', {
+t('onboarding.subscriptions.serviceSelection.streamingFlag', {
   count: streamingCount,
   amount: formatCurrency(streamingMonthlyTotal, 'CZK'),
 });

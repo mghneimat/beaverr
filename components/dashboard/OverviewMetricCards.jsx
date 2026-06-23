@@ -18,9 +18,9 @@ import MetricExplainCard from './MetricExplainCard';
 
 import MetricExplainModal from './MetricExplainModal';
 
-import DashboardFrequencyToggle from './DashboardFrequencyToggle';
+import DashboardFrequencyDropdown from './DashboardFrequencyDropdown';
 
-import { formatDashboardAmount } from './formatDashboardAmount';
+import { formatDashboardAmount, resolveDashboardAmount } from './formatDashboardAmount';
 import DashboardSnapshotGrid from './DashboardSnapshotGrid';
 import { BudgetIcon, CostsIcon, GoalsIcon } from '../app/AppNavIcons';
 import {
@@ -48,11 +48,22 @@ const TAB_ROUTES = {
 
   recurring: 'costs',
 
+  committedTotal: 'costs',
+
+  cashAfterBills: 'costs',
+
 };
 
 
 
 const DEFAULT_SECONDARY_METRICS = [];
+
+function cardCopy(t, prefix, id, field, fallbackKey) {
+  if (!prefix) return t(fallbackKey);
+  const key = `${prefix}.${id}.${field}`;
+  const translated = t(key);
+  return translated !== key ? translated : t(fallbackKey);
+}
 
 export default function OverviewMetricCards({
   financials,
@@ -61,6 +72,9 @@ export default function OverviewMetricCards({
   daysInMonth,
   showHeroPanels = true,
   secondaryMetricIds = DEFAULT_SECONDARY_METRICS,
+  cardLabelPrefix,
+  cardVariant,
+  embedded = false,
 }) {
 
   const { t, locale } = useI18n();
@@ -78,6 +92,8 @@ export default function OverviewMetricCards({
 
 
   const fixedLoad = committedMonthlyLoad(financials);
+
+  const availableAfterBills = Number(financials.availableBudget) || 0;
 
   const fixedLoadPct = Math.round(insights.fixedCostRatio * 100);
 
@@ -115,6 +131,7 @@ export default function OverviewMetricCards({
 
   const spendingMonthly = financials.effectiveMonthlyFlexible ?? financials.monthlyFlexible;
   const spendingValue = formatDashboardAmount(spendingMonthly, frequency, currency, daysInMonth);
+  const spendingAmountValue = resolveDashboardAmount(spendingMonthly, frequency, daysInMonth);
 
 
 
@@ -129,6 +146,7 @@ export default function OverviewMetricCards({
     if (goalType === GOAL_TYPES.REDUCE_COSTS) {
       return {
         value: savedValue,
+        amountValue: totalSaved,
         footerLabel: t('dashboard.home.goalTracking.reduceCostsLabel'),
         showFrequency: false,
       };
@@ -137,6 +155,7 @@ export default function OverviewMetricCards({
     if (!hasTargetSavingsGoal(inc) && !hasOngoingSavingsGoal(inc)) {
       return {
         value: savedValue,
+        amountValue: totalSaved,
         footerLabel: t('dashboard.home.hero.setGoalPrompt'),
         showFrequency: false,
       };
@@ -151,6 +170,7 @@ export default function OverviewMetricCards({
     if (hasOngoingSavingsGoal(inc)) {
       return {
         value: savedValue,
+        amountValue: totalSaved,
         footerLabel: t('dashboard.home.goalTracking.ongoingPaceLabel', { amount: paceAmount, period }),
         showFrequency: true,
       };
@@ -158,6 +178,7 @@ export default function OverviewMetricCards({
 
     return {
       value: savedValue,
+      amountValue: totalSaved,
       footerLabel: t('dashboard.home.goalTracking.savePaceLabel', { amount: paceAmount, period }),
       showFrequency: true,
     };
@@ -168,13 +189,47 @@ export default function OverviewMetricCards({
 
   const metrics = useMemo(() => ({
 
+    committedTotal: {
+
+      label: cardCopy(t, cardLabelPrefix, 'committedTotal', 'label', 'dashboard.expensesScreen.committedCosts'),
+
+      value: formatCurrency(fixedLoad, currency),
+
+      amountValue: fixedLoad,
+
+      footerLabel: cardCopy(t, cardLabelPrefix, 'committedTotal', 'footer', 'dashboard.home.kpi.committedCostsHint'),
+
+    },
+
+    cashAfterBills: {
+
+      label: cardCopy(t, cardLabelPrefix, 'cashAfterBills', 'label', 'dashboard.ledgerCascade.available'),
+
+      value: availableAfterBills < 0
+        ? `−${formatCurrency(Math.abs(availableAfterBills), currency)}`
+        : formatCurrency(availableAfterBills, currency),
+
+      amountValue: availableAfterBills,
+
+      footerLabel: availableAfterBills < 0
+        ? cardCopy(t, cardLabelPrefix, 'cashAfterBills', 'overByFooter', 'dashboard.home.health.status.overcommitted')
+        : cardCopy(t, cardLabelPrefix, 'cashAfterBills', 'footer', 'dashboard.metricExplain.rows.available'),
+
+      statusLabel: availableAfterBills < 0
+        ? t('dashboard.home.health.status.overcommitted')
+        : null,
+
+      statusColor: availableAfterBills < 0 ? C.danger : undefined,
+
+    },
+
     fixedLoad: {
 
-      label: t('dashboard.home.health.fixedLoad'),
+      label: cardCopy(t, cardLabelPrefix, 'fixedLoad', 'label', 'dashboard.home.health.fixedLoad'),
 
       value: `${fixedLoadPct}%`,
 
-      footerLabel: t('dashboard.home.health.fixedLoadLabel'),
+      footerLabel: cardCopy(t, cardLabelPrefix, 'fixedLoad', 'footer', 'dashboard.home.health.fixedLoadLabel'),
 
       statusLabel: fixedLoadStatus ? t(`dashboard.home.health.status.${fixedLoadStatus}`) : null,
 
@@ -188,6 +243,8 @@ export default function OverviewMetricCards({
 
       value: surplus < 0 ? `−${formatCurrency(Math.abs(surplus), currency)}` : formatCurrency(surplus, currency),
 
+      amountValue: surplus,
+
       footerLabel: t('dashboard.home.health.budgetFlexibilityLabel'),
 
       statusLabel: insights.flags.negativeSurplus ? t('dashboard.home.health.status.deficit') : null,
@@ -198,11 +255,11 @@ export default function OverviewMetricCards({
 
     recurring: {
 
-      label: t('dashboard.home.health.recurring'),
+      label: cardCopy(t, cardLabelPrefix, 'recurring', 'label', 'dashboard.home.health.recurring'),
 
       value: `${recurringPct}%`,
 
-      footerLabel: t('dashboard.home.health.recurringLabel'),
+      footerLabel: cardCopy(t, cardLabelPrefix, 'recurring', 'footer', 'dashboard.home.health.recurringLabel'),
 
     },
 
@@ -214,6 +271,10 @@ export default function OverviewMetricCards({
 
     currency,
 
+    fixedLoad,
+
+    availableAfterBills,
+
     fixedLoadPct,
 
     surplus,
@@ -221,6 +282,8 @@ export default function OverviewMetricCards({
     fixedLoadStatus,
 
     recurringPct,
+
+    cardLabelPrefix,
 
     locale,
 
@@ -445,14 +508,14 @@ export default function OverviewMetricCards({
         const userMonthly = toMonthly(inc?.amount || 0, inc?.frequency || 'monthly');
         const partnerMonthly = toMonthly(inc?.partnerAmount || 0, inc?.partnerFrequency || 'monthly');
         const incomeRows = [
-          { label: t('onboarding.budget.q14.incomeUser'), value: formatCurrency(userMonthly, currency) },
-          { label: t('onboarding.budget.q14.incomePartner'), value: formatCurrency(partnerMonthly, currency) },
+          { label: t('onboarding.budget.budgetSplit.incomeUser'), value: formatCurrency(userMonthly, currency) },
+          { label: t('onboarding.budget.budgetSplit.incomePartner'), value: formatCurrency(partnerMonthly, currency) },
         ];
         (inc?.otherIncomeRows || []).forEach((row, idx) => {
           const monthly = toMonthly(row.amount || 0, row.frequency || 'monthly');
           if (monthly > 0) {
             incomeRows.push({
-              label: row.label || `${t('onboarding.budget.q14.incomeOther')} ${idx + 1}`,
+              label: row.label || `${t('onboarding.budget.budgetSplit.incomeOther')} ${idx + 1}`,
               value: formatCurrency(monthly, currency),
             });
           }
@@ -473,6 +536,7 @@ export default function OverviewMetricCards({
       }
 
       case 'totalExpenses':
+      case 'committedTotal':
         return {
           title: t(`${PREFIX}.totalExpenses.title`),
           value: formatCurrency(committedMonthlyLoad(financials), currency),
@@ -489,6 +553,28 @@ export default function OverviewMetricCards({
           ],
           formula: t(`${PREFIX}.totalExpenses.formula`),
         };
+
+      case 'cashAfterBills': {
+        const left = Number(financials.availableBudget) || 0;
+        return {
+          title: t(`${PREFIX}.cashAfterBills.title`),
+          value: left < 0 ? `−${formatCurrency(Math.abs(left), currency)}` : formatCurrency(left, currency),
+          meaning: { title: shared.meaningTitle, body: t(`${PREFIX}.cashAfterBills.meaning`) },
+          calculationTitle: shared.calculationTitle,
+          rows: [
+            { label: t(`${rows}.income`), value: formatCurrency(financials.totalIncome, currency) },
+            { label: t(`${rows}.fixedCosts`), value: `−${formatCurrency(financials.fixedCosts, currency)}` },
+            { label: t(`${rows}.debtPayments`), value: `−${formatCurrency(financials.debtPayments, currency)}` },
+            {
+              label: t(`${PREFIX}.cashAfterBills.rows.left`),
+              value: left < 0 ? `−${formatCurrency(Math.abs(left), currency)}` : formatCurrency(left, currency),
+              emphasis: true,
+            },
+          ],
+          formula: t(`${PREFIX}.cashAfterBills.formula`),
+          warning: left < 0 ? t('dashboard.home.health.status.overcommitted') : null,
+        };
+      }
 
       case 'savingsGoalPlan': {
         const { goalType } = normalizeIncomeGoalFields(inc);
@@ -699,6 +785,8 @@ export default function OverviewMetricCards({
 
     fixedLoadStatus,
 
+    availableAfterBills,
+
     totalSaved,
 
     locale,
@@ -711,7 +799,11 @@ export default function OverviewMetricCards({
 
   const active = activeMetric ? buildModal(activeMetric) : null;
 
-  const navIconProps = { color: C.muted, size: 16 };
+  const navIconProps = cardVariant === 'glass'
+    ? { color: 'rgba(255, 255, 255, 0.78)', size: 16 }
+    : { color: C.muted, size: 16 };
+
+  const metricCardVariant = cardVariant === 'glass' ? 'glass' : undefined;
 
   const infoA11y = t(`${PREFIX}.infoA11y`);
 
@@ -719,7 +811,7 @@ export default function OverviewMetricCards({
 
   return (
 
-    <View style={{ marginBottom: S.sectionGap }}>
+    <View style={{ marginBottom: cardVariant === 'glass' || embedded ? 0 : S.sectionGap }}>
 
       {showHeroPanels ? (
 
@@ -745,6 +837,12 @@ export default function OverviewMetricCards({
 
           value={spendingValue}
 
+          amountValue={spendingAmountValue}
+
+          amountCurrency={currency}
+
+          valueAnimationKey={frequency}
+
           footerLabel={financials.deductSavingsGoal && financials.savingsGoalDeduction > 0
 
             ? t('dashboard.home.spendingBudgetNoteDeducted', {
@@ -761,11 +859,9 @@ export default function OverviewMetricCards({
 
             })}
 
-          frequencySlot={
-
-            <DashboardFrequencyToggle value={frequency} onChange={setFrequency} style={{ marginTop: 0 }} />
-
-          }
+          frequencyControl={(
+            <DashboardFrequencyDropdown value={frequency} onChange={setFrequency} compact />
+          )}
 
           onPress={() => goToTab('flexibleBudget')}
 
@@ -787,12 +883,16 @@ export default function OverviewMetricCards({
 
           value={goalPanel.value}
 
+          amountValue={goalPanel.amountValue}
+
+          amountCurrency={currency}
+
+          valueAnimationKey={frequency}
+
           footerLabel={goalPanel.footerLabel}
 
-          frequencySlot={goalPanel.showFrequency ? (
-
-            <DashboardFrequencyToggle value={frequency} onChange={setFrequency} style={{ marginTop: 0 }} />
-
+          frequencyControl={goalPanel.showFrequency ? (
+            <DashboardFrequencyDropdown value={frequency} onChange={setFrequency} compact />
           ) : null}
 
           onPress={() => goToTab('savingsGoal')}
@@ -837,11 +937,19 @@ export default function OverviewMetricCards({
 
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: showHeroPanels ? 12 : 0 }}>
 
-        {secondaryMetricIds.map((id) => (
-
-          <View key={id} style={{ flex: 1, minWidth: 140 }}>
+        {secondaryMetricIds.map((id) => {
+          const isQuadGrid = secondaryMetricIds.length === 4;
+          return (
+          <View
+            key={id}
+            style={isQuadGrid
+              ? { width: '47%', flexGrow: 1, flexBasis: '45%' }
+              : { flex: 1, minWidth: 140 }}
+          >
 
             <MetricExplainCard
+
+              variant={metricCardVariant}
 
               label={metrics[id].label}
 
@@ -857,11 +965,19 @@ export default function OverviewMetricCards({
 
               value={metrics[id].value}
 
+              amountValue={metrics[id].amountValue}
+
+              amountCurrency={currency}
+
               footerLabel={metrics[id].footerLabel}
 
               statusLabel={metrics[id].statusLabel}
 
-              statusColor={metrics[id].statusColor}
+              statusColor={
+                cardVariant === 'glass' && metrics[id].statusColor === C.danger
+                  ? '#FCA5A5'
+                  : metrics[id].statusColor
+              }
 
               onPress={() => goToTab(id)}
 
@@ -872,8 +988,8 @@ export default function OverviewMetricCards({
             />
 
           </View>
-
-        ))}
+          );
+        })}
 
       </View>
 

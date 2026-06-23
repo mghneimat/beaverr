@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Text, Pressable } from 'react-native';
-import { C, R } from '../../constants/onboarding-theme';
+import { C, R, INPUT_FIELD } from '../../constants/onboarding-theme';
 
 /** Fixed square size for alignment with input fields in a row. */
-export const REMOVE_BUTTON_SIZE = 44;
+export const REMOVE_BUTTON_SIZE = INPUT_FIELD.minHeight;
 
 /**
  * Square ✕ remove button with hover/press overlay.

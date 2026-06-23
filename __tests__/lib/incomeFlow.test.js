@@ -1,8 +1,9 @@
 import {
-  getIncomeBackTarget,
-  hasPriorSalaryIncome,
   resolveInitialIncomeStep,
   validateOtherIncomeContinue,
+  getIncomeBackTarget,
+  hasPriorSalaryIncome,
+  resolveIncomeContinue,
 } from '../../lib/incomeFlow';
 
 describe('resolveInitialIncomeStep', () => {
@@ -12,7 +13,7 @@ describe('resolveInitialIncomeStep', () => {
       hasPartner: true,
       userOccupation: 'notWorking',
       partnerOccupation: 'employee',
-    })).toBe('q5a');
+    })).toBe('partnerIncome');
   });
 
   it('starts at other income when both are not working', () => {
@@ -21,7 +22,7 @@ describe('resolveInitialIncomeStep', () => {
       hasPartner: true,
       userOccupation: 'notWorking',
       partnerOccupation: 'notWorking',
-    })).toBe('q5b');
+    })).toBe('otherIncome');
   });
 
   it('starts at other income for solo not-working household', () => {
@@ -29,34 +30,50 @@ describe('resolveInitialIncomeStep', () => {
       isEditMode: false,
       hasPartner: false,
       userOccupation: 'notWorking',
-    })).toBe('q5b');
+    })).toBe('otherIncome');
   });
 });
 
 describe('validateOtherIncomeContinue', () => {
-  const rows = [{ visible: true, amount: '5000', frequency: 'monthly' }];
+  const rows = [{ visible: true, amount: '5000', frequency: 'monthly', sourceKey: 'rentalIncome', customLabel: '' }];
 
   it('requires other income when no salary was entered', () => {
     expect(validateOtherIncomeContinue({
       hasPriorSalary: false,
-      hasOtherIncome: false,
-      otherIncomeRows: rows,
+      otherIncomeRows: [],
+      phase: 'select',
     })).toBe('validationNoIncome');
   });
 
-  it('requires amounts when yes is selected without salary', () => {
+  it('requires amounts when fill step has empty amounts', () => {
     expect(validateOtherIncomeContinue({
       hasPriorSalary: false,
-      hasOtherIncome: true,
-      otherIncomeRows: [{ visible: true, amount: '' }],
+      otherIncomeRows: [{ visible: true, amount: '', sourceKey: 'rentalIncome', customLabel: '' }],
+      phase: 'fill',
     })).toBe('validationOtherAmount');
   });
 
-  it('allows no when salary exists', () => {
+  it('requires a name for custom sources with amount', () => {
+    expect(validateOtherIncomeContinue({
+      hasPriorSalary: false,
+      otherIncomeRows: [{ visible: true, amount: '5000', sourceKey: 'other', customLabel: '' }],
+      phase: 'fill',
+    })).toBe('validationOtherLabel');
+  });
+
+  it('allows skip when salary exists and no selections', () => {
     expect(validateOtherIncomeContinue({
       hasPriorSalary: true,
-      hasOtherIncome: false,
       otherIncomeRows: [],
+      phase: 'select',
+    })).toBeNull();
+  });
+
+  it('passes fill when rows are complete', () => {
+    expect(validateOtherIncomeContinue({
+      hasPriorSalary: false,
+      otherIncomeRows: rows,
+      phase: 'fill',
     })).toBeNull();
   });
 });
@@ -64,7 +81,7 @@ describe('validateOtherIncomeContinue', () => {
 describe('getIncomeBackTarget', () => {
   it('returns splash when backing out of skipped partner-income step', () => {
     expect(getIncomeBackTarget({
-      step: 'q5a',
+      step: 'partnerIncome',
       hasPartner: true,
       isNotWorking: true,
       partnerIsNotWorking: false,
@@ -81,5 +98,21 @@ describe('hasPriorSalaryIncome', () => {
       partnerIsNotWorking: false,
       partnerIncomeAmount: '62000',
     })).toBe(true);
+  });
+});
+
+describe('resolveIncomeContinue', () => {
+  it('advances from yourIncome to otherIncome when solo', () => {
+    const result = resolveIncomeContinue({
+      step: 'yourIncome',
+      isNotWorking: false,
+      incomeAmount: '50000',
+      hasPartner: false,
+      partnerIsNotWorking: false,
+      partnerIncomeAmount: '',
+      otherIncomeStep: 'select',
+      otherIncomeRows: [],
+    });
+    expect(result).toEqual({ type: 'nextStep', step: 'otherIncome' });
   });
 });

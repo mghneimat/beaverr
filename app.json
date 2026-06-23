@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "Bida",
-    "slug": "bida",
+    "name": "Beaverr",
+    "slug": "beaverr",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "bida",
+    "scheme": "beaverr",
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true

@@ -8,9 +8,10 @@ import { categoryMonthlyTotal } from '../../lib/householdBudget';
 import { useDashboardFrequency } from '../../lib/useDashboardFrequency';
 import { C, R, T, tabularNums } from '../../constants/onboarding-theme';
 import SurfaceCard from '../ui/SurfaceCard';
-import DashboardSectionHeader from './DashboardSectionHeader';
-import DashboardFrequencyToggle from './DashboardFrequencyToggle';
+import InCardSectionHeader from './InCardSectionHeader';
+import DashboardFrequencyDropdown from './DashboardFrequencyDropdown';
 import { formatDashboardAmount } from './formatDashboardAmount';
+import ExpandCollapseIcon from '../onboarding/ExpandCollapseIcon';
 
 export default function ExpensesOverviewCard({ financials, currency, daysInMonth }) {
   const { t } = useI18n();
@@ -27,21 +28,24 @@ export default function ExpensesOverviewCard({ financials, currency, daysInMonth
 
   if (!categories.length) {
     return (
-      <View>
-        <DashboardSectionHeader title={t('dashboard.home.chart.expensesTitle')} />
-        <SurfaceCard>
-          <Text style={{ ...T.helper }}>{t('dashboard.home.chart.empty')}</Text>
-        </SurfaceCard>
-      </View>
+      <SurfaceCard>
+        <InCardSectionHeader title={t('dashboard.home.chart.expensesTitle')} />
+        <Text style={{ ...T.helper }}>{t('dashboard.home.chart.empty')}</Text>
+      </SurfaceCard>
     );
   }
 
   const toggle = (key) => setExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
 
   return (
-    <View>
-      <DashboardSectionHeader title={t('dashboard.home.chart.expensesTitle')} />
-      <SurfaceCard>
+    <SurfaceCard>
+      <InCardSectionHeader
+        title={t('dashboard.home.chart.expensesTitle')}
+        trailing={(
+          <DashboardFrequencyDropdown value={frequency} onChange={setFrequency} compact />
+        )}
+        style={{ marginBottom: 0 }}
+      />
       <Pressable
         onPress={() => router.push('/(app)/costs')}
         accessibilityRole="button"
@@ -56,8 +60,6 @@ export default function ExpensesOverviewCard({ financials, currency, daysInMonth
           {t('dashboard.home.chart.expensesSubtitle')}
         </Text>
       </Pressable>
-
-      <DashboardFrequencyToggle value={frequency} onChange={setFrequency} style={{ marginTop: 0, marginBottom: 14 }} />
 
       {categories.map((cat, idx) => {
         const isOpen = expanded[cat.category] ?? idx < 2;
@@ -75,13 +77,17 @@ export default function ExpensesOverviewCard({ financials, currency, daysInMonth
                 ...(Platform.OS === 'web' ? { cursor: 'pointer' } : {}),
               })}
             >
-              <Text style={{ flex: 1, fontSize: 15, fontWeight: '600', color: C.primary }} numberOfLines={1}>
-                {cat.label}
-              </Text>
-              <Text style={{ fontSize: 15, fontWeight: '600', color: C.primary, marginRight: 8, ...tabularNums }}>
-                {formatDashboardAmount(cat.monthlyTotal, frequency, currency, daysInMonth)}
-              </Text>
-              <Text style={{ fontSize: 11, color: C.muted, width: 14 }}>{isOpen ? '▲' : '▼'}</Text>
+              {({ pressed, hovered }) => (
+                <>
+                  <Text style={{ flex: 1, fontSize: 15, fontWeight: '600', color: C.primary }} numberOfLines={1}>
+                    {cat.label}
+                  </Text>
+                  <Text style={{ fontSize: 15, fontWeight: '600', color: C.primary, marginRight: 8, ...tabularNums }}>
+                    {formatDashboardAmount(cat.monthlyTotal, frequency, currency, daysInMonth)}
+                  </Text>
+                  <ExpandCollapseIcon expanded={isOpen} color={C.muted} compact size={14} hovered={hovered} pressed={pressed} />
+                </>
+              )}
             </Pressable>
             {isOpen ? (
               <View style={{ paddingBottom: 10, paddingLeft: 4 }}>
@@ -103,7 +109,6 @@ export default function ExpensesOverviewCard({ financials, currency, daysInMonth
           </View>
         );
       })}
-      </SurfaceCard>
-    </View>
+    </SurfaceCard>
   );
 }

@@ -2,11 +2,11 @@ import { useState } from 'react';
 import { View, Pressable } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
 import { useRouter } from 'expo-router';
-import { formatCurrency, toMonthly, totalMonthlyCosts } from '../../lib/finance';
+import { toMonthly, formatCurrency } from '../../lib/finance';
 import { categoryMonthlyTotal, EDIT_SECTION_ROUTES } from '../../lib/householdBudget';
 import { C, R, T, tabularNums } from '../../constants/onboarding-theme';
+import ExpandCollapseIcon from '../onboarding/ExpandCollapseIcon';
 import InsightSlot from './InsightSlot';
-
 const SECTION_INSIGHT_KEYS = {
   income: 'income',
   housing: 'housing',
@@ -22,18 +22,18 @@ const SECTION_INSIGHT_KEYS = {
 };
 
 function AmountCell({ amount, currency, color = C.primary, size = 15 }) {
-  const formatted = formatCurrency(Math.abs(amount), currency);
-  const prefix = amount < 0 ? '−' : '';
   return (
-    <Text style={{
-      fontSize: size,
-      fontWeight: '600',
-      color,
-      textAlign: 'right',
-      minWidth: 100,
-      ...tabularNums,
-    }}>
-      {prefix}{formatted}
+    <Text
+      style={{
+        fontSize: size,
+        fontWeight: '600',
+        color,
+        textAlign: 'right',
+        minWidth: 100,
+        ...tabularNums,
+      }}
+    >
+      {formatCurrency(amount, currency)}
     </Text>
   );
 }
@@ -59,18 +59,30 @@ function SectionBlock({
           onPress={onToggle}
           accessibilityRole="button"
           accessibilityState={{ expanded }}
-          style={({ pressed }) => ({
+          style={({ pressed, hovered }) => ({
             flex: 1,
             flexDirection: 'row',
             alignItems: 'center',
             paddingVertical: 12,
             paddingHorizontal: 16,
-            backgroundColor: pressed ? C.overlayHover : 'transparent',
+            backgroundColor: pressed ? C.overlayHover : hovered ? C.overlayHover : 'transparent',
           })}
         >
-          <Text style={{ flex: 1, fontSize: 15, fontWeight: '600', color: C.primary }}>{title}</Text>
-          <AmountCell amount={monthlyTotal} currency={currency} />
-          <Text style={{ fontSize: 12, color: C.muted, marginLeft: 8, width: 16 }}>{expanded ? '▲' : '▼'}</Text>
+          {({ pressed, hovered }) => (
+            <>
+              <Text style={{ flex: 1, fontSize: 15, fontWeight: '600', color: C.primary }}>{title}</Text>
+              <AmountCell amount={monthlyTotal} currency={currency} />
+              <ExpandCollapseIcon
+                expanded={expanded}
+                color={C.muted}
+                compact
+                size={16}
+                style={{ marginLeft: 8 }}
+                hovered={hovered}
+                pressed={pressed}
+              />
+            </>
+          )}
         </Pressable>
         {editRoute ? (
           <Pressable
@@ -129,12 +141,12 @@ export default function BudgetSummaryTable({
   const userMonthly = toMonthly(inc?.amount || 0, inc?.frequency || 'monthly');
   const partnerMonthly = toMonthly(inc?.partnerAmount || 0, inc?.partnerFrequency || 'monthly');
   const incomeItems = [];
-  if (userMonthly > 0) incomeItems.push({ label: t('onboarding.budget.q14.incomeUser'), amount: userMonthly, frequency: 'monthly' });
-  if (partnerMonthly > 0) incomeItems.push({ label: t('onboarding.budget.q14.incomePartner'), amount: partnerMonthly, frequency: 'monthly' });
+  if (userMonthly > 0) incomeItems.push({ label: t('onboarding.budget.budgetSplit.incomeUser'), amount: userMonthly, frequency: 'monthly' });
+  if (partnerMonthly > 0) incomeItems.push({ label: t('onboarding.budget.budgetSplit.incomePartner'), amount: partnerMonthly, frequency: 'monthly' });
   (inc?.otherIncomeRows || []).forEach((r, idx) => {
     if (r.amount) {
       incomeItems.push({
-        label: r.label || `${t('onboarding.budget.q14.incomeOther')} ${idx + 1}`,
+        label: r.label || `${t('onboarding.budget.budgetSplit.incomeOther')} ${idx + 1}`,
         amount: r.amount,
         frequency: r.frequency || 'monthly',
       });
@@ -142,7 +154,7 @@ export default function BudgetSummaryTable({
   });
 
   const debtItems = (financials.debts || []).map((debt, idx) => {
-    const typeKey = `onboarding.debts.q13a.${debt.type || 'other'}`;
+    const typeKey = `onboarding.debts.debtDetails.${debt.type || 'other'}`;
     const translated = t(typeKey);
     const label = translated !== typeKey ? translated : t('dashboard.recurring.debtPayment');
     return {
@@ -173,7 +185,7 @@ export default function BudgetSummaryTable({
       </View>
 
       <SectionBlock
-        title={t('onboarding.budget.q14.income')}
+        title={t('onboarding.budget.budgetSplit.income')}
         monthlyTotal={financials.totalIncome}
         items={incomeItems}
         currency={currency}
@@ -203,7 +215,7 @@ export default function BudgetSummaryTable({
 
       {debtItems.length > 0 ? (
         <SectionBlock
-          title={t('onboarding.budget.q14.debtPayments')}
+          title={t('onboarding.budget.budgetSplit.debtPayments')}
           monthlyTotal={-financials.debtPayments}
           items={debtItems}
           currency={currency}
@@ -216,6 +228,45 @@ export default function BudgetSummaryTable({
         />
       ) : null}
 
+      {(financials.financialRisks || []).length > 0 ? (
+        <View style={{ borderTopWidth: 1, borderTopColor: C.divider }}>
+          <View style={{
+            paddingVertical: 14,
+            paddingHorizontal: 16,
+            backgroundColor: C.warningBg || 'rgba(200,140,40,0.08)',
+            borderBottomWidth: 1,
+            borderBottomColor: C.divider,
+          }}>
+            <Text style={{ fontSize: 15, fontWeight: '600', color: C.primary }}>
+              {t('dashboard.summaryScreen.risksTitle')}
+            </Text>
+            <Text style={{ ...T.caption, color: C.muted, marginTop: 4 }}>
+              {t('dashboard.summaryScreen.risksNote')}
+            </Text>
+          </View>
+          <View style={{ paddingHorizontal: 16, paddingVertical: 12 }}>
+            {financials.financialRisks.map((risk) => (
+              <View
+                key={risk.id}
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  paddingVertical: 8,
+                  gap: 12,
+                }}
+              >
+                <Text style={{ flex: 1, fontSize: 13, color: C.text }} numberOfLines={2}>
+                  {risk.label}
+                </Text>
+                <Text style={{ fontSize: 13, fontWeight: '600', color: C.warning || '#B45309', ...tabularNums }}>
+                  {formatCurrency(risk.exposureAmount, currency)}
+                </Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      ) : null}
+
       <View style={{
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -224,15 +275,15 @@ export default function BudgetSummaryTable({
         paddingHorizontal: 16,
         borderTopWidth: 1,
         borderTopColor: C.divider,
-        backgroundColor: C.chipSelectedBg,
+        backgroundColor: C.infoWashBg,
       }}>
         <Text style={{ fontSize: 15, fontWeight: '700', color: C.primary }}>
-          {t('onboarding.budget.q14.budgetLabel')}
+          {t('onboarding.budget.budgetSplit.budgetLabel')}
         </Text>
         <AmountCell amount={financials.monthlyFlexible} currency={currency} color={C.positive} />
       </View>
 
-      <View style={{ paddingHorizontal: 16, paddingBottom: 16, backgroundColor: C.chipSelectedBg }}>
+      <View style={{ paddingHorizontal: 16, paddingBottom: 16, backgroundColor: C.infoWashBg }}>
         <InsightSlot
           insight={getSectionInsight('budget', insights, t)}
           comingSoonLabel={t('dashboard.insights.slotLabel')}

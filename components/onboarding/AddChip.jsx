@@ -1,5 +1,7 @@
-import { Pressable, Text } from 'react-native';
+import { Text } from 'react-native';
 import { C, R } from '../../constants/onboarding-theme';
+import OnboardingPressable from './OnboardingPressable';
+import { addButtonBg } from './pressableFeedback';
 
 /**
  * Dashed "add" chip — sits inline with SuggestionChip rows instead of AddAnotherButton.
@@ -10,9 +12,9 @@ import { C, R } from '../../constants/onboarding-theme';
  */
 export default function AddChip({ label, onPress, style }) {
   return (
-    <Pressable
+    <OnboardingPressable
       onPress={onPress}
-      style={({ pressed }) => ({
+      style={({ pressed, hovered }) => ({
         width: '48%',
         paddingVertical: 12,
         paddingHorizontal: 14,
@@ -20,7 +22,7 @@ export default function AddChip({ label, onPress, style }) {
         borderWidth: 2,
         borderColor: C.addBorder,
         borderStyle: 'dashed',
-        backgroundColor: pressed ? C.addPressed : 'transparent',
+        backgroundColor: addButtonBg({ pressed, hovered }),
         marginBottom: 8,
         alignItems: 'center',
         justifyContent: 'center',
@@ -30,6 +32,6 @@ export default function AddChip({ label, onPress, style }) {
       <Text style={{ fontSize: 13, color: C.addText, fontWeight: '500' }}>
         {label}
       </Text>
-    </Pressable>
+    </OnboardingPressable>
   );
 }

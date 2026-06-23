@@ -7,6 +7,7 @@ import { getCurrencySymbol } from '../../lib/currency';
 import { notifyDashboardRefresh } from '../../lib/dashboardRefresh';
 import { useSectionEditOptional } from '../../lib/SectionEditContext';
 import { C, S, T } from '../../constants/onboarding-theme';
+import { OnboardingValidationClearContext } from '../../lib/onboardingValidationClear';
 import PrimaryButton from '../ui/PrimaryButton';
 import { OutlineButton } from '../ui/OutlineButton';
 
@@ -36,7 +37,7 @@ export default function SectionEditForm({
       try {
         const [saved, loc] = await Promise.all([
           getData(storageKey),
-          getData('pocketos_location'),
+          getData('beaverr_location'),
         ]);
         if (loc?.currency) setCurrencyCode(loc.currency);
         const base = saved ?? initialData ?? null;
@@ -73,6 +74,10 @@ export default function SectionEditForm({
     sectionEdit?.onClose?.();
   }, [sectionEdit]);
 
+  const clearValidation = useCallback(() => {
+    setValidationError('');
+  }, []);
+
   if (loading) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: S.pagePadH }}>
@@ -96,7 +101,9 @@ export default function SectionEditForm({
         contentContainerStyle={{ padding: S.pagePadH, paddingBottom: 16 }}
         keyboardShouldPersistTaps="handled"
       >
-        {children({ data, setData: setDataState, currency, currencyCode })}
+        <OnboardingValidationClearContext.Provider value={validationError ? clearValidation : null}>
+          {children({ data, setData: setDataState, currency, currencyCode })}
+        </OnboardingValidationClearContext.Provider>
         {validationError ? (
           <Text style={{ ...T.helper, color: C.danger, marginTop: 8 }}>{validationError}</Text>
         ) : null}

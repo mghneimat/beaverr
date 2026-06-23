@@ -1,49 +1,26 @@
 import { useState, useEffect, useRef } from 'react';
-import { View, Text, Pressable, ScrollView } from 'react-native';
+import { View, Text, ScrollView } from 'react-native';
+import OnboardingPressable from '../../components/onboarding/OnboardingPressable';
+import { listRowBg } from '../../components/onboarding/pressableFeedback';
 import { useRouter } from 'expo-router';
 import { useI18n } from '../../lib/i18n';
+import { navigateBack, navigateForward } from '../../lib/onboardingNavigation';
 import { getData, setData } from '../../lib/storage';
 import { getCurrencySymbol } from '../../lib/currency';
-import { formatCurrency } from '../../lib/finance';
-import { computeRenewalSavingsPlan } from '../../lib/healthInsuranceBudget';
 import { C, S, T, R } from '../../constants/onboarding-theme';
+import { useOnboardingLayout } from '../../lib/onboardingLayout';
+import InsuranceAmicoIllustration from '../../components/onboarding/InsuranceAmicoIllustration';
 import QuestionScreen from '../../components/onboarding/QuestionScreen';
 import OptionCard from '../../components/onboarding/OptionCard';
 import PillToggle from '../../components/onboarding/PillToggle';
-import DatePicker from '../../components/onboarding/DatePicker';
 import AnimatedSlideIn from '../../components/onboarding/AnimatedSlideIn';
-import LabeledInput from '../../components/onboarding/LabeledInput';
-import FrequencyPills from '../../components/onboarding/FrequencyPills';
-import YesNoToggle from '../../components/onboarding/YesNoToggle';
-import InputGroup from '../../components/onboarding/InputGroup';
+import InsuranceContractFields from '../../components/onboarding/InsuranceContractFields';
 import { useSectionExit } from '../../lib/finishOnboardingSection';
-
-const FREQUENCIES = ['monthly', 'quarterly', 'annual', 'custom'];
-const SWITCH_FREQUENCIES = ['monthly', 'quarterly', 'annual', 'custom'];
-
-/**
- * Calculate end date from start date + months, minus 1 day.
- * Returns "DD/MM/YYYY" string or empty string if inputs are invalid.
- */
-function calcEndDate(startDate, months) {
-  if (!startDate || !months) return '';
-  const parts = startDate.split('/');
-  if (parts.length !== 3) return '';
-  const d = parseInt(parts[0], 10);
-  const m = parseInt(parts[1], 10);
-  const y = parseInt(parts[2], 10);
-  const numMonths = parseInt(months, 10);
-  if (isNaN(d) || isNaN(m) || isNaN(y) || isNaN(numMonths) || numMonths <= 0) return '';
-  const end = new Date(y, m - 1 + numMonths, d - 1);
-  const endDay = String(end.getDate()).padStart(2, '0');
-  const endMonth = String(end.getMonth() + 1).padStart(2, '0');
-  const endYear = String(end.getFullYear());
-  return `${endDay}/${endMonth}/${endYear}`;
-}
 
 export default function HealthScreen() {
   const { t } = useI18n();
   const router = useRouter();
+  const layout = useOnboardingLayout();
   const { isEditMode, completeSection, leaveSection, editContinueLabel } = useSectionExit();
 
   const [household, setHousehold] = useState(null);
@@ -62,10 +39,10 @@ export default function HealthScreen() {
 
   useEffect(() => {
     (async () => {
-      const h = await getData('pocketos_household');
-      const occ = await getData('pocketos_occupation');
-      const loc = await getData('pocketos_location');
-      const income = await getData('pocketos_income');
+      const h = await getData('beaverr_household');
+      const occ = await getData('beaverr_occupation');
+      const loc = await getData('beaverr_location');
+      const income = await getData('beaverr_income');
       if (loc?.currency) setCurrencyCode(loc.currency);
       if (income?.savingsBalance != null) {
         setSavingsBalance(Number(income.savingsBalance) || 0);
@@ -106,11 +83,12 @@ export default function HealthScreen() {
       }
     });
     await completeSection({
-      persist: async () => { await setData('pocketos_health', prunedHealth); },
+      persist: async () => { await setData('beaverr_health', prunedHealth); },
       onboardingPatch: { completed: false, currentStep: 'health', percentComplete: 75 },
       nextRoute: household?.children?.length > 0
         ? '/(onboarding)/splash-children'
         : '/(onboarding)/splash-pets',
+      routeName: 'health',
     });
   };
 
@@ -153,7 +131,7 @@ export default function HealthScreen() {
     if (activeTab > 0) {
       setActiveTab(activeTab - 1);
     } else {
-      leaveSection(() => router.replace('/(onboarding)/splash-health'));
+      leaveSection(() => navigateBack());
     }
   };
 
@@ -231,113 +209,13 @@ export default function HealthScreen() {
     return false;
   };
 
-  const renderPrepaidReservePanel = (member, data, { lumpPremium, budgetIncluded, onBudgetChange }) => {
-    const plan = computeRenewalSavingsPlan({
-      premium: lumpPremium,
-      endDate: data.endDate,
-      savingsBalance,
-    });
-
-    return (
-      <View style={{ marginTop: 8 }}>
-        <View style={{
-          padding: 16,
-          backgroundColor: C.chipSelectedBg || 'rgba(58,90,140,0.08)',
-          borderRadius: R.card,
-          borderWidth: 1,
-          borderColor: C.border,
-          marginBottom: 12,
-        }}
-        >
-          <Text style={{ ...T.helper, color: C.text, marginBottom: 6 }}>
-            {t('onboarding.health.renewReserveSummary', {
-              amount: formatCurrency(plan.suggestedMonthly, currency),
-              months: plan.monthsRemaining,
-              total: formatCurrency(plan.totalNeeded, currency),
-            })}
-          </Text>
-          <Text style={{ ...T.caption, color: C.muted }}>
-            {t('onboarding.health.renewReserveExplain')}
-          </Text>
-        </View>
-
-        {plan.isTight ? (
-          <View style={{
-            padding: 12,
-            backgroundColor: C.warningBg || 'rgba(200,140,40,0.1)',
-            borderRadius: R.card,
-            borderWidth: 1,
-            borderColor: C.warningBorder || 'rgba(200,140,40,0.25)',
-            marginBottom: 12,
-          }}
-          >
-            <Text style={{ ...T.caption, color: C.text }}>
-              {t('onboarding.health.renewReserveTightWarning', {
-                shortfall: formatCurrency(plan.shortfall, currency),
-                months: plan.monthsRemaining,
-              })}
-            </Text>
-          </View>
-        ) : null}
-
-        <Text style={{ ...T.fieldLabel, color: C.muted, marginBottom: 8 }}>
-          {t('onboarding.health.budgetForRenewLabel')}
-        </Text>
-        <Text style={{ ...T.caption, color: C.muted, marginBottom: 10 }}>
-          {t('onboarding.health.budgetForRenewHelper')}
-        </Text>
-        <YesNoToggle
-          value={budgetIncluded}
-          onChange={onBudgetChange}
-        />
-
-        <AnimatedSlideIn visible={budgetIncluded === true}>
-          <View style={{ marginTop: 12 }}>
-            <OptionCard
-              label={t('onboarding.health.renewUseSuggested', {
-                amount: formatCurrency(plan.suggestedMonthly, currency),
-              })}
-              selected={data.renewalBudgetMode !== 'custom'}
-              onPress={() => updateMember(member.id, { renewalBudgetMode: 'suggested' })}
-              style={{ marginBottom: 8 }}
-            />
-            <OptionCard
-              label={t('onboarding.health.renewUseCustom')}
-              subtitle={t('onboarding.health.renewUseCustomHelper')}
-              selected={data.renewalBudgetMode === 'custom'}
-              onPress={() => updateMember(member.id, { renewalBudgetMode: 'custom' })}
-              style={{ marginBottom: 8 }}
-            />
-          </View>
-          <AnimatedSlideIn visible={data.renewalBudgetMode === 'custom'}>
-            <InputGroup label={t('onboarding.health.renewCustomMonthlyLabel')} style={{ marginTop: 4 }}>
-              <LabeledInput
-                value={data.renewalCustomMonthly || ''}
-                onChangeText={(v) => updateMember(member.id, { renewalCustomMonthly: v.replace(/[^0-9]/g, '') })}
-                numeric
-                placeholder={t('onboarding.health.renewCustomMonthlyPlaceholder')}
-                large
-                inGroup
-                currency={currency}
-              />
-            </InputGroup>
-          </AnimatedSlideIn>
-        </AnimatedSlideIn>
-      </View>
-    );
-  };
-
   const renderMemberForm = (member) => {
     const data = memberData[member.id] || {};
 
     // Determine which option is active
     const isEmployer = data.coverage === 'employer';
     const isPrivate = data.coverage === 'private';
-    const isSkipped = data.skipped === true;
     const showEmployerNote = isEmployer && isMemberEmployee(member);
-    const showPrepaidReserve = data.endDateType === 'fixed'
-      && data.premiumPaidInFull === true
-      && !!data.endDate;
 
     return (
       <View>
@@ -353,244 +231,12 @@ export default function HealthScreen() {
         {/* ── Private coverage form ── */}
         <AnimatedSlideIn visible={isPrivate}>
           <View style={{ marginBottom: 20 }}>
-            {/* Premium */}
-            <InputGroup label={t('onboarding.health.premiumLabel')}>
-              <LabeledInput
-                value={data.premium || ''}
-                onChangeText={(v) => updateMember(member.id, { premium: v.replace(/[^0-9]/g, '') })}
-                numeric
-                placeholder={t('onboarding.health.premiumPlaceholder')}
-                large
-                inGroup
-                currency={currency}
-              />
-              <FrequencyPills
-                options={FREQUENCIES}
-                value={data.frequency}
-                onChange={(freq) => updateMember(member.id, { frequency: freq })}
-                small
-              />
-            </InputGroup>
-            {/* Custom frequency — months input */}
-            <AnimatedSlideIn visible={data.frequency === 'custom'}>
-              <LabeledInput
-                label={t('onboarding.health.customFrequencyLabel')}
-                value={data.customFrequencyMonths || ''}
-                onChangeText={(v) => {
-                  updateMember(member.id, { customFrequencyMonths: v });
-                  if (data.startDate && v) {
-                    const endDate = calcEndDate(data.startDate, v);
-                    if (endDate) updateMember(member.id, { endDate });
-                  }
-                }}
-                numeric
-                placeholder={t('onboarding.health.customFrequencyPlaceholder')}
-                inCard
-              />
-            </AnimatedSlideIn>
-            {/* Start date */}
-            <Text style={{ ...T.fieldLabel, color: C.muted, marginBottom: 6, marginTop: 12 }}>
-              {t('onboarding.health.startDateLabel')}
-            </Text>
-            <DatePicker
-              value={data.startDate || ''}
-              onChange={(v) => {
-                updateMember(member.id, { startDate: v });
-                if (data.frequency === 'custom' && data.customFrequencyMonths && v) {
-                  const endDate = calcEndDate(v, data.customFrequencyMonths);
-                  if (endDate) updateMember(member.id, { endDate });
-                }
-              }}
+            <InsuranceContractFields
+              data={data}
+              onUpdate={(updates) => updateMember(member.id, updates)}
+              currency={currency}
+              savingsBalance={savingsBalance}
             />
-            {/* Contract type */}
-            <Text style={{ ...T.fieldLabel, color: C.muted, marginBottom: 8, marginTop: 12 }}>
-              {t('onboarding.health.contractTypeLabel')}
-            </Text>
-            <View style={{ flexDirection: 'row', gap: 10, marginBottom: 12 }}>
-              <Pressable
-                onPress={() => updateMember(member.id, { endDateType: 'ongoing' })}
-                style={({ pressed }) => ({
-                  flex: 1,
-                  paddingVertical: 12,
-                  borderRadius: 8,
-                  borderWidth: 1.5,
-                  borderColor: data.endDateType === 'ongoing' ? C.primary : C.border,
-                  backgroundColor: data.endDateType === 'ongoing' ? C.chipSelectedBg : C.surface,
-                  alignItems: 'center',
-                })}
-              >
-                <Text style={{ fontSize: 13, color: data.endDateType === 'ongoing' ? C.primary : C.muted, fontWeight: '500' }}>
-                  {t('onboarding.health.ongoing')}
-                </Text>
-              </Pressable>
-              <Pressable
-                onPress={() => updateMember(member.id, { endDateType: 'fixed' })}
-                style={({ pressed }) => ({
-                  flex: 1,
-                  paddingVertical: 12,
-                  borderRadius: 8,
-                  borderWidth: 1.5,
-                  borderColor: data.endDateType === 'fixed' ? C.primary : C.border,
-                  backgroundColor: data.endDateType === 'fixed' ? C.chipSelectedBg : C.surface,
-                  alignItems: 'center',
-                })}
-              >
-                <Text style={{ fontSize: 13, color: data.endDateType === 'fixed' ? C.primary : C.muted, fontWeight: '500' }}>
-                  {t('onboarding.health.fixed')}
-                </Text>
-              </Pressable>
-            </View>
-            {/* End date — custom frequency auto-calculated */}
-            <AnimatedSlideIn visible={data.frequency === 'custom'}>
-              <Text style={{ ...T.fieldLabel, color: C.muted, marginBottom: 6 }}>
-                {t('onboarding.health.endDateLabel')}
-              </Text>
-              <DatePicker
-                value={data.endDate || ''}
-                onChange={(v) => updateMember(member.id, { endDate: v })}
-              />
-            </AnimatedSlideIn>
-
-            {/* End date — fixed contract (month/year only) */}
-            <AnimatedSlideIn visible={data.endDateType === 'fixed' && data.frequency !== 'custom'}>
-              <Text style={{ ...T.fieldLabel, color: C.muted, marginBottom: 6, marginTop: 12 }}>
-                {t('onboarding.health.endDateLabel')}
-              </Text>
-              <DatePicker
-                value={data.endDate || ''}
-                onChange={(v) => updateMember(member.id, { endDate: v })}
-                showDay={false}
-              />
-            </AnimatedSlideIn>
-
-            {/* Paid in full — fixed contracts only */}
-            <AnimatedSlideIn visible={data.endDateType === 'fixed' && !!data.endDate}>
-              <Text style={{ ...T.fieldLabel, color: C.muted, marginBottom: 8, marginTop: 16 }}>
-                {t('onboarding.health.premiumPaidInFullLabel')}
-              </Text>
-              <Text style={{ ...T.caption, color: C.muted, marginBottom: 10 }}>
-                {t('onboarding.health.premiumPaidInFullHelper')}
-              </Text>
-              <YesNoToggle
-                value={data.premiumPaidInFull}
-                onChange={(v) => {
-                  const updates = { premiumPaidInFull: v };
-                  if (v && data.renewalPlan === 'renew') {
-                    updates.budgetForRenewal = data.budgetForRenewal ?? true;
-                    updates.renewalBudgetMode = data.renewalBudgetMode || 'suggested';
-                  }
-                  if (v && data.renewalPlan === 'switch') {
-                    updates.budgetForSwitch = data.budgetForSwitch ?? true;
-                    updates.renewalBudgetMode = data.renewalBudgetMode || 'suggested';
-                  }
-                  updateMember(member.id, updates);
-                }}
-              />
-            </AnimatedSlideIn>
-
-            {/* Renewal plan after fixed contract */}
-            <AnimatedSlideIn visible={data.endDateType === 'fixed'}>
-              <Text style={{ ...T.fieldLabel, color: C.muted, marginBottom: 8, marginTop: 16 }}>
-                {t('onboarding.health.renewalPlanLabel')}
-              </Text>
-              {[
-                { key: 'renew', label: 'renewalRenew', helper: 'renewalRenewHelper' },
-                { key: 'switch', label: 'renewalSwitch', helper: 'renewalSwitchHelper' },
-                { key: 'end', label: 'renewalEnd', helper: 'renewalEndHelper' },
-              ].map((opt) => (
-                <OptionCard
-                  key={opt.key}
-                  label={t(`onboarding.health.${opt.label}`)}
-                  subtitle={t(`onboarding.health.${opt.helper}`)}
-                  selected={data.renewalPlan === opt.key}
-                  onPress={() => {
-                    const updates = { renewalPlan: opt.key };
-                    if (opt.key === 'renew' && data.premiumPaidInFull === true) {
-                      updates.budgetForRenewal = data.budgetForRenewal ?? true;
-                      updates.renewalBudgetMode = data.renewalBudgetMode || 'suggested';
-                    }
-                    if (opt.key === 'switch' && data.premiumPaidInFull === true) {
-                      updates.budgetForSwitch = data.budgetForSwitch ?? true;
-                      updates.renewalBudgetMode = data.renewalBudgetMode || 'suggested';
-                    }
-                    updateMember(member.id, updates);
-                  }}
-                  style={{ marginBottom: 8 }}
-                />
-              ))}
-            </AnimatedSlideIn>
-
-            {/* Renewal reserve — prepaid fixed + renew same */}
-            <AnimatedSlideIn
-              visible={showPrepaidReserve && data.renewalPlan === 'renew' && !!data.premium}
-            >
-              {renderPrepaidReservePanel(member, data, {
-                lumpPremium: data.premium,
-                budgetIncluded: data.budgetForRenewal,
-                onBudgetChange: (v) => updateMember(member.id, {
-                  budgetForRenewal: v,
-                  renewalBudgetMode: v ? (data.renewalBudgetMode || 'suggested') : 'skip',
-                  renewalCustomMonthly: v ? data.renewalCustomMonthly : '',
-                }),
-              })}
-            </AnimatedSlideIn>
-
-            {/* Switch plan — expected new premium + same savings planning when prepaid */}
-            <AnimatedSlideIn visible={data.endDateType === 'fixed' && data.renewalPlan === 'switch'}>
-              <Text style={{ ...T.caption, color: C.muted, marginBottom: 10, marginTop: 8 }}>
-                {t('onboarding.health.switchPlanIntro')}
-              </Text>
-              <InputGroup label={t('onboarding.health.switchPremiumLabel')}>
-                <LabeledInput
-                  value={data.switchPremiumAmount || ''}
-                  onChangeText={(v) => updateMember(member.id, { switchPremiumAmount: v.replace(/[^0-9]/g, '') })}
-                  numeric
-                  placeholder={t('onboarding.health.switchPremiumPlaceholder')}
-                  large
-                  inGroup
-                  currency={currency}
-                />
-                <Text style={{ ...T.caption, color: C.muted, marginTop: 8, marginBottom: 4 }}>
-                  {t('onboarding.health.switchPremiumHelper')}
-                </Text>
-                <FrequencyPills
-                  options={SWITCH_FREQUENCIES}
-                  value={data.switchPremiumFrequency || 'monthly'}
-                  onChange={(freq) => updateMember(member.id, {
-                    switchPremiumFrequency: freq,
-                    switchCustomFrequencyMonths: freq === 'custom' ? data.switchCustomFrequencyMonths : '',
-                  })}
-                  small
-                />
-                <AnimatedSlideIn visible={data.switchPremiumFrequency === 'custom'}>
-                  <LabeledInput
-                    label={t('onboarding.health.customFrequencyLabel')}
-                    value={data.switchCustomFrequencyMonths || ''}
-                    onChangeText={(v) => updateMember(member.id, { switchCustomFrequencyMonths: v })}
-                    numeric
-                    placeholder={t('onboarding.health.customFrequencyPlaceholder')}
-                    inCard
-                  />
-                </AnimatedSlideIn>
-                <Text style={{ ...T.caption, color: C.muted, marginTop: 8 }}>
-                  {t('onboarding.health.switchPremiumFrequencyHelper')}
-                </Text>
-              </InputGroup>
-            </AnimatedSlideIn>
-
-            <AnimatedSlideIn
-              visible={showPrepaidReserve && data.renewalPlan === 'switch' && !!data.switchPremiumAmount}
-            >
-              {renderPrepaidReservePanel(member, data, {
-                lumpPremium: data.switchPremiumAmount,
-                budgetIncluded: data.budgetForSwitch,
-                onBudgetChange: (v) => updateMember(member.id, {
-                  budgetForSwitch: v,
-                  renewalBudgetMode: v ? (data.renewalBudgetMode || 'suggested') : 'skip',
-                  renewalCustomMonthly: v ? data.renewalCustomMonthly : '',
-                }),
-              })}
-            </AnimatedSlideIn>
           </View>
         </AnimatedSlideIn>
       </View>
@@ -604,10 +250,11 @@ export default function HealthScreen() {
       chapter={t('onboarding.health.chapter')}
       title={currentMember ? t('onboarding.health.title', { name: currentMember.label }) : t('onboarding.health.title')}
       helper={currentMember ? t('onboarding.health.helper', { name: currentMember.label }) : t('onboarding.health.helper')}
+      illustration={<InsuranceAmicoIllustration width={layout.illustrationWidth} />}
       onContinue={handleContinue}
       onBack={handleBack}
       validationError={validationError}
-      progress={screenProgress}
+        setValidationError={setValidationError}
       continueLabel={editContinueLabel}
       animationKey={activeTab}
     >
@@ -615,15 +262,15 @@ export default function HealthScreen() {
       {members.length > 0 && (
         <View style={{ flexDirection: 'row', borderRadius: R.input, borderWidth: 1, borderColor: C.border, overflow: 'hidden', marginBottom: 20 }}>
           {members.map((member, idx) => (
-            <Pressable
+            <OnboardingPressable
               key={member.id}
               onPress={() => { setActiveTab(idx); setValidationError(''); }}
-              style={{
+              style={({ pressed, hovered }) => ({
                 flex: 1,
                 paddingVertical: 10,
-                backgroundColor: activeTab === idx ? C.chipSelectedBg : 'transparent',
+                backgroundColor: listRowBg({ pressed, hovered, selected: activeTab === idx }),
                 alignItems: 'center',
-              }}
+              })}
             >
               <Text style={{
                 fontSize: 13,
@@ -632,7 +279,7 @@ export default function HealthScreen() {
               }}>
                 {member.label}
               </Text>
-            </Pressable>
+            </OnboardingPressable>
           ))}
         </View>
       )}

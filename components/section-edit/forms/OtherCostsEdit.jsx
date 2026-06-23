@@ -4,11 +4,14 @@ import { useI18n } from '../../../lib/i18n';
 import { SECTION_STORAGE_KEYS, parseAmount, amountToString } from '../../../lib/sectionEditStorage';
 import { C, T } from '../../../constants/onboarding-theme';
 import SectionEditForm from '../SectionEditForm';
+import FocusGate from '../FocusGate';
+import { useSectionEditFocus } from '../../../lib/SectionEditFocusContext';
 import AmountFrequencyFields from '../AmountFrequencyFields';
+import OptionalPaymentDatesFields from '../../onboarding/OptionalPaymentDatesFields';
 import RemoveButton from '../../onboarding/RemoveButton';
 
 function costLabel(t, name) {
-  const key = `onboarding.otherCosts.q12.costs.${name}`;
+  const key = `onboarding.otherCosts.costSelection.costs.${name}`;
   const translated = t(key);
   return translated !== key ? translated : (name || t('sectionEdit.otherCosts.unnamed'));
 }
@@ -19,7 +22,9 @@ function toEditState(saved) {
     name: c.name || '',
     amount: amountToString(c.amount),
     frequency: c.frequency || 'monthly',
+    endDate: c.endDate || '',
     dueDate: c.dueDate || '',
+    chargeDay: c.chargeDay != null ? String(c.chargeDay) : '',
   }));
 }
 
@@ -28,12 +33,15 @@ function toPayload(rows) {
     name: c.name,
     amount: parseAmount(c.amount),
     frequency: c.frequency,
+    endDate: c.endDate || null,
     dueDate: c.dueDate || null,
+    chargeDay: c.chargeDay ? parseInt(c.chargeDay, 10) || null : null,
   }));
 }
 
 export default function OtherCostsEdit() {
   const { t } = useI18n();
+  const { focusKey } = useSectionEditFocus();
 
   return (
     <SectionEditForm
@@ -42,7 +50,11 @@ export default function OtherCostsEdit() {
       loadTransform={(saved) => toEditState(saved)}
       transformBeforeSave={toPayload}
       validate={(rows, tr) => {
-        for (let i = 0; i < rows.length; i++) {
+        const indices = focusKey?.startsWith('other-')
+          ? [parseInt(focusKey.replace('other-', ''), 10)]
+          : rows.map((_, i) => i);
+        for (const i of indices) {
+          if (!rows[i]) continue;
           if (!parseAmount(rows[i].amount)) return tr('sectionEdit.otherCosts.validation');
         }
         return null;
@@ -61,17 +73,19 @@ export default function OtherCostsEdit() {
 
         return (
           <View>
-            <Text style={{ ...T.helper, color: C.muted, marginBottom: 16 }}>
-              {t('sectionEdit.otherCosts.helper')}
-            </Text>
+            {!focusKey ? (
+              <Text style={{ ...T.helper, color: C.muted, marginBottom: 16 }}>
+                {t('sectionEdit.otherCosts.helper')}
+              </Text>
+            ) : null}
 
-            {rows.length === 0 ? (
+            {!focusKey && rows.length === 0 ? (
               <Text style={{ ...T.helper }}>{t('sectionEdit.otherCosts.empty')}</Text>
             ) : null}
 
             {rows.map((cost, idx) => (
+              <FocusGate key={cost.id} focusKey={`other-${idx}`}>
               <View
-                key={cost.id}
                 style={{
                   marginBottom: 16,
                   padding: 16,
@@ -85,7 +99,7 @@ export default function OtherCostsEdit() {
                   <Text style={{ fontSize: 15, fontWeight: '600', color: C.primary }}>
                     {costLabel(t, cost.name)}
                   </Text>
-                  <RemoveButton onPress={() => removeRow(idx)} />
+                  {!focusKey ? <RemoveButton onPress={() => removeRow(idx)} /> : null}
                 </View>
                 <AmountFrequencyFields
                   amount={cost.amount}
@@ -94,7 +108,13 @@ export default function OtherCostsEdit() {
                   onFrequencyChange={(v) => updateRow(idx, { frequency: v })}
                   currency={currency}
                 />
+                <OptionalPaymentDatesFields
+                  values={cost}
+                  onChange={(patch) => updateRow(idx, patch)}
+                  compact
+                />
               </View>
+              </FocusGate>
             ))}
           </View>
         );

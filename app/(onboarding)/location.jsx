@@ -1,103 +1,29 @@
 import { useState, useEffect } from 'react';
 import { View, TextInput, Pressable, ScrollView, Modal, FlatList } from 'react-native';
+import OnboardingPressable from '../../components/onboarding/OnboardingPressable';
+import DropdownTrigger, { DropdownTriggerReadOnly } from '../../components/onboarding/DropdownTrigger';
+import { listRowBg } from '../../components/onboarding/pressableFeedback';
 import { Text } from '@gluestack-ui/themed';
-import { useRouter } from 'expo-router';
 import { useI18n } from '../../lib/i18n';
 import { getData, setData } from '../../lib/storage';
+import { patchOnboardingState } from '../../lib/onboardingProgress';
+import { navigateBack, navigateForward } from '../../lib/onboardingNavigation';
+import { useOnboardingLayout } from '../../lib/onboardingLayout';
 import QuestionScreen from '../../components/onboarding/QuestionScreen';
 import LabeledInput from '../../components/onboarding/LabeledInput';
+import CurrentLocationIllustration from '../../components/onboarding/CurrentLocationIllustration';
 import { getCurrencySymbol } from '../../lib/currency';
-import { C, T, R, S } from '../../constants/onboarding-theme';
-
-/** @type {Array<{ code: string, name: string, currency: string, region: string }>} */
-const COUNTRIES = [
-  // Priority: CZ first
-  { code: 'CZ', name: 'Czech Republic', nameCs: 'Česká republika', currency: 'CZK', region: 'EU' },
-  // Other EU
-  { code: 'SK', name: 'Slovakia', nameCs: 'Slovensko', currency: 'EUR', region: 'EU' },
-  { code: 'PL', name: 'Poland', nameCs: 'Polsko', currency: 'PLN', region: 'EU' },
-  { code: 'DE', name: 'Germany', nameCs: 'Německo', currency: 'EUR', region: 'EU' },
-  { code: 'AT', name: 'Austria', nameCs: 'Rakousko', currency: 'EUR', region: 'EU' },
-  { code: 'HU', name: 'Hungary', nameCs: 'Maďarsko', currency: 'HUF', region: 'EU' },
-  { code: 'FR', name: 'France', nameCs: 'Francie', currency: 'EUR', region: 'EU' },
-  { code: 'IT', name: 'Italy', nameCs: 'Itálie', currency: 'EUR', region: 'EU' },
-  { code: 'ES', name: 'Spain', nameCs: 'Španělsko', currency: 'EUR', region: 'EU' },
-  { code: 'NL', name: 'Netherlands', nameCs: 'Nizozemsko', currency: 'EUR', region: 'EU' },
-  { code: 'BE', name: 'Belgium', nameCs: 'Belgie', currency: 'EUR', region: 'EU' },
-  { code: 'SE', name: 'Sweden', nameCs: 'Švédsko', currency: 'SEK', region: 'EU' },
-  { code: 'DK', name: 'Denmark', nameCs: 'Dánsko', currency: 'DKK', region: 'EU' },
-  { code: 'FI', name: 'Finland', nameCs: 'Finsko', currency: 'EUR', region: 'EU' },
-  { code: 'IE', name: 'Ireland', nameCs: 'Irsko', currency: 'EUR', region: 'EU' },
-  { code: 'PT', name: 'Portugal', nameCs: 'Portugalsko', currency: 'EUR', region: 'EU' },
-  { code: 'RO', name: 'Romania', nameCs: 'Rumunsko', currency: 'RON', region: 'EU' },
-  { code: 'BG', name: 'Bulgaria', nameCs: 'Bulharsko', currency: 'BGN', region: 'EU' },
-  { code: 'GR', name: 'Greece', nameCs: 'Řecko', currency: 'EUR', region: 'EU' },
-  { code: 'HR', name: 'Croatia', nameCs: 'Chorvatsko', currency: 'EUR', region: 'EU' },
-  { code: 'SI', name: 'Slovenia', nameCs: 'Slovinsko', currency: 'EUR', region: 'EU' },
-  { code: 'LT', name: 'Lithuania', nameCs: 'Litva', currency: 'EUR', region: 'EU' },
-  { code: 'LV', name: 'Latvia', nameCs: 'Lotyšsko', currency: 'EUR', region: 'EU' },
-  { code: 'EE', name: 'Estonia', nameCs: 'Estonsko', currency: 'EUR', region: 'EU' },
-  // Other
-  { code: 'GB', name: 'United Kingdom', nameCs: 'Spojené království', currency: 'GBP', region: 'Other' },
-  { code: 'CH', name: 'Switzerland', nameCs: 'Švýcarsko', currency: 'CHF', region: 'Other' },
-  { code: 'NO', name: 'Norway', nameCs: 'Norsko', currency: 'NOK', region: 'Other' },
-  { code: 'US', name: 'United States', nameCs: 'Spojené státy', currency: 'USD', region: 'Other' },
-  { code: 'CA', name: 'Canada', nameCs: 'Kanada', currency: 'CAD', region: 'Other' },
-  { code: 'AU', name: 'Australia', nameCs: 'Austrálie', currency: 'AUD', region: 'Other' },
-  { code: 'NZ', name: 'New Zealand', nameCs: 'Nový Zéland', currency: 'NZD', region: 'Other' },
-  { code: 'JP', name: 'Japan', nameCs: 'Japonsko', currency: 'JPY', region: 'Other' },
-  { code: 'KR', name: 'South Korea', nameCs: 'Jižní Korea', currency: 'KRW', region: 'Other' },
-  { code: 'CN', name: 'China', nameCs: 'Čína', currency: 'CNY', region: 'Other' },
-  { code: 'IN', name: 'India', nameCs: 'Indie', currency: 'INR', region: 'Other' },
-  { code: 'RU', name: 'Russia', nameCs: 'Rusko', currency: 'RUB', region: 'Other' },
-  { code: 'UA', name: 'Ukraine', nameCs: 'Ukrajina', currency: 'UAH', region: 'Other' },
-  { code: 'Other', name: 'Other', nameCs: 'Jiné', currency: 'EUR', region: 'Other' },
-];
-
-/**
- * Convert a 2-letter country code to a flag emoji.
- * @param {string} countryCode - ISO 3166-1 alpha-2 code
- * @returns {string} Flag emoji
- */
-function getFlagEmoji(countryCode) {
-  if (countryCode === 'Other' || countryCode.length !== 2) return '🌍';
-  const codePoints = countryCode
-    .toUpperCase()
-    .split('')
-    .map((char) => 0x1F1E6 + char.charCodeAt(0) - 65);
-  return String.fromCodePoint(...codePoints);
-}
-
-/** @type {Array<{ code: string, name: string, symbol: string }>} */
-const CURRENCIES = [
-  { code: 'CZK', name: 'Czech Koruna', symbol: 'Kč' },
-  { code: 'EUR', name: 'Euro', symbol: '€' },
-  { code: 'USD', name: 'US Dollar', symbol: '$' },
-  { code: 'GBP', name: 'British Pound', symbol: '£' },
-  { code: 'PLN', name: 'Polish Zloty', symbol: 'zł' },
-  { code: 'HUF', name: 'Hungarian Forint', symbol: 'Ft' },
-  { code: 'CHF', name: 'Swiss Franc', symbol: 'Fr' },
-  { code: 'SEK', name: 'Swedish Krona', symbol: 'kr' },
-  { code: 'NOK', name: 'Norwegian Krone', symbol: 'kr' },
-  { code: 'DKK', name: 'Danish Krone', symbol: 'kr' },
-  { code: 'RON', name: 'Romanian Leu', symbol: 'lei' },
-  { code: 'BGN', name: 'Bulgarian Lev', symbol: 'лв' },
-  { code: 'HRK', name: 'Croatian Kuna', symbol: 'kn' },
-  { code: 'RSD', name: 'Serbian Dinar', symbol: 'дин' },
-  { code: 'CAD', name: 'Canadian Dollar', symbol: 'CA$' },
-  { code: 'AUD', name: 'Australian Dollar', symbol: 'A$' },
-  { code: 'JPY', name: 'Japanese Yen', symbol: '¥' },
-  { code: 'CNY', name: 'Chinese Yuan', symbol: '¥' },
-  { code: 'INR', name: 'Indian Rupee', symbol: '₹' },
-  { code: 'RUB', name: 'Russian Ruble', symbol: '₽' },
-  { code: 'UAH', name: 'Ukrainian Hryvnia', symbol: '₴' },
-  { code: 'NZD', name: 'New Zealand Dollar', symbol: 'NZ$' },
-  { code: 'KRW', name: 'South Korean Won', symbol: '₩' },
-];
+import {
+  COUNTRIES,
+  CURRENCIES,
+  PRE_ALPHA_COUNTRY_CODE,
+  getFlagEmoji,
+} from '../../lib/locationConstants';
+import { C, T, R, S, INPUT_FIELD } from '../../constants/onboarding-theme';
 
 export default function LocationScreen() {
   const { t, locale } = useI18n();
-  const router = useRouter();
+  const layout = useOnboardingLayout();
 
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [city, setCity] = useState('');
@@ -109,13 +35,17 @@ export default function LocationScreen() {
 
   useEffect(() => {
     async function loadData() {
-      const location = await getData('pocketos_location');
+      const location = await getData('beaverr_location');
       if (location) {
         const match = COUNTRIES.find(c => c.code === location.country);
         setSelectedCountry(match || null);
         setCity(location.city || '');
         setCurrency(location.currency || '');
+        return;
       }
+      const cz = COUNTRIES.find((c) => c.code === 'CZ');
+      setSelectedCountry(cz ?? null);
+      setCurrency(cz?.currency ?? '');
     }
     loadData();
   }, []);
@@ -149,15 +79,24 @@ export default function LocationScreen() {
       currency,
     };
 
-    await setData('pocketos_location', locationData);
+    await setData('beaverr_location', locationData);
 
-    await setData('pocketos_onboarding', {
+    await patchOnboardingState({
       completed: false,
       currentStep: 'location',
-      percentComplete: 30,
+      resumeRoute: '/(onboarding)/citizenship',
     });
 
-    router.replace('/(onboarding)/occupation');
+    navigateForward('/(onboarding)/citizenship');
+  };
+
+  const handleSaveDraft = async () => {
+    if (!selectedCountry) return;
+    await setData('beaverr_location', {
+      country: selectedCountry.code,
+      city: city.trim() || null,
+      currency,
+    });
   };
 
   const countryLabel = selectedCountry
@@ -169,45 +108,63 @@ export default function LocationScreen() {
     borderWidth: 2.5,
     borderColor: C.border,
     borderRadius: R.input,
-    paddingHorizontal: S.inputPadH,
-    paddingVertical: S.inputPadV,
+    paddingHorizontal: INPUT_FIELD.paddingHorizontal,
+    paddingVertical: INPUT_FIELD.paddingVertical,
+    minHeight: INPUT_FIELD.minHeight,
     color: C.text,
     fontSize: 17,
     fontWeight: '400',
+    textAlignVertical: 'center',
   };
+
+  const currencyLocked = selectedCountry != null && selectedCountry.code !== 'Other';
+  const selectedCurrency = CURRENCIES.find((c) => c.code === currency);
+  const currencyDisplay = selectedCurrency
+    ? `${selectedCurrency.symbol} — ${selectedCurrency.name} (${selectedCurrency.code})`
+    : currency
+      ? getCurrencySymbol(currency)
+      : '';
 
   return (
     <QuestionScreen
+      animationKey="location"
       chapter={t('onboarding.location.chapter')}
+      illustration={<CurrentLocationIllustration width={layout.illustrationWidth} />}
       title={t('onboarding.location.title')}
       helper={t('onboarding.location.helper')}
       onContinue={handleContinue}
-      onBack={() => router.replace('/(onboarding)/splash-location')}
+      onBack={() => navigateBack()}
+      onSaveDraft={handleSaveDraft}
+      resumeRoute="/(onboarding)/location"
       validationError={validationError}
-      progress={20}    >
+      setValidationError={setValidationError}
+    >
       {/* Country dropdown trigger */}
       <Text style={{ ...T.fieldLabel, marginBottom: S.labelGap }}>
         {t('onboarding.location.countryLabel')}
       </Text>
-      <Pressable
+      <DropdownTrigger
         onPress={() => setShowDropdown(true)}
+        value={selectedCountry ? `${getFlagEmoji(selectedCountry.code)} ${countryLabel}` : null}
+        placeholder={t('onboarding.location.countryPlaceholder')}
+        style={{ ...inputBase, marginBottom: 8 }}
+      />
+      <View
+        accessibilityRole="alert"
         style={{
-          ...inputBase,
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
+          padding: 12,
+          paddingHorizontal: 14,
           marginBottom: 20,
+          backgroundColor: C.infoBg,
+          borderRadius: R.input,
+          borderWidth: 1,
+          borderColor: C.infoBorder,
         }}
       >
-        <Text style={{
-          fontSize: 17,
-          fontWeight: selectedCountry ? '400' : '300',
-          color: selectedCountry ? C.text : C.placeholder,
-        }}>
-          {selectedCountry ? `${getFlagEmoji(selectedCountry.code)} ${countryLabel}` : t('onboarding.location.countryPlaceholder')}
+        <Text style={{ ...T.caption, color: C.infoText, lineHeight: 18 }}>
+          {t('onboarding.location.countryPreAlphaNote')}
         </Text>
-        <Text style={{ fontSize: 14, color: C.muted }}>{'▼'}</Text>
-      </Pressable>
+      </View>
 
       {/* Country dropdown modal */}
       <Modal visible={showDropdown} transparent animationType="fade">
@@ -255,38 +212,54 @@ export default function LocationScreen() {
             <ScrollView style={{ maxHeight: 380 }}>
               {filteredCountries.map((country) => {
                 const isSelected = selectedCountry?.code === country.code;
+                const isEnabled = country.code === PRE_ALPHA_COUNTRY_CODE;
                 const label = locale === 'cs' && country.nameCs ? country.nameCs : country.name;
                 return (
-                  <Pressable
+                  <OnboardingPressable
                     key={country.code}
-                    onPress={() => handleSelectCountry(country)}
-                    style={{
+                    disabled={!isEnabled}
+                    onPress={() => isEnabled && handleSelectCountry(country)}
+                    accessibilityRole="button"
+                    accessibilityState={{ disabled: !isEnabled, selected: isSelected }}
+                    accessibilityLabel={
+                      isEnabled
+                        ? label
+                        : t('onboarding.location.countryUnavailableA11y', { country: label })
+                    }
+                    style={({ pressed, hovered }) => ({
                       paddingHorizontal: 16,
                       paddingVertical: 14,
+                      backgroundColor: isEnabled
+                        ? listRowBg({ pressed, hovered, selected: isSelected, selectedBg: C.overlayHover })
+                        : 'transparent',
+                      borderBottomWidth: 0.5,
+                      borderBottomColor: C.bg,
+                      opacity: isEnabled ? 1 : 0.45,
+                    })}
+                  >
+                    <View style={{
                       flexDirection: 'row',
                       alignItems: 'center',
                       justifyContent: 'space-between',
-                      backgroundColor: isSelected ? C.overlayHover : 'transparent',
-                      borderBottomWidth: 0.5,
-                      borderBottomColor: C.bg,
-                    }}
-                  >
-                    <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-                      <Text style={{
-                        fontSize: 16,
-                        color: isSelected ? C.primary : C.text,
-                        fontWeight: isSelected ? '500' : '400',
-                      }}>
-                        {label}
-                      </Text>
-                      <Text style={{ fontSize: 12, color: C.placeholder, marginLeft: 8 }}>
-                        {getCurrencySymbol(country.currency)}
-                      </Text>
+                      width: '100%',
+                    }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, minWidth: 0 }}>
+                        <Text style={{
+                          fontSize: 16,
+                          color: isSelected ? C.primary : isEnabled ? C.text : C.muted,
+                          fontWeight: isSelected ? '500' : '400',
+                        }}>
+                          {label}
+                        </Text>
+                        <Text style={{ fontSize: 12, color: C.placeholder, marginLeft: 8 }}>
+                          {getCurrencySymbol(country.currency)}
+                        </Text>
+                      </View>
+                      {isSelected ? (
+                        <Text style={{ color: C.primary, fontSize: 14, marginLeft: 8 }}>{'✓'}</Text>
+                      ) : null}
                     </View>
-                    {isSelected ? (
-                      <Text style={{ color: C.primary, fontSize: 14 }}>{'✓'}</Text>
-                    ) : null}
-                  </Pressable>
+                  </OnboardingPressable>
                 );
               })}
               {filteredCountries.length === 0 ? (
@@ -308,28 +281,23 @@ export default function LocationScreen() {
         maxLength={60}
       />
 
-      {/* Currency dropdown */}
+      {/* Currency — locked to country unless "Other" */}
       <Text style={{ ...T.fieldLabel, marginBottom: S.labelGap }}>
         {t('onboarding.location.currencyLabel')}
       </Text>
-      <Pressable
-        onPress={() => setShowCurrencyDropdown(true)}
-        style={{
-          ...inputBase,
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}
-      >
-        <Text style={{
-          fontSize: 17,
-          fontWeight: '400',
-          color: currency ? C.text : C.placeholder,
-        }}>
-          {currency ? getCurrencySymbol(currency) : t('onboarding.location.currencyPlaceholder')}
-        </Text>
-        <Text style={{ fontSize: 14, color: C.muted }}>{'▼'}</Text>
-      </Pressable>
+      {currencyLocked ? (
+        <DropdownTriggerReadOnly
+          value={currencyDisplay}
+          style={{ ...inputBase, marginBottom: 16 }}
+        />
+      ) : (
+        <DropdownTrigger
+          onPress={() => setShowCurrencyDropdown(true)}
+          value={currencyDisplay || null}
+          placeholder={t('onboarding.location.currencyPlaceholder')}
+          style={{ ...inputBase, marginBottom: 16 }}
+        />
+      )}
 
       {/* Currency dropdown modal */}
       <Modal visible={showCurrencyDropdown} transparent animationType="fade">
@@ -355,38 +323,42 @@ export default function LocationScreen() {
               renderItem={({ item }) => {
                 const isSelected = currency === item.code;
                 return (
-                  <Pressable
+                  <OnboardingPressable
                     onPress={() => {
                       setCurrency(item.code);
                       setShowCurrencyDropdown(false);
                     }}
-                    style={{
+                    style={({ pressed, hovered }) => ({
                       paddingHorizontal: 16,
                       paddingVertical: 14,
+                      backgroundColor: listRowBg({ pressed, hovered, selected: isSelected, selectedBg: C.overlayHover }),
+                      borderBottomWidth: 0.5,
+                      borderBottomColor: C.bg,
+                    })}
+                  >
+                    <View style={{
                       flexDirection: 'row',
                       alignItems: 'center',
                       justifyContent: 'space-between',
-                      backgroundColor: isSelected ? C.overlayHover : 'transparent',
-                      borderBottomWidth: 0.5,
-                      borderBottomColor: C.bg,
-                    }}
-                  >
-                    <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-                      <Text style={{
-                        fontSize: 16,
-                        color: isSelected ? C.primary : C.text,
-                        fontWeight: isSelected ? '500' : '400',
-                      }}>
-                        {item.symbol}
-                      </Text>
-                      <Text style={{ fontSize: 13, color: C.placeholder, marginLeft: 8 }}>
-                        {item.name} ({item.code})
-                      </Text>
+                      width: '100%',
+                    }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, minWidth: 0 }}>
+                        <Text style={{
+                          fontSize: 16,
+                          color: isSelected ? C.primary : C.text,
+                          fontWeight: isSelected ? '500' : '400',
+                        }}>
+                          {item.symbol}
+                        </Text>
+                        <Text style={{ fontSize: 13, color: C.placeholder, marginLeft: 8 }}>
+                          {item.name} ({item.code})
+                        </Text>
+                      </View>
+                      {isSelected ? (
+                        <Text style={{ color: C.primary, fontSize: 14, marginLeft: 8 }}>{'✓'}</Text>
+                      ) : null}
                     </View>
-                    {isSelected ? (
-                      <Text style={{ color: C.primary, fontSize: 14 }}>{'✓'}</Text>
-                    ) : null}
-                  </Pressable>
+                  </OnboardingPressable>
                 );
               }}
             />

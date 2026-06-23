@@ -4,7 +4,7 @@ import { getCurrencySymbol } from '../../lib/currency';
 
 export default function TrackerScreen() {
   return (
-    <DashboardPageShell titleKey="dashboard.tracker" sectionId="budget">
+    <DashboardPageShell titleKey="dashboard.tracker">
       {(bundle) => (
         <TrackerContent
           bundle={bundle}

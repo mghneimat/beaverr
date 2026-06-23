@@ -1,4 +1,4 @@
-# i18n Examples — PocketOS
+# i18n Examples — Beaverr
 
 ## Basic screen
 

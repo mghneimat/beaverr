@@ -46,7 +46,6 @@ export default function SaveFeedbackBanner() {
       accessibilityRole="alert"
       accessibilityLiveRegion="polite"
       style={{
-        marginBottom: 16,
         paddingHorizontal: 16,
         paddingVertical: 12,
         borderRadius: R.card,

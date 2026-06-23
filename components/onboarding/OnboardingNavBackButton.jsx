@@ -63,7 +63,7 @@ export default function OnboardingNavBackButton({ onPress, cooldown = true }) {
             : 'transparent',
       }}
     >
-      <ArrowLeftIcon color={C.muted} size={24} />
+      <ArrowLeftIcon color={C.text} size={24} />
     </Pressable>
   );
 }

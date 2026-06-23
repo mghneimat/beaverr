@@ -103,9 +103,12 @@ export default function MetricExplainModal({
               </View>
             ) : null}
 
+            {rows.length > 0 || formula ? (
+              <>
             <Text style={{ fontSize: 13, fontWeight: '600', color: C.primary, marginBottom: 10 }}>
               {calculationTitle}
             </Text>
+            {rows.length > 0 ? (
             <View style={{
               borderRadius: R.input,
               borderWidth: 1,
@@ -125,7 +128,7 @@ export default function MetricExplainModal({
                     paddingHorizontal: 14,
                     borderTopWidth: idx > 0 ? 1 : 0,
                     borderTopColor: C.divider,
-                    backgroundColor: row.emphasis ? C.chipSelectedBg : C.surface,
+                    backgroundColor: row.emphasis ? C.infoWashBg : C.surface,
                   }}
                 >
                   <Text style={{
@@ -147,11 +150,14 @@ export default function MetricExplainModal({
                 </View>
               ))}
             </View>
+            ) : null}
 
             {formula ? (
               <Text style={{ ...T.caption, color: C.muted, marginBottom: 20, fontStyle: 'italic' }}>
                 {formula}
               </Text>
+            ) : null}
+              </>
             ) : null}
 
             <Pressable

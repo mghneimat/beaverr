@@ -3,7 +3,11 @@ import { View } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
 import { useI18n } from '../../../lib/i18n';
 import { effectiveSpendingBudget, formatCurrency } from '../../../lib/finance';
-import { splitFlexibleBudget, clampBudgetSpendingRatio, resolveBudgetSpendingRatio } from '../../../lib/budgetSplit';
+import {
+  splitFlexibleBudget,
+  clampBudgetSpendingRatio,
+  resolveBudgetSpendingRatio,
+} from '../../../lib/budgetSplit';
 import BudgetSplitSlider from '../../onboarding/BudgetSplitSlider';
 import { computeGoalGap } from '../../../lib/goalGap';
 import { getMonthlySavingsReservation } from '../../../lib/incomeGoals';
@@ -11,6 +15,8 @@ import { loadHouseholdFinancials } from '../../../lib/householdBudget';
 import { SECTION_STORAGE_KEYS, parseAmount, amountToString } from '../../../lib/sectionEditStorage';
 import { C, T } from '../../../constants/onboarding-theme';
 import SectionEditForm from '../SectionEditForm';
+import FocusGate from '../FocusGate';
+import { useSectionEditFocus } from '../../../lib/SectionEditFocusContext';
 import FrequencyPills from '../../onboarding/FrequencyPills';
 import YesNoToggle from '../../onboarding/YesNoToggle';
 import OptionCard from '../../onboarding/OptionCard';
@@ -59,13 +65,9 @@ function toPayload(draft, availableBudget) {
     budgetSavingsShift: savingsShift,
     budgetDisplayFrequency: draft.budgetDisplayFrequency,
     rolloverStrategy: strategy,
-    rolloverMultiplier: strategy === 'capped' && draft.rolloverCapType === 'multiplier'
-      ? draft.rolloverMultiplier
-      : null,
-    rolloverCapType: strategy === 'capped' ? draft.rolloverCapType : null,
-    rolloverCapAmount: strategy === 'capped' && draft.rolloverCapType === 'amount'
-      ? Math.round(parseAmount(draft.rolloverCapAmount) || 0)
-      : null,
+    rolloverMultiplier: null,
+    rolloverCapType: null,
+    rolloverCapAmount: null,
     resetUnspentDestination: strategy === 'reset' ? draft.resetUnspentDestination : null,
     resetOtherGoalNote: strategy === 'reset' && draft.resetUnspentDestination === 'otherGoal'
       ? (draft.resetOtherGoalNote?.trim() || null)
@@ -81,6 +83,7 @@ function toPayload(draft, availableBudget) {
 
 export default function BudgetEdit() {
   const { t } = useI18n();
+  const { focusKey } = useSectionEditFocus();
   const [calculated, setCalculated] = useState(null);
   const [hasGoal, setHasGoal] = useState(false);
   const [goalMonthly, setGoalMonthly] = useState(0);
@@ -122,10 +125,13 @@ export default function BudgetEdit() {
 
         return (
           <View>
-            <Text style={{ ...T.helper, color: C.muted, marginBottom: 16 }}>
-              {t('sectionEdit.budget.helper')}
-            </Text>
+            {!focusKey ? (
+              <Text style={{ ...T.helper, color: C.muted, marginBottom: 16 }}>
+                {t('sectionEdit.budget.helper')}
+              </Text>
+            ) : null}
 
+            <FocusGate focusKey="monthlyBudget">
             {calculated != null ? (
               <Text style={{ ...T.caption, color: C.muted, marginBottom: 12 }}>
                 {t('sectionEdit.budget.calculated', { amount: formatCurrency(calculated, currency) })}
@@ -143,10 +149,10 @@ export default function BudgetEdit() {
             {calculated != null && calculated > 0 ? (
               <View style={{ marginBottom: 20 }}>
                 <Text style={{ ...T.fieldLabel, marginBottom: 6 }}>
-                  {t('onboarding.budget.q14.splitSlider.label')}
+                  {t('onboarding.budget.budgetSplit.splitSlider.label')}
                 </Text>
                 <Text style={{ ...T.caption, color: C.muted, marginBottom: 12 }}>
-                  {t('onboarding.budget.q14.splitSlider.helper')}
+                  {t('onboarding.budget.budgetSplit.splitSlider.helper')}
                 </Text>
                 <BudgetSplitSlider
                   value={activeRatio}
@@ -155,7 +161,7 @@ export default function BudgetEdit() {
                 />
                 {savingsShift > 0 ? (
                   <Text style={{ ...T.caption, color: C.muted, marginTop: 10 }}>
-                    {t('onboarding.budget.q14.splitSlider.summary', {
+                    {t('onboarding.budget.budgetSplit.splitSlider.summary', {
                       spend: formatCurrency(effective, currency),
                       savings: formatCurrency(savingsShift, currency),
                     })}
@@ -172,8 +178,8 @@ export default function BudgetEdit() {
                 <YesNoToggle
                   value={data.deductSavingsGoal}
                   onChange={(v) => update({ deductSavingsGoal: v })}
-                  yesLabel={t('onboarding.budget.q14.deductSavingsGoal.yes')}
-                  noLabel={t('onboarding.budget.q14.deductSavingsGoal.no')}
+                  yesLabel={t('onboarding.budget.budgetSplit.deductSavingsGoal.yes')}
+                  noLabel={t('onboarding.budget.budgetSplit.deductSavingsGoal.no')}
                 />
                 {data.deductSavingsGoal ? (
                   <Text style={{ ...T.caption, color: C.muted }}>
@@ -182,82 +188,46 @@ export default function BudgetEdit() {
                 ) : null}
               </View>
             ) : null}
+            </FocusGate>
 
+            <FocusGate focusKey="rollover">
             <Text style={{ ...T.fieldLabel, marginBottom: 12 }}>{t('sectionEdit.budget.rollover')}</Text>
             <OptionCard
               icon="♾️"
-              label={t('onboarding.budget.q14a.free')}
-              subtitle={t('onboarding.budget.q14a.freeDesc')}
+              label={t('onboarding.budget.rollover.free')}
+              subtitle={t('onboarding.budget.rollover.freeDesc')}
               selected={data.rolloverStrategy === 'free'}
               onPress={() => update({ rolloverStrategy: 'free' })}
             />
             <OptionCard
-              icon="🎯"
-              label={t('onboarding.budget.q14a.capped')}
-              subtitle={t('onboarding.budget.q14a.cappedDesc')}
-              selected={data.rolloverStrategy === 'capped'}
-              onPress={() => update({ rolloverStrategy: 'capped' })}
-            />
-            <OptionCard
               icon="🔁"
-              label={t('onboarding.budget.q14a.reset')}
-              subtitle={t('onboarding.budget.q14a.resetDesc')}
+              label={t('onboarding.budget.rollover.reset')}
+              subtitle={t('onboarding.budget.rollover.resetDesc')}
               selected={data.rolloverStrategy === 'reset'}
               onPress={() => update({ rolloverStrategy: 'reset' })}
             />
-            <AnimatedSlideIn visible={data.rolloverStrategy === 'capped'}>
-              <OptionCard
-                label={t('onboarding.budget.q14a.capTypeMultiplier')}
-                selected={data.rolloverCapType === 'multiplier'}
-                onPress={() => update({ rolloverCapType: 'multiplier' })}
-              />
-              <OptionCard
-                label={t('onboarding.budget.q14a.capTypeAmount')}
-                selected={data.rolloverCapType === 'amount'}
-                onPress={() => update({ rolloverCapType: 'amount' })}
-              />
-              {data.rolloverCapType === 'multiplier' ? (
-                <FrequencyPills
-                  label={t('onboarding.budget.q14a.multiplierLabel')}
-                  options={[2, 3, 4]}
-                  value={data.rolloverMultiplier}
-                  onChange={(v) => update({ rolloverMultiplier: v })}
-                  labelMap={{
-                    2: t('onboarding.budget.q14a.multiplier2'),
-                    3: t('onboarding.budget.q14a.multiplier3'),
-                    4: t('onboarding.budget.q14a.multiplier4'),
-                  }}
-                />
-              ) : (
-                <InputGroup label={t('onboarding.budget.q14a.customCapLabel')}>
-                  <LabeledInput
-                    value={data.rolloverCapAmount}
-                    onChangeText={(v) => update({ rolloverCapAmount: v })}
-                    numeric
-                    inGroup
-                    currency={currency}
-                  />
-                </InputGroup>
-              )}
-            </AnimatedSlideIn>
+            </FocusGate>
+
+            <FocusGate focusKey="resetDestination">
             <AnimatedSlideIn visible={data.rolloverStrategy === 'reset'}>
               {['looseMoney', 'savings', 'otherGoal'].map((key) => (
                 <OptionCard
                   key={key}
-                  label={t(`onboarding.budget.q14a.reset${key === 'looseMoney' ? 'LooseMoney' : key === 'savings' ? 'ToSavings' : 'ToOtherGoal'}`)}
-                  subtitle={t(`onboarding.budget.q14a.reset${key === 'looseMoney' ? 'LooseMoney' : key === 'savings' ? 'ToSavings' : 'ToOtherGoal'}Helper`)}
+                  label={t(`onboarding.budget.rollover.reset${key === 'looseMoney' ? 'PiggyBank' : key === 'savings' ? 'ToSavings' : 'ToOtherGoal'}`)}
+                  subtitle={t(`onboarding.budget.rollover.reset${key === 'looseMoney' ? 'PiggyBank' : key === 'savings' ? 'ToSavings' : 'ToOtherGoal'}Helper`)}
                   selected={data.resetUnspentDestination === key}
                   onPress={() => update({ resetUnspentDestination: key })}
                 />
               ))}
               {data.resetUnspentDestination === 'otherGoal' ? (
                 <LabeledInput
-                  label={t('onboarding.budget.q14a.otherGoalLabel')}
+                  label={t('onboarding.budget.rollover.otherGoalLabel')}
                   value={data.resetOtherGoalNote}
                   onChangeText={(v) => update({ resetOtherGoalNote: v })}
                 />
               ) : null}
             </AnimatedSlideIn>
+            </FocusGate>
           </View>
         );
       }}

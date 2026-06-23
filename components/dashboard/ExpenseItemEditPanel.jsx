@@ -11,6 +11,7 @@ import { buildExpenseFormState, formStateToPatchFields } from '../../lib/expense
 import { patchExpenseRow, addExpenseForCategory } from '../../lib/inlineExpenseSave';
 import { runInlineSave } from '../../lib/inlineSaveImpact';
 import { emitSaveFeedback } from '../../lib/dashboardSaveFeedback';
+import { emitDashboardToast } from '../../lib/dashboardToast';
 
 import ExpenseOnboardingFields from './ExpenseOnboardingFields';
 
@@ -79,7 +80,7 @@ export default function ExpenseItemEditPanel({
       });
 
       emitSaveFeedback({ after, delta, currencyCode: currencyCode || 'CZK' });
-
+      emitDashboardToast('saved');
       onDone?.();
 
     } catch (err) {

@@ -3,7 +3,7 @@ import { Text } from '@gluestack-ui/themed';
 import { useRouter } from 'expo-router';
 import { C, R, T } from '../../constants/onboarding-theme';
 import SurfaceCard from '../ui/SurfaceCard';
-import DashboardSectionHeader from './DashboardSectionHeader';
+import InCardSectionHeader from './InCardSectionHeader';
 import { getAlertActionLabelKey } from '../../lib/dashboardAlerts';
 
 const URGENCY_COLORS = {
@@ -41,10 +41,10 @@ function AlertRow({ alert, message, actionLabel, onAction }) {
           paddingHorizontal: 14,
           borderRadius: R.button,
           backgroundColor: pressed
-            ? C.accentPressed
+            ? C.pillSelectedPressed
             : hovered
-              ? C.accentPressed
-              : C.accent,
+              ? C.pillSelectedPressed
+              : C.pillSelectedBg,
           minHeight: 36,
           justifyContent: 'center',
         })}
@@ -79,21 +79,19 @@ export default function ActionQueuePreview({ title, alerts, t, viewAllLabel, onV
   ) : null;
 
   return (
-    <View style={{ marginBottom: 16 }}>
-      <DashboardSectionHeader title={title} trailing={viewAllTrailing} />
-      <SurfaceCard style={{ paddingTop: 4 }}>
-        {alerts.map((alert) => (
-          <AlertRow
-            key={alert.id}
-            alert={alert}
-            message={t(alert.messageKey, alert.messageParams)}
-            actionLabel={t(getAlertActionLabelKey(alert))}
-            onAction={() => {
-              if (alert.actionRoute) router.push(alert.actionRoute);
-            }}
-          />
-        ))}
-      </SurfaceCard>
-    </View>
+    <SurfaceCard style={{ paddingTop: 4 }}>
+      <InCardSectionHeader title={title} trailing={viewAllTrailing} />
+      {alerts.map((alert) => (
+        <AlertRow
+          key={alert.id}
+          alert={alert}
+          message={t(alert.messageKey, alert.messageParams)}
+          actionLabel={t(getAlertActionLabelKey(alert))}
+          onAction={() => {
+            if (alert.actionRoute) router.push(alert.actionRoute);
+          }}
+        />
+      ))}
+    </SurfaceCard>
   );
 }

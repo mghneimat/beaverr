@@ -1,6 +1,6 @@
 import { View, Modal, Pressable, Platform } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
-import { C, R, S } from '../../constants/onboarding-theme';
+import { C, R, S, SHADOW, T } from '../../constants/onboarding-theme';
 
 /**
  * Cross-platform confirm dialog — Alert.alert is unreliable on web.
@@ -12,6 +12,7 @@ export default function ConfirmDialog({
   confirmLabel,
   cancelLabel,
   destructive = false,
+  infoOnly = false,
   onConfirm,
   onCancel,
 }) {
@@ -44,7 +45,7 @@ export default function ConfirmDialog({
           }}
           onPress={onCancel}
           accessibilityRole="button"
-          accessibilityLabel={cancelLabel}
+          accessibilityLabel={infoOnly ? confirmLabel : cancelLabel}
         />
         <View
           style={{
@@ -52,9 +53,8 @@ export default function ConfirmDialog({
             maxWidth: 400,
             backgroundColor: C.surface,
             borderRadius: R.card,
-            borderWidth: 1,
-            borderColor: C.border,
             padding: 20,
+            ...SHADOW.card,
             ...(Platform.OS === 'web' ? { cursor: 'default' } : {}),
           }}
         >
@@ -64,25 +64,32 @@ export default function ConfirmDialog({
           <Text style={{ fontSize: 15, lineHeight: 22, color: C.muted, marginBottom: 20 }}>
             {message}
           </Text>
-          <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 10 }}>
-            <Pressable
-              onPress={onCancel}
-              accessibilityRole="button"
-              accessibilityLabel={cancelLabel}
-              style={({ pressed }) => ({
-                minHeight: 44,
-                paddingHorizontal: 16,
-                borderRadius: R.button,
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: pressed ? C.overlayPressed : C.bg,
-                borderWidth: 1,
-                borderColor: C.border,
-                ...(Platform.OS === 'web' ? { cursor: 'pointer' } : {}),
-              })}
-            >
-              <Text style={{ fontSize: 15, fontWeight: '500', color: C.text }}>{cancelLabel}</Text>
-            </Pressable>
+          <View style={{
+            flexDirection: 'row',
+            justifyContent: infoOnly ? 'stretch' : 'flex-end',
+            gap: 10,
+          }}
+          >
+            {infoOnly ? null : (
+              <Pressable
+                onPress={onCancel}
+                accessibilityRole="button"
+                accessibilityLabel={cancelLabel}
+                style={({ pressed }) => ({
+                  minHeight: 44,
+                  paddingHorizontal: 16,
+                  borderRadius: R.button,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: pressed ? C.overlayPressed : C.bg,
+                  borderWidth: 1,
+                  borderColor: C.border,
+                  ...(Platform.OS === 'web' ? { cursor: 'pointer' } : {}),
+                })}
+              >
+                <Text style={{ ...T.btnPrimary, color: C.text }}>{cancelLabel}</Text>
+              </Pressable>
+            )}
             <Pressable
               onPress={onConfirm}
               accessibilityRole="button"
@@ -93,13 +100,14 @@ export default function ConfirmDialog({
                 borderRadius: R.button,
                 alignItems: 'center',
                 justifyContent: 'center',
+                flex: infoOnly ? 1 : undefined,
                 backgroundColor: destructive
                   ? pressed ? '#DC2626' : C.danger
-                  : pressed ? C.primaryPressed : C.primary,
+                  : pressed ? C.pillSelectedPressed : C.pillSelectedBg,
                 ...(Platform.OS === 'web' ? { cursor: 'pointer' } : {}),
               })}
             >
-              <Text style={{ fontSize: 15, fontWeight: '600', color: C.pillSelectedText }}>
+              <Text style={{ ...T.btnPrimary, color: C.pillSelectedText }}>
                 {confirmLabel}
               </Text>
             </Pressable>

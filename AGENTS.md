@@ -1,3 +1,7 @@
+# Beaverr
+
+Household financial clarity app. Local repo folder: `beaverr` (`C:\Users\momen\beaverr`).
+
 # Expo SDK 56 + Router
 
 Read the exact versioned docs at https://docs.expo.dev/versions/v56.0.0/ before writing any code. For routing, layouts, navigation, and new screens, follow `.cursor/skills/expo-sdk-56-router/SKILL.md`.

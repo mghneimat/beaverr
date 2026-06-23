@@ -2,8 +2,10 @@ import { View, Pressable } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
 import { useI18n } from '../../../lib/i18n';
 import { SECTION_STORAGE_KEYS, parseAmount, amountToString } from '../../../lib/sectionEditStorage';
-import { C, T } from '../../../constants/onboarding-theme';
+import { C, R, T } from '../../../constants/onboarding-theme';
 import SectionEditForm from '../SectionEditForm';
+import FocusGate from '../FocusGate';
+import { useSectionEditFocus } from '../../../lib/SectionEditFocusContext';
 import LabeledInput from '../../onboarding/LabeledInput';
 import InputGroup from '../../onboarding/InputGroup';
 import RemoveButton from '../../onboarding/RemoveButton';
@@ -38,6 +40,7 @@ function toPayload(rows) {
 
 export default function DebtsEdit() {
   const { t } = useI18n();
+  const { focusKey } = useSectionEditFocus();
 
   return (
     <SectionEditForm
@@ -46,7 +49,11 @@ export default function DebtsEdit() {
       loadTransform={(saved) => toEditState(saved)}
       transformBeforeSave={toPayload}
       validate={(rows, tr) => {
-        for (let i = 0; i < rows.length; i++) {
+        const indices = focusKey?.startsWith('debt-')
+          ? [parseInt(focusKey.replace('debt-', ''), 10)]
+          : rows.map((_, i) => i);
+        for (const i of indices) {
+          if (!rows[i]) continue;
           if (!parseAmount(rows[i].balance) || !parseAmount(rows[i].minPayment)) {
             return tr('sectionEdit.debts.validation');
           }
@@ -82,15 +89,18 @@ export default function DebtsEdit() {
 
         return (
           <View>
-            <Text style={{ ...T.helper, color: C.muted, marginBottom: 16 }}>
-              {t('sectionEdit.debts.helper')}
-            </Text>
+            {!focusKey ? (
+              <Text style={{ ...T.helper, color: C.muted, marginBottom: 16 }}>
+                {t('sectionEdit.debts.helper')}
+              </Text>
+            ) : null}
 
-            {rows.length === 0 ? (
+            {!focusKey && rows.length === 0 ? (
               <Text style={{ ...T.helper, marginBottom: 16 }}>{t('sectionEdit.debts.empty')}</Text>
             ) : null}
 
             {rows.map((debt, idx) => (
+              <FocusGate key={debt.id || idx} focusKey={`debt-${idx}`}>
               <View
                 key={debt.id}
                 style={{
@@ -106,7 +116,7 @@ export default function DebtsEdit() {
                   <Text style={{ fontSize: 15, fontWeight: '600', color: C.primary }}>
                     {t('sectionEdit.debts.itemLabel', { n: idx + 1 })}
                   </Text>
-                  <RemoveButton onPress={() => removeRow(idx)} />
+                  {!focusKey ? <RemoveButton onPress={() => removeRow(idx)} /> : null}
                 </View>
 
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
@@ -118,19 +128,26 @@ export default function DebtsEdit() {
                         paddingVertical: 8,
                         paddingHorizontal: 12,
                         borderRadius: 8,
-                        backgroundColor: debt.type === type ? C.chipSelectedBg : C.bg,
-                        borderWidth: 1,
-                        borderColor: debt.type === type ? C.primary : C.border,
+                        paddingVertical: 10,
+                        paddingHorizontal: 16,
+                        borderRadius: R.pill,
+                        backgroundColor: debt.type === type ? C.pillSelectedBg : C.pillUnselectedBg,
+                        borderWidth: debt.type === type ? 0 : 1,
+                        borderColor: C.pillUnselectedBorder,
                       }}
                     >
-                      <Text style={{ fontSize: 12, color: debt.type === type ? C.primary : C.muted }}>
-                        {t(`onboarding.debts.q13a.${type}`)}
+                      <Text style={{
+                        fontSize: 12,
+                        fontWeight: debt.type === type ? '600' : '500',
+                        color: debt.type === type ? C.pillSelectedText : C.pillUnselectedText,
+                      }}>
+                        {t(`onboarding.debts.debtDetails.${type}`)}
                       </Text>
                     </Pressable>
                   ))}
                 </View>
 
-                <InputGroup label={t('onboarding.debts.q13a.balanceLabel')}>
+                <InputGroup label={t('onboarding.debts.debtDetails.balanceLabel')}>
                   <LabeledInput
                     value={debt.balance}
                     onChangeText={(v) => updateRow(idx, { balance: v })}
@@ -140,7 +157,7 @@ export default function DebtsEdit() {
                     currency={currency}
                   />
                 </InputGroup>
-                <InputGroup label={t('onboarding.debts.q13a.minPaymentLabel')}>
+                <InputGroup label={t('onboarding.debts.debtDetails.minPaymentLabel')}>
                   <LabeledInput
                     value={debt.minPayment}
                     onChangeText={(v) => updateRow(idx, { minPayment: v })}
@@ -151,14 +168,16 @@ export default function DebtsEdit() {
                   />
                 </InputGroup>
                 <LabeledInput
-                  label={t('onboarding.debts.q13a.aprLabel')}
+                  label={t('onboarding.debts.debtDetails.aprLabel')}
                   value={debt.apr}
                   onChangeText={(v) => updateRow(idx, { apr: v })}
                   numeric
                 />
               </View>
+              </FocusGate>
             ))}
 
+            {!focusKey ? (
             <Pressable
               onPress={addRow}
               accessibilityRole="button"
@@ -175,6 +194,7 @@ export default function DebtsEdit() {
                 {t('sectionEdit.debts.add')}
               </Text>
             </Pressable>
+            ) : null}
           </View>
         );
       }}

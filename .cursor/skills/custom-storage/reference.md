@@ -1,4 +1,4 @@
-# Storage Reference — PocketOS
+# Storage Reference — Beaverr
 
 ## Architecture
 
@@ -34,24 +34,24 @@ When editing persistence:
 
 | Key | Type | Notes |
 |-----|------|-------|
-| `pocketos_onboarding` | `OnboardingState` | `completed`, `currentStep`, `percentComplete` |
-| `pocketos_household` | `Household` | `type`, `partnerName`, `children: Child[]` |
-| `pocketos_location` | `Location` | `country`, `city`, `currency` |
-| `pocketos_occupation` | `Occupation` | `user`, `partner` (strings) |
-| `pocketos_income` | `Income` | `user`, `partner`, `otherSources`, `savingsBalance`, `savingsTarget`, `goal` |
-| `pocketos_housing` | `Housing` | `type`, rent/own/family branches, `govtTaxes` |
-| `pocketos_transport` | `Transport` | `hasVehicle`, `vehicle`, public transport fields |
-| `pocketos_health` | `HealthInsurance` | `members: HealthInsuranceMember[]` |
-| `pocketos_children_costs` | `ChildrenCosts` | `children: ChildCostsEntry[]` |
-| `pocketos_pets` | `Pets` | `hasPets`, `pets: Pet[]` |
-| `pocketos_subscriptions` | `Subscriptions` | `items: Subscription[]` |
-| `pocketos_other_costs` | `OtherCosts` | `items: OtherCostItem[]` |
-| `pocketos_debts` | `Debts` | `hasDebts`, `debts: DebtEntry[]` |
-| `pocketos_budget` | `Budget` | `monthlyFlexible`, `rolloverStrategy`, `rolloverMultiplier`, `rolloverBalance` |
-| `pocketos_settings` | `Settings` | `currency`, `theme`, `language`, `alertLeadDays` |
-| `pocketos_daily_log` | `DailyLog[]` | `{ date, spent }` per entry |
-| `pocketos_alerts` | `Alert[]` | `{ id, type, message, urgency, status, … }` |
-| `pocketos_costs` | `Cost[]` | Generic cost model — **key unused in app** |
+| `beaverr_onboarding` | `OnboardingState` | `completed`, `currentStep`, `percentComplete` |
+| `beaverr_household` | `Household` | `type`, `partnerName`, `children: Child[]` |
+| `beaverr_location` | `Location` | `country`, `city`, `currency` |
+| `beaverr_occupation` | `Occupation` | `user`, `partner` (strings) |
+| `beaverr_income` | `Income` | `user`, `partner`, `otherSources`, `savingsBalance`, `savingsTarget`, `goal` |
+| `beaverr_housing` | `Housing` | `type`, rent/own/family branches, `govtTaxes` |
+| `beaverr_transport` | `Transport` | `hasVehicle`, `vehicle`, public transport fields |
+| `beaverr_health` | `HealthInsurance` | `members: HealthInsuranceMember[]` |
+| `beaverr_children_costs` | `ChildrenCosts` | `children: ChildCostsEntry[]` |
+| `beaverr_pets` | `Pets` | `hasPets`, `pets: Pet[]` |
+| `beaverr_subscriptions` | `Subscriptions` | `items: Subscription[]` |
+| `beaverr_other_costs` | `OtherCosts` | `items: OtherCostItem[]` |
+| `beaverr_debts` | `Debts` | `hasDebts`, `debts: DebtEntry[]` |
+| `beaverr_budget` | `Budget` | `monthlyFlexible`, `rolloverStrategy`, `rolloverMultiplier`, `rolloverBalance` |
+| `beaverr_settings` | `Settings` | `currency`, `theme`, `language`, `alertLeadDays` |
+| `beaverr_daily_log` | `DailyLog[]` | `{ date, spent }` per entry |
+| `beaverr_alerts` | `Alert[]` | `{ id, type, message, urgency, status, … }` |
+| `beaverr_costs` | `Cost[]` | Generic cost model — **key unused in app** |
 
 ### Shared enums (schema.js)
 
@@ -80,7 +80,7 @@ Full field lists: read `lib/schema.js` directly — do not duplicate here.
 
 /** @type {Debts} */
 const payload = { hasDebts: true, debts: entries };
-await setData('pocketos_debts', payload);
+await setData('beaverr_debts', payload);
 ```
 
 ---
@@ -91,17 +91,17 @@ Some screens predate the wrapper types in `schema.js`. **New saves must use sche
 
 | Key | Schema expects | Legacy on disk (some users) |
 |-----|----------------|----------------------------|
-| `pocketos_debts` | `{ hasDebts, debts[] }` | raw `DebtEntry[]` or `[]` |
-| `pocketos_pets` | `{ hasPets, pets[] }` | raw `Pet[]` or `[]` |
-| `pocketos_subscriptions` | `{ items[] }` | raw `Subscription[]` |
-| `pocketos_other_costs` | `{ items[] }` | raw array |
-| `pocketos_occupation` | `{ user: string, partner }` | nested `{ user: { status, otherText } }` in some builds |
-| `pocketos_income` | `Income` with `user`/`partner`/`otherSources` | alternate array field names in older screens |
+| `beaverr_debts` | `{ hasDebts, debts[] }` | raw `DebtEntry[]` or `[]` |
+| `beaverr_pets` | `{ hasPets, pets[] }` | raw `Pet[]` or `[]` |
+| `beaverr_subscriptions` | `{ items[] }` | raw `Subscription[]` |
+| `beaverr_other_costs` | `{ items[] }` | raw array |
+| `beaverr_occupation` | `{ user: string, partner }` | nested `{ user: { status, otherText } }` in some builds |
+| `beaverr_income` | `Income` with `user`/`partner`/`otherSources` | alternate array field names in older screens |
 
 Load pattern for migration-friendly reads:
 
 ```js
-const raw = await getData('pocketos_debts');
+const raw = await getData('beaverr_debts');
 const debts = Array.isArray(raw) ? raw : (raw?.debts ?? []);
 const hasDebts = Array.isArray(raw) ? raw.length > 0 : (raw?.hasDebts ?? false);
 ```
@@ -113,16 +113,16 @@ const hasDebts = Array.isArray(raw) ? raw.length > 0 : (raw?.hasDebts ?? false);
 Wiped keys in `lib/storage.js`:
 
 ```
-pocketos_onboarding, pocketos_household, pocketos_location, pocketos_occupation,
-pocketos_income, pocketos_costs, pocketos_debts, pocketos_budget,
-pocketos_daily_log, pocketos_alerts, pocketos_settings
+beaverr_onboarding, beaverr_household, beaverr_location, beaverr_occupation,
+beaverr_income, beaverr_costs, beaverr_debts, beaverr_budget,
+beaverr_daily_log, beaverr_alerts, beaverr_settings
 ```
 
 **Missing from registry** (used in app — add when touching `clearAllData`):
 
 ```
-pocketos_housing, pocketos_transport, pocketos_health, pocketos_children_costs,
-pocketos_pets, pocketos_subscriptions, pocketos_other_costs
+beaverr_housing, beaverr_transport, beaverr_health, beaverr_children_costs,
+beaverr_pets, beaverr_subscriptions, beaverr_other_costs
 ```
 
 ---
@@ -131,8 +131,8 @@ pocketos_pets, pocketos_subscriptions, pocketos_other_costs
 
 | File | Reads / writes |
 |------|----------------|
-| `app/index.jsx` | `pocketos_onboarding` → routing |
-| `lib/i18n.js` | `pocketos_settings.language` |
+| `app/index.jsx` | `beaverr_onboarding` → routing |
+| `lib/i18n.js` | `beaverr_settings.language` |
 | `app/(onboarding)/budget.jsx` | Aggregates income, debts, all cost section keys |
 | `app/(onboarding)/review.jsx` | Loads all domain keys for summary |
 

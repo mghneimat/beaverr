@@ -4,11 +4,13 @@ import { useI18n } from '../../../lib/i18n';
 import { SECTION_STORAGE_KEYS, parseAmount, amountToString } from '../../../lib/sectionEditStorage';
 import { C, T } from '../../../constants/onboarding-theme';
 import SectionEditForm from '../SectionEditForm';
+import FocusGate from '../FocusGate';
+import { useSectionEditFocus } from '../../../lib/SectionEditFocusContext';
 import AmountFrequencyFields from '../AmountFrequencyFields';
 import RemoveButton from '../../onboarding/RemoveButton';
 
 function subLabel(t, name) {
-  const key = `onboarding.subscriptions.q11.services.${name}`;
+  const key = `onboarding.subscriptions.serviceSelection.services.${name}`;
   const translated = t(key);
   return translated !== key ? translated : (name || t('sectionEdit.subscriptions.unnamed'));
 }
@@ -36,6 +38,7 @@ function toPayload(rows) {
 
 export default function SubscriptionsEdit() {
   const { t } = useI18n();
+  const { focusKey } = useSectionEditFocus();
 
   return (
     <SectionEditForm
@@ -44,7 +47,11 @@ export default function SubscriptionsEdit() {
       loadTransform={(saved) => toEditState(saved)}
       transformBeforeSave={toPayload}
       validate={(rows, tr) => {
-        for (let i = 0; i < rows.length; i++) {
+        const indices = focusKey?.startsWith('sub-')
+          ? [parseInt(focusKey.replace('sub-', ''), 10)]
+          : rows.map((_, i) => i);
+        for (const i of indices) {
+          if (!rows[i]) continue;
           if (!parseAmount(rows[i].cost)) return tr('sectionEdit.subscriptions.validation');
         }
         return null;
@@ -63,17 +70,19 @@ export default function SubscriptionsEdit() {
 
         return (
           <View>
-            <Text style={{ ...T.helper, color: C.muted, marginBottom: 16 }}>
-              {t('sectionEdit.subscriptions.helper')}
-            </Text>
+            {!focusKey ? (
+              <Text style={{ ...T.helper, color: C.muted, marginBottom: 16 }}>
+                {t('sectionEdit.subscriptions.helper')}
+              </Text>
+            ) : null}
 
-            {rows.length === 0 ? (
+            {!focusKey && rows.length === 0 ? (
               <Text style={{ ...T.helper }}>{t('sectionEdit.subscriptions.empty')}</Text>
             ) : null}
 
             {rows.map((sub, idx) => (
+              <FocusGate key={sub.id || idx} focusKey={`sub-${idx}`}>
               <View
-                key={sub.id || idx}
                 style={{
                   marginBottom: 16,
                   padding: 16,
@@ -87,7 +96,7 @@ export default function SubscriptionsEdit() {
                   <Text style={{ fontSize: 15, fontWeight: '600', color: C.primary }}>
                     {subLabel(t, sub.name)}
                   </Text>
-                  <RemoveButton onPress={() => removeRow(idx)} />
+                  {!focusKey ? <RemoveButton onPress={() => removeRow(idx)} /> : null}
                 </View>
                 <AmountFrequencyFields
                   amount={sub.cost}
@@ -98,6 +107,7 @@ export default function SubscriptionsEdit() {
                   frequencyOptions={['monthly', 'quarterly', 'annual']}
                 />
               </View>
+              </FocusGate>
             ))}
           </View>
         );

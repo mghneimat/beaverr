@@ -3,6 +3,8 @@ import {
   computeRenewalSavingsPlan,
   getHealthMemberBudgetLine,
   getHealthMemberMonthlyAmount,
+  getVehicleInsuranceBudgetLine,
+  getVehicleInsuranceMonthlyAmount,
   isPrepaidFixedContract,
 } from '../../lib/healthInsuranceBudget';
 
@@ -30,6 +32,19 @@ describe('computeRenewalSavingsPlan', () => {
     expect(plan.monthsRemaining).toBe(3);
     expect(plan.suggestedMonthly).toBe(4000);
     expect(plan.isTight).toBe(true);
+  });
+
+  it('parses comma-formatted premium strings from amount inputs', () => {
+    const from = new Date(2026, 5, 8);
+    const plan = computeRenewalSavingsPlan({
+      premium: '22500,00',
+      endDate: '08/2026',
+      savingsBalance: 0,
+      now: from,
+    });
+    expect(plan.totalNeeded).toBe(22500);
+    expect(plan.monthsRemaining).toBe(3);
+    expect(plan.suggestedMonthly).toBe(7500);
   });
 });
 
@@ -126,5 +141,60 @@ describe('isPrepaidFixedContract', () => {
   it('detects prepaid fixed contracts', () => {
     expect(isPrepaidFixedContract({ endDateType: 'fixed', premiumPaidInFull: true })).toBe(true);
     expect(isPrepaidFixedContract({ endDateType: 'fixed', premiumPaidInFull: false })).toBe(false);
+  });
+});
+
+describe('getVehicleInsuranceBudgetLine', () => {
+  const prepaidVehicle = {
+    hasInsurance: true,
+    insurancePremium: 22500,
+    insuranceFrequency: 'annual',
+    insuranceEndDateType: 'fixed',
+    insuranceEndDate: '08/2026',
+    insurancePremiumPaidInFull: true,
+    insuranceRenewalPlan: 'renew',
+    insuranceBudgetForRenewal: true,
+    insuranceRenewalBudgetMode: 'custom',
+    insuranceRenewalCustomMonthly: 1875,
+  };
+
+  it('uses monthly renewal reserve for prepaid fixed vehicle contracts', () => {
+    expect(getVehicleInsuranceBudgetLine(prepaidVehicle)).toEqual({
+      amount: 1875,
+      frequency: 'monthly',
+    });
+  });
+
+  it('excludes prepaid vehicle premium when renewal budgeting is skipped', () => {
+    expect(getVehicleInsuranceBudgetLine({
+      ...prepaidVehicle,
+      insuranceBudgetForRenewal: false,
+      insuranceRenewalBudgetMode: 'skip',
+    })).toBeNull();
+  });
+
+  it('keeps standard frequency conversion when vehicle contract is not prepaid', () => {
+    expect(getVehicleInsuranceBudgetLine({
+      hasInsurance: true,
+      insurancePremium: 12000,
+      insuranceFrequency: 'annual',
+    })).toEqual({ amount: 12000, frequency: 'annual' });
+  });
+});
+
+describe('getVehicleInsuranceMonthlyAmount', () => {
+  it('returns the monthly reserve amount directly for prepaid renewals', () => {
+    expect(getVehicleInsuranceMonthlyAmount({
+      hasInsurance: true,
+      insurancePremium: 22500,
+      insuranceFrequency: 'annual',
+      insuranceEndDateType: 'fixed',
+      insuranceEndDate: '08/2026',
+      insurancePremiumPaidInFull: true,
+      insuranceRenewalPlan: 'renew',
+      insuranceBudgetForRenewal: true,
+      insuranceRenewalBudgetMode: 'custom',
+      insuranceRenewalCustomMonthly: 1875,
+    })).toBe(1875);
   });
 });

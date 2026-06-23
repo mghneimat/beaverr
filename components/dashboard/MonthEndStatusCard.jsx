@@ -9,7 +9,6 @@ import {
 } from '../../lib/monthEndLabels';
 import { C, T, tabularNums } from '../../constants/onboarding-theme';
 import SurfaceCard from '../ui/SurfaceCard';
-import DashboardSectionHeader from './DashboardSectionHeader';
 
 export default function MonthEndStatusCard({ financials, currency, onOpenBudget }) {
   const { t } = useI18n();
@@ -29,7 +28,6 @@ export default function MonthEndStatusCard({ financials, currency, onOpenBudget 
 
   return (
     <View style={{ marginBottom: 16 }}>
-      <DashboardSectionHeader title={t('dashboard.home.monthEndStatus.title')} />
       <Pressable
         onPress={onOpenBudget}
         accessibilityRole="button"
@@ -37,6 +35,10 @@ export default function MonthEndStatusCard({ financials, currency, onOpenBudget 
         style={({ pressed }) => ({ opacity: pressed ? 0.92 : 1 })}
       >
         <SurfaceCard>
+          <Text style={{ ...T.cardTitle, marginBottom: 16 }}>
+            {t('dashboard.home.monthEndStatus.title')}
+          </Text>
+
           {rolloverBalance > 0 ? (
             <View style={{ marginBottom: lastClosed || projectedDest ? 12 : 0 }}>
               <Text style={{ ...T.caption, color: C.muted }}>{t('dashboard.home.monthEndStatus.rolloverBalance')}</Text>
@@ -56,11 +58,15 @@ export default function MonthEndStatusCard({ financials, currency, onOpenBudget 
               <Text style={{ ...T.caption, color: C.muted }}>
                 {t('dashboard.home.monthEndStatus.lastClosed', { period: lastClosed.period })}
               </Text>
-              <Text style={{ ...T.helper, fontWeight: '600', color: C.primary, marginTop: 4 }}>
-                {formatCurrency(lastClosed.amount, currency)}
-                {' · '}
-                {formatMonthEndHistoryDestination(t, lastClosed.destination)}
-              </Text>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline', marginTop: 4, gap: 4 }}>
+                <Text style={{ ...T.helper, fontWeight: '600', color: C.primary, ...tabularNums }}>
+                  {formatCurrency(lastClosed.amount, currency)}
+                </Text>
+                <Text style={{ ...T.helper, fontWeight: '600', color: C.primary }}>
+                  {' · '}
+                  {formatMonthEndHistoryDestination(t, lastClosed.destination)}
+                </Text>
+              </View>
             </View>
           ) : null}
 

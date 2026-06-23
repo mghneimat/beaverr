@@ -5,7 +5,7 @@ import { getExpenseEditFields } from '../../lib/expenseEditFieldConfig';
 import InputGroup from '../onboarding/InputGroup';
 import LabeledInput from '../onboarding/LabeledInput';
 import FrequencyPills from '../onboarding/FrequencyPills';
-import DatePicker from '../onboarding/DatePicker';
+import SplitDateFields from '../onboarding/SplitDateFields';
 import YesNoToggle from '../onboarding/YesNoToggle';
 import { C, T } from '../../constants/onboarding-theme';
 
@@ -58,7 +58,7 @@ export default function ExpenseOnboardingFields({ row, currency, form, onChange 
                   ) : null}
                   <LabeledInput
                     value={form[key] || ''}
-                    onChangeText={(v) => update(key, field.numeric !== false ? v.replace(/[^0-9.]/g, '') : v)}
+                    onChangeText={(v) => update(key, v)}
                     numeric={field.numeric !== false}
                     placeholder={field.placeholderKey ? t(field.placeholderKey) : undefined}
                     large
@@ -93,7 +93,7 @@ export default function ExpenseOnboardingFields({ row, currency, form, onChange 
               ) : null}
               <LabeledInput
                 value={form[key] || ''}
-                onChangeText={(v) => update(key, field.numeric !== false ? v.replace(/[^0-9.]/g, '') : v)}
+                onChangeText={(v) => update(key, v)}
                 numeric={field.numeric !== false}
                 placeholder={field.placeholderKey ? t(field.placeholderKey) : undefined}
                 large
@@ -142,11 +142,22 @@ export default function ExpenseOnboardingFields({ row, currency, form, onChange 
           );
         }
 
+        if (field.type === 'hint') {
+          return (
+            <Text key={key} style={{ ...T.caption, color: C.muted, marginBottom: 16 }}>
+              {t(field.labelKey)}
+            </Text>
+          );
+        }
+
         if (field.type === 'date') {
+          const label = field.optional
+            ? `${t(field.labelKey)} (${t('common.optional')})`
+            : t(field.labelKey);
           return (
             <View key={key} style={{ marginBottom: 16 }}>
-              <Text style={{ ...T.fieldLabel, marginBottom: 8 }}>{t(field.labelKey)}</Text>
-              <DatePicker
+              <Text style={{ ...T.fieldLabel, marginBottom: 8 }}>{label}</Text>
+              <SplitDateFields
                 value={form[key] || ''}
                 onChange={(v) => update(key, v)}
                 showDay={field.showDay !== false}
@@ -156,9 +167,12 @@ export default function ExpenseOnboardingFields({ row, currency, form, onChange 
         }
 
         if (field.type === 'text' || field.type === 'number') {
+          const label = field.optional
+            ? `${t(field.labelKey)} (${t('common.optional')})`
+            : t(field.labelKey);
           return (
             <View key={key} style={{ marginBottom: 16 }}>
-              <Text style={{ ...T.fieldLabel, marginBottom: 8 }}>{t(field.labelKey)}</Text>
+              <Text style={{ ...T.fieldLabel, marginBottom: 8 }}>{label}</Text>
               <LabeledInput
                 value={form[key] || ''}
                 onChangeText={(v) => {

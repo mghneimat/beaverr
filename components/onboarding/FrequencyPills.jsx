@@ -2,11 +2,10 @@ import { View } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
 import PillToggle from './PillToggle';
 import { useI18n } from '../../lib/i18n';
-import { C, S, T } from '../../constants/onboarding-theme';
+import { C, R, S, T } from '../../constants/onboarding-theme';
 
 /**
- * Standardised frequency selector pill group.
- * Updated to match UI Examples — pills are rounded-full with navy selected state.
+ * Standardised frequency selector pill group — Balshet dark-grey selected state.
  *
  * @param {Object} props
  * @param {string[]} props.options - Frequency keys, e.g. ['daily','weekly','monthly']
@@ -16,6 +15,7 @@ import { C, S, T } from '../../constants/onboarding-theme';
  * @param {boolean} [props.small] - Smaller pill padding/font (for use inside cards)
  * @param {string} [props.label] - Visible label above the pill group
  * @param {object} [props.containerStyle] - Additional styles on the outer View
+ * @param {'default'|'segment'} [props.variant='default'] - segment = inset track, distinct from CTAs
  */
 export default function FrequencyPills({
   options,
@@ -25,6 +25,7 @@ export default function FrequencyPills({
   label,
   small = false,
   containerStyle,
+  variant = 'default',
 }) {
   const { t } = useI18n();
 
@@ -34,6 +35,7 @@ export default function FrequencyPills({
   };
 
   const groupLabel = label ?? t('common.frequency');
+  const isSegment = variant === 'segment';
 
   return (
     <View style={[{ marginBottom: small ? 10 : 12 }, containerStyle]}>
@@ -44,21 +46,31 @@ export default function FrequencyPills({
         accessibilityRole="radiogroup"
         accessibilityLabel={groupLabel}
         style={{
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: 8,
-      }}>
+          flexDirection: 'row',
+          flexWrap: isSegment ? 'nowrap' : 'wrap',
+          gap: isSegment ? 4 : 8,
+          ...(isSegment ? {
+            backgroundColor: C.bg,
+            borderRadius: R.pill,
+            padding: 4,
+            borderWidth: 1,
+            borderColor: C.border,
+          } : {}),
+        }}
+      >
       {options.map((freq) => (
         <PillToggle
           key={freq}
           label={getLabel(freq)}
           selected={value === freq}
           onPress={() => onChange(freq)}
-          paddingVertical={small ? 10 : 14}
-          paddingHorizontal={small ? 16 : 20}
+          paddingVertical={small ? 8 : 14}
+          paddingHorizontal={small ? 12 : 20}
           fontSize={small ? 13 : 14}
           fontWeight="500"
-          borderRadius={99}
+          borderRadius={isSegment ? R.button : 99}
+          variant={variant}
+          minHeight={isSegment ? (small ? 36 : 40) : 44}
         />
       ))}
       </View>

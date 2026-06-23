@@ -1,21 +1,26 @@
-import React from 'react';
-import { useRouter } from 'expo-router';
+import React, { useCallback } from 'react';
 import { useI18n } from '../../lib/i18n';
+import { navigateForward } from '../../lib/onboardingNavigation';
+import { navigateBackFromSectionSplash } from '../../lib/onboardingResume';
 import SplashScreen from '../../components/onboarding/SplashScreen';
 
 /** Section 10 splash — Other Costs */
 export default function SplashOtherCostsScreen() {
   const { t } = useI18n();
-  const router = useRouter();
+
+  const handleBack = useCallback(
+    () => navigateBackFromSectionSplash('/(onboarding)/splash-other-costs'),
+    [],
+  );
 
   return (
     <SplashScreen
       heading={t('onboarding.s10.heading')}
+      description={t('onboarding.s10.body')}
       cta={t('common.continue')}
-      onContinue={() => router.replace('/(onboarding)/other-costs')}
+      onContinue={() => navigateForward('/(onboarding)/splash-debts')}
+      onBack={handleBack}
       chapter={t('onboarding.otherCosts.chapter')}
-      onBack={() => router.replace('/(onboarding)/subscriptions')}
-      progress={86}
     />
   );
 }

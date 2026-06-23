@@ -5,19 +5,24 @@ import { useI18n } from '../../../lib/i18n';
 import { getData } from '../../../lib/storage';
 import { SECTION_STORAGE_KEYS, parseAmount, amountToString } from '../../../lib/sectionEditStorage';
 import {
-  GOAL_TYPES,
+  GOAL_INTENTS,
   SAVE_MODES,
+  DEFAULT_GOAL_INTENTS,
   buildIncomeGoalPayload,
-  goalTypeIncludesSaving,
+  goalIntentsIncludeSaving,
+  hasAnyGoalIntent,
   restoreGoalSelection,
+  toggleGoalIntent,
 } from '../../../lib/incomeGoals';
 import { C, T } from '../../../constants/onboarding-theme';
 import SectionEditForm from '../SectionEditForm';
+import FocusGate from '../FocusGate';
+import { useSectionEditFocus } from '../../../lib/SectionEditFocusContext';
 import AmountFrequencyFields from '../AmountFrequencyFields';
 import LabeledInput from '../../onboarding/LabeledInput';
 import InputGroup from '../../onboarding/InputGroup';
 import OptionCard from '../../onboarding/OptionCard';
-import DatePicker from '../../onboarding/DatePicker';
+import SplitDateFields from '../../onboarding/SplitDateFields';
 
 function toEditState(saved) {
   const s = saved || {};
@@ -29,7 +34,7 @@ function toEditState(saved) {
     partnerFrequency: s.partnerFrequency || 'monthly',
     savingsBalance: amountToString(s.savingsBalance),
     savingsMonthlyTarget: amountToString(s.savingsMonthlyTarget),
-    goalType: restoredGoal.goalType,
+    goalIntents: restoredGoal.goalIntents,
     saveMode: restoredGoal.saveMode,
     goalDescription: s.goalDescription || '',
     goalAmount: amountToString(s.goalAmount),
@@ -59,7 +64,7 @@ function toPayload(draft) {
       }))
       : [],
     ...buildIncomeGoalPayload({
-      goalType: draft.goalType,
+      goalIntents: draft.goalIntents,
       saveMode: draft.saveMode,
       savingsBalance: draft.savingsBalance,
       savingsMonthlyTarget: draft.savingsMonthlyTarget,
@@ -72,10 +77,11 @@ function toPayload(draft) {
 
 export default function IncomeEdit() {
   const { t } = useI18n();
+  const { focusKey } = useSectionEditFocus();
   const [hasPartner, setHasPartner] = useState(false);
 
   useEffect(() => {
-    getData('pocketos_household').then((h) => {
+    getData('beaverr_household').then((h) => {
       setHasPartner(h?.type === 'partner' || h?.type === 'single_parent');
     });
   }, []);
@@ -87,8 +93,43 @@ export default function IncomeEdit() {
       loadTransform={(saved) => toEditState(saved)}
       transformBeforeSave={(draft) => toPayload(draft)}
       validate={(draft, tr) => {
+        if (focusKey?.startsWith('otherIncome-')) {
+          const idx = parseInt(focusKey.replace('otherIncome-', ''), 10);
+          const row = draft.otherIncomeRows?.[idx];
+          if (!parseAmount(row?.amount)) {
+            return tr('onboarding.income.otherIncome.validationOtherAmount');
+          }
+          if (!row?.label?.trim()) {
+            return tr('onboarding.income.otherIncome.validationOtherLabel');
+          }
+          return null;
+        }
+        if (focusKey === 'userIncome') {
+          if (!parseAmount(draft.amount)) return tr('sectionEdit.income.validation.amount');
+          return null;
+        }
+        if (focusKey === 'partnerIncome' || focusKey === 'savingsBalance') return null;
+        if (focusKey === 'goals') {
+          if (!hasAnyGoalIntent(draft.goalIntents)) {
+            return tr('onboarding.strategy.goalIntents.validationType');
+          }
+          if (goalIntentsIncludeSaving(draft.goalIntents)) {
+            if (!draft.saveMode) return tr('sectionEdit.income.validation.saveMode');
+            if (draft.saveMode === SAVE_MODES.TARGET && !parseAmount(draft.goalAmount)) {
+              return tr('sectionEdit.income.validation.goal');
+            }
+            if (draft.saveMode === SAVE_MODES.ONGOING && !parseAmount(draft.savingsMonthlyTarget)) {
+              return tr('sectionEdit.income.validation.ongoing');
+            }
+          }
+          return null;
+        }
+        if (focusKey) return null;
         if (!parseAmount(draft.amount)) return tr('sectionEdit.income.validation.amount');
-        if (goalTypeIncludesSaving(draft.goalType)) {
+        if (!hasAnyGoalIntent(draft.goalIntents)) {
+          return tr('onboarding.strategy.goalIntents.validationType');
+        }
+        if (goalIntentsIncludeSaving(draft.goalIntents)) {
           if (!draft.saveMode) return tr('sectionEdit.income.validation.saveMode');
           if (draft.saveMode === SAVE_MODES.TARGET && !parseAmount(draft.goalAmount)) {
             return tr('sectionEdit.income.validation.goal');
@@ -103,14 +144,18 @@ export default function IncomeEdit() {
       {({ data, setData, currency }) => {
         if (!data) return null;
         const update = (patch) => setData((prev) => ({ ...prev, ...patch }));
-        const includesSaving = goalTypeIncludesSaving(data.goalType);
+        const goalIntents = data.goalIntents || { ...DEFAULT_GOAL_INTENTS };
+        const includesSaving = goalIntentsIncludeSaving(goalIntents);
 
         return (
           <View>
-            <Text style={{ ...T.helper, color: C.muted, marginBottom: 16 }}>
-              {t('sectionEdit.income.helper')}
-            </Text>
+            {!focusKey ? (
+              <Text style={{ ...T.helper, color: C.muted, marginBottom: 16 }}>
+                {t('sectionEdit.income.helper')}
+              </Text>
+            ) : null}
 
+            <FocusGate focusKey="userIncome">
             <AmountFrequencyFields
               label={t('sectionEdit.income.yourIncome')}
               amount={data.amount}
@@ -120,7 +165,9 @@ export default function IncomeEdit() {
               currency={currency}
               frequencyOptions={['weekly', 'fortnightly', 'monthly', 'annual']}
             />
+            </FocusGate>
 
+            <FocusGate focusKey="partnerIncome">
             {hasPartner ? (
               <AmountFrequencyFields
                 label={t('sectionEdit.income.partnerIncome')}
@@ -132,7 +179,41 @@ export default function IncomeEdit() {
                 frequencyOptions={['weekly', 'fortnightly', 'monthly', 'annual']}
               />
             ) : null}
+            </FocusGate>
 
+            {(data.otherIncomeRows || []).map((row, idx) => (
+              <FocusGate key={row.id ?? idx} focusKey={`otherIncome-${idx}`}>
+                <LabeledInput
+                  label={t('onboarding.income.otherIncome.nameLabel')}
+                  value={row.label}
+                  onChangeText={(v) => {
+                    const next = [...(data.otherIncomeRows || [])];
+                    next[idx] = { ...next[idx], label: v };
+                    update({ otherIncomeRows: next, hasOtherIncome: true });
+                  }}
+                  placeholder={t('onboarding.income.otherIncome.namePlaceholder')}
+                />
+                <AmountFrequencyFields
+                  label={t('onboarding.income.otherIncome.amountLabel')}
+                  amount={row.amount}
+                  frequency={row.frequency}
+                  onAmountChange={(v) => {
+                    const next = [...(data.otherIncomeRows || [])];
+                    next[idx] = { ...next[idx], amount: v };
+                    update({ otherIncomeRows: next, hasOtherIncome: true });
+                  }}
+                  onFrequencyChange={(v) => {
+                    const next = [...(data.otherIncomeRows || [])];
+                    next[idx] = { ...next[idx], frequency: v };
+                    update({ otherIncomeRows: next, hasOtherIncome: true });
+                  }}
+                  currency={currency}
+                  frequencyOptions={['weekly', 'fortnightly', 'monthly', 'annual']}
+                />
+              </FocusGate>
+            ))}
+
+            <FocusGate focusKey="savingsBalance">
             <InputGroup label={t('sectionEdit.income.savingsBalance')}>
               <LabeledInput
                 value={data.savingsBalance}
@@ -143,34 +224,52 @@ export default function IncomeEdit() {
                 currency={currency}
               />
             </InputGroup>
+            </FocusGate>
 
+            <FocusGate focusKey="goals">
             <Text style={{ ...T.fieldLabel, marginBottom: 8 }}>{t('sectionEdit.income.goalType')}</Text>
             <OptionCard
-              label={t('onboarding.income.q5d.typeReduceCosts')}
-              selected={data.goalType === GOAL_TYPES.REDUCE_COSTS}
-              onPress={() => update({ goalType: GOAL_TYPES.REDUCE_COSTS, saveMode: null })}
+              icon="🔍"
+              label={t('onboarding.strategy.goalIntents.intentClarity')}
+              subtitle={t('onboarding.strategy.goalIntents.intentClarityDesc')}
+              selected={goalIntents.clarity}
+              onPress={() => update({
+                goalIntents: toggleGoalIntent(goalIntents, GOAL_INTENTS.CLARITY),
+              })}
             />
             <OptionCard
-              label={t('onboarding.income.q5d.typeSaveMoney')}
-              selected={data.goalType === GOAL_TYPES.SAVE_MONEY}
-              onPress={() => update({ goalType: GOAL_TYPES.SAVE_MONEY })}
+              icon="📉"
+              label={t('onboarding.strategy.goalIntents.intentSpendLess')}
+              subtitle={t('onboarding.strategy.goalIntents.intentSpendLessDesc')}
+              selected={goalIntents.spendLess}
+              onPress={() => update({
+                goalIntents: toggleGoalIntent(goalIntents, GOAL_INTENTS.SPEND_LESS),
+              })}
             />
             <OptionCard
-              label={t('onboarding.income.q5d.typeReduceAndSave')}
-              selected={data.goalType === GOAL_TYPES.REDUCE_AND_SAVE}
-              onPress={() => update({ goalType: GOAL_TYPES.REDUCE_AND_SAVE })}
+              icon="📈"
+              label={t('onboarding.strategy.goalIntents.intentBuildMore')}
+              subtitle={t('onboarding.strategy.goalIntents.intentBuildMoreDesc')}
+              selected={goalIntents.buildMore}
+              onPress={() => {
+                const next = toggleGoalIntent(goalIntents, GOAL_INTENTS.BUILD_MORE);
+                update({
+                  goalIntents: next,
+                  saveMode: next.buildMore ? data.saveMode : null,
+                });
+              }}
             />
 
             {includesSaving ? (
               <View style={{ marginTop: 8 }}>
                 <Text style={{ ...T.fieldLabel, marginBottom: 8 }}>{t('sectionEdit.income.saveMode')}</Text>
                 <OptionCard
-                  label={t('onboarding.income.q5d.saveModeTarget')}
+                  label={t('onboarding.strategy.goalMode.target')}
                   selected={data.saveMode === SAVE_MODES.TARGET}
                   onPress={() => update({ saveMode: SAVE_MODES.TARGET })}
                 />
                 <OptionCard
-                  label={t('onboarding.income.q5d.saveModeOngoing')}
+                  label={t('onboarding.strategy.goalMode.ongoing')}
                   selected={data.saveMode === SAVE_MODES.ONGOING}
                   onPress={() => update({ saveMode: SAVE_MODES.ONGOING })}
                 />
@@ -193,9 +292,10 @@ export default function IncomeEdit() {
                       />
                     </InputGroup>
                     <Text style={{ ...T.fieldLabel, marginBottom: 8 }}>{t('sectionEdit.income.goalDate')}</Text>
-                    <DatePicker
+                    <SplitDateFields
                       value={data.goalDate}
                       onChange={(v) => update({ goalDate: v })}
+                      yearEnd={new Date().getFullYear() + 30}
                     />
                   </View>
                 ) : null}
@@ -214,6 +314,7 @@ export default function IncomeEdit() {
                 ) : null}
               </View>
             ) : null}
+            </FocusGate>
           </View>
         );
       }}

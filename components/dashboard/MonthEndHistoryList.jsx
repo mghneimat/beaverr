@@ -20,7 +20,7 @@ export default function MonthEndHistoryList({ budget, currency }) {
 
   return (
     <SurfaceCard>
-      <Text style={{ ...T.fieldLabel }}>{t('dashboard.monthEndHistory.title')}</Text>
+      <Text style={{ ...T.cardTitle }}>{t('dashboard.monthEndHistory.title')}</Text>
       <Text style={{ ...T.caption, color: C.muted, marginTop: 4, marginBottom: 12 }}>
         {t('dashboard.monthEndHistory.helper')}
       </Text>

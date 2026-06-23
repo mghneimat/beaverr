@@ -1,11 +1,8 @@
 {
-  "name": "bida",
+  "name": "beaverr",
   "main": "expo-router/entry",
   "version": "1.0.0",
   "dependencies": {
-    "@expo-google-fonts/dm-mono": "^0.4.2",
-    "@expo-google-fonts/dm-serif-display": "^0.4.2",
-    "@expo-google-fonts/inter": "^0.4.2",
     "@gluestack-ui/themed": "^1.1.73",
     "expo": "~56.0.8",
     "expo-constants": "~56.0.16",
@@ -34,6 +31,7 @@
     "xlsx-js-style": "^1.2.0"
   },
   "devDependencies": {
+    "@react-native/jest-preset": "^0.85.3",
     "@types/react": "~19.2.2",
     "jest": "^29.7.0",
     "typescript": "~6.0.3"

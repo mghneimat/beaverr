@@ -4,7 +4,7 @@ import { useI18n } from '../../lib/i18n';
 import { formatCurrency } from '../../lib/finance';
 import { C, T, tabularNums } from '../../constants/onboarding-theme';
 import SurfaceCard from '../ui/SurfaceCard';
-import DashboardSectionHeader from './DashboardSectionHeader';
+import InCardSectionHeader from './InCardSectionHeader';
 import RecurringCommitmentsCard from './RecurringCommitmentsCard';
 
 export default function FixedRecurringSummary({
@@ -24,13 +24,14 @@ export default function FixedRecurringSummary({
 
   return (
     <View style={{ gap: 16 }}>
-      <View>
-        <DashboardSectionHeader title={t('dashboard.expensesScreen.fixedRecurring.title')} />
-        <SurfaceCard>
+      <SurfaceCard>
+        <InCardSectionHeader title={t('dashboard.expensesScreen.fixedRecurring.title')} />
         <View style={{ gap: 10 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 12 }}>
             <View style={{ flex: 1 }}>
-              <Text style={{ ...T.fieldLabel }}>{t('dashboard.expensesScreen.fixedRecurring.fixedCosts')}</Text>
+              <Text style={{ ...T.caption, fontWeight: '600', color: C.muted }}>
+                {t('dashboard.expensesScreen.fixedRecurring.fixedCosts')}
+              </Text>
               <Text style={{ fontSize: 18, fontWeight: '700', color: C.primary, marginTop: 4, ...tabularNums }}>
                 {formatCurrency(fixedMonthly, currency)}
               </Text>
@@ -39,7 +40,9 @@ export default function FixedRecurringSummary({
               </Text>
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={{ ...T.fieldLabel }}>{t('dashboard.expensesScreen.fixedRecurring.recurring')}</Text>
+              <Text style={{ ...T.caption, fontWeight: '600', color: C.muted }}>
+                {t('dashboard.expensesScreen.fixedRecurring.recurring')}
+              </Text>
               <Text style={{ fontSize: 18, fontWeight: '700', color: C.primary, marginTop: 4, ...tabularNums }}>
                 {formatCurrency(recurringMonthly, currency)}
               </Text>
@@ -55,7 +58,9 @@ export default function FixedRecurringSummary({
             borderTopWidth: 1,
             borderTopColor: C.divider,
           }}>
-            <Text style={{ ...T.fieldLabel }}>{t('dashboard.expensesScreen.fixedRecurring.combined')}</Text>
+            <Text style={{ ...T.caption, fontWeight: '600', color: C.muted }}>
+              {t('dashboard.expensesScreen.fixedRecurring.combined')}
+            </Text>
             <Text style={{ ...T.helper, marginTop: 4 }}>
               {t('dashboard.expensesScreen.fixedRecurring.salaryImpact', {
                 amount: formatCurrency(fixedMonthly + recurringMonthly, currency),
@@ -65,8 +70,7 @@ export default function FixedRecurringSummary({
             </Text>
           </View>
         </View>
-        </SurfaceCard>
-      </View>
+      </SurfaceCard>
 
       <RecurringCommitmentsCard
         title={t('dashboard.home.recurring.title')}

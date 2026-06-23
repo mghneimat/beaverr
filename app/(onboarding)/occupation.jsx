@@ -1,20 +1,29 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { View } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
-import { useRouter } from 'expo-router';
 import { useI18n } from '../../lib/i18n';
+import { navigateBack, navigateForward, recordVisit } from '../../lib/onboardingNavigation';
 import { getData, setData } from '../../lib/storage';
+import { patchOnboardingState } from '../../lib/onboardingProgress';
+import {
+  buildOccupationResumeRoute,
+  computeOccupationReturnPoint,
+  hasOccupationPartner,
+  occupationNavParams,
+  resolveOccupationReturnPoint,
+} from '../../lib/occupationOnboardingSave';
+import { useOnboardingMultiStep } from '../../lib/useOnboardingMultiStep';
 import QuestionScreen from '../../components/onboarding/QuestionScreen';
 import OptionCard from '../../components/onboarding/OptionCard';
 import LabeledInput from '../../components/onboarding/LabeledInput';
 import AnimatedSlideIn from '../../components/onboarding/AnimatedSlideIn';
 
 const OCCUPATIONS = [
-  { key: 'employee', icon: '💼' },
-  { key: 'selfEmployed', icon: '🧾' },
-  { key: 'student', icon: '🎓' },
-  { key: 'notWorking', icon: '🏠' },
-  { key: 'other', icon: '❓' },
+  { key: 'employee' },
+  { key: 'selfEmployed' },
+  { key: 'student' },
+  { key: 'notWorking' },
+  { key: 'other' },
 ];
 
 /**
@@ -42,7 +51,7 @@ function AnimatedOtherInput({ visible, value, onChangeText, placeholder, label }
 
 export default function OccupationScreen() {
   const { t } = useI18n();
-  const router = useRouter();
+  const householdRef = useRef(null);
 
   const [userOccupation, setUserOccupation] = useState('');
   const [userOtherText, setUserOtherText] = useState('');
@@ -50,18 +59,23 @@ export default function OccupationScreen() {
   const [partnerOtherText, setPartnerOtherText] = useState('');
   const [partnerName, setPartnerName] = useState('');
   const [hasPartner, setHasPartner] = useState(false);
-  const [step, setStep] = useState('user'); // 'user' | 'partner'
   const [validationError, setValidationError] = useState('');
 
-  useEffect(() => {
-    async function loadData() {
-      const household = await getData('pocketos_household');
-      if (household?.type === 'partner' && household?.partnerName) {
-        setHasPartner(true);
+  const { step, setStep } = useOnboardingMultiStep('occupation', {
+    defaultStep: 'user',
+    onFocus: async () => {
+      const [household, occupation] = await Promise.all([
+        getData('beaverr_household'),
+        getData('beaverr_occupation'),
+      ]);
+
+      householdRef.current = household;
+      const partnerHousehold = hasOccupationPartner(household);
+      setHasPartner(partnerHousehold);
+      if (partnerHousehold) {
         setPartnerName(household.partnerName);
       }
 
-      const occupation = await getData('pocketos_occupation');
       if (occupation) {
         setUserOccupation(occupation.user || '');
         setUserOtherText(occupation.userOtherText || '');
@@ -70,9 +84,12 @@ export default function OccupationScreen() {
           setPartnerOtherText(occupation.partnerOtherText || '');
         }
       }
-    }
-    loadData();
-  }, []);
+    },
+    loadStepFromStorage: (occupation) => {
+      const returnPoint = resolveOccupationReturnPoint(occupation, householdRef.current);
+      return { step: returnPoint.step };
+    },
+  });
 
   const handleContinue = async () => {
     setValidationError('');
@@ -104,24 +121,45 @@ export default function OccupationScreen() {
       partnerOtherText: partnerOccupation === 'other' ? partnerOtherText.trim() || null : null,
     };
 
-    await setData('pocketos_occupation', occupationData);
+    const returnPoint = computeOccupationReturnPoint({ hasPartner });
 
-    await setData('pocketos_onboarding', {
-      completed: false,
-      currentStep: 'occupation',
-      percentComplete: 40,
+    await setData('beaverr_occupation', {
+      ...occupationData,
+      occupationOnboardingStep: returnPoint.step,
     });
 
-    router.replace('/(onboarding)/splash-income');
+    await patchOnboardingState({
+      completed: false,
+      setupMode: 'full',
+      currentStep: 'occupation',
+      percentComplete: 40,
+      resumeRoute: '/(onboarding)/splash-income',
+    });
+
+    recordVisit('/(onboarding)/occupation', occupationNavParams(returnPoint.step));
+    navigateForward('/(onboarding)/splash-income');
   };
 
-  const handleBack = () => {
+  const resumeRoute = buildOccupationResumeRoute(step);
+
+  const sharedScreenProps = {
+    chapter: t('onboarding.location.chapter'),
+    onContinue: handleContinue,
+    onBack: handleBack,
+    validationError,
+    setValidationError,
+    progressStep: step,
+    resumeRoute,
+  };
+
+  const handleBack = async () => {
     if (step === 'partner') {
       setStep('user');
       setValidationError('');
     } else {
-      // On the first question — navigate back to the occupation splash screen
-      router.replace('/(onboarding)/splash-location');
+      const location = await getData('beaverr_location');
+      const household = await getData('beaverr_household');
+      navigateBack();
     }
   };
 
@@ -129,18 +167,14 @@ export default function OccupationScreen() {
   if (step === 'user') {
     return (
       <QuestionScreen
+        {...sharedScreenProps}
         animationKey={step}
-        chapter={t('onboarding.location.chapter')}
         title={t('onboarding.occupation.title')}
         helper={t('onboarding.occupation.helper')}
-        onContinue={handleContinue}
-        onBack={handleBack}
-        validationError={validationError}
-        progress={30}      >
+      >
         {OCCUPATIONS.map((occ) => (
           <OptionCard
             key={occ.key}
-            icon={occ.icon}
             label={t(`onboarding.occupation.${occ.key}`)}
             selected={userOccupation === occ.key}
             onPress={() => {
@@ -166,18 +200,14 @@ export default function OccupationScreen() {
   if (step === 'partner') {
     return (
       <QuestionScreen
+        {...sharedScreenProps}
         animationKey={step}
-        chapter={t('onboarding.location.chapter')}
         title={t('onboarding.occupation.partnerTitle', { name: partnerName })}
         helper={t('onboarding.occupation.partnerHelper')}
-        onContinue={handleContinue}
-        onBack={handleBack}
-        validationError={validationError}
-        progress={40}      >
+      >
         {OCCUPATIONS.map((occ) => (
           <OptionCard
             key={occ.key}
-            icon={occ.icon}
             label={t(`onboarding.occupation.${occ.key}`)}
             selected={partnerOccupation === occ.key}
             onPress={() => {

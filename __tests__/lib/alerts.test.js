@@ -1,4 +1,5 @@
-import { parseAlertDate, daysUntil, scanAlerts } from '../../lib/alerts';
+import { parseAlertDate, daysUntil, scanAlerts, scanReminderAlerts } from '../../lib/alerts';
+import { buildReminderRows } from '../../lib/reminderSchedule';
 
 const t = (key, params = {}) => {
   let s = key;
@@ -18,20 +19,6 @@ describe('parseAlertDate', () => {
 });
 
 describe('scanAlerts', () => {
-  test('flags subscription renewal within 7 days', () => {
-    const soon = new Date();
-    soon.setDate(soon.getDate() + 3);
-    const day = String(soon.getDate()).padStart(2, '0');
-    const month = String(soon.getMonth() + 1).padStart(2, '0');
-    const alerts = scanAlerts({
-      subs: [{ name: 'netflix', renewalDate: `${day}/${month}/${soon.getFullYear()}` }],
-      health: {},
-      debts: [],
-      transport: {},
-    }, t);
-    expect(alerts.some((a) => a.type === 'subscription_renewal')).toBe(true);
-  });
-
   test('flags high APR debt', () => {
     const alerts = scanAlerts({
       subs: [],
@@ -40,6 +27,26 @@ describe('scanAlerts', () => {
       transport: {},
     }, t);
     expect(alerts.some((a) => a.type === 'debt_high_apr')).toBe(true);
+  });
+});
+
+describe('scanReminderAlerts', () => {
+  test('flags subscription renewal within lead window', () => {
+    const soon = new Date();
+    soon.setDate(soon.getDate() + 3);
+    const day = String(soon.getDate()).padStart(2, '0');
+    const month = String(soon.getMonth() + 1).padStart(2, '0');
+    const rows = buildReminderRows({
+      subs: [{ name: 'netflix', cost: '10', frequency: 'monthly', renewalDate: `${day}/${month}/${soon.getFullYear()}` }],
+      housing: {},
+      transport: {},
+      health: {},
+      childrenCosts: {},
+      pets: [],
+      otherCosts: [],
+    }, [], null, t);
+    const alerts = scanReminderAlerts(rows, {}, 7, t);
+    expect(alerts.some((a) => a.type === 'expense_date_reminder')).toBe(true);
   });
 });
 

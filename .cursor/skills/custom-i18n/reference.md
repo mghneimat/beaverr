@@ -1,4 +1,4 @@
-# i18n Reference — PocketOS
+# i18n Reference — Beaverr
 
 ## File map
 
@@ -22,7 +22,7 @@ translate(locale, key, params)
 
 Supported locales: `en`, `cs` (defined in `translations` object in `lib/i18n.js`).
 
-Locale loads from `getData('pocketos_settings')?.language` on mount; `setLocale` writes back via `setData`.
+Locale loads from `getData('beaverr_settings')?.language` on mount; `setLocale` writes back via `setData`.
 
 ## Full namespace tree
 

@@ -1,6 +1,4 @@
-import { View } from 'react-native';
-import { Text } from '@gluestack-ui/themed';
-import { C, T } from '../../constants/onboarding-theme';
+import AIInsightSection from './AIInsightSection';
 
 /**
  * Per-section commentary slot on Summary.
@@ -11,18 +9,10 @@ export default function InsightSlot({ insight, aiNarrative = null, comingSoonLab
   if (!text) return null;
 
   return (
-    <View style={{
-      marginTop: 10,
-      padding: 12,
-      borderRadius: 8,
-      backgroundColor: C.chipSelectedBg,
-      borderWidth: 1,
-      borderColor: C.chipSelectedBorder,
-    }}>
-      <Text style={{ ...T.caption, color: C.accent, fontWeight: '600', marginBottom: 4 }}>
-        {comingSoonLabel}
-      </Text>
-      <Text style={{ fontSize: 14, lineHeight: 20, color: C.primary }}>{text}</Text>
-    </View>
+    <AIInsightSection
+      variant="embedded"
+      paragraphs={[text]}
+      titleOverride={comingSoonLabel}
+    />
   );
 }

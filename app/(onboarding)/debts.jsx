@@ -1,14 +1,18 @@
-import { useState, useEffect, useRef } from 'react';
-import { View, Text, Pressable, Modal, ScrollView } from 'react-native';
+import { useState, useEffect } from 'react';
+import { View, Text } from 'react-native';
+import OnboardingPressable from '../../components/onboarding/OnboardingPressable';
+import { listRowBg, chipBg } from '../../components/onboarding/pressableFeedback';
 import { useRouter } from 'expo-router';
 import { useI18n } from '../../lib/i18n';
+import { navigateBack, navigateForward } from '../../lib/onboardingNavigation';
+import { useOnboardingLayout } from '../../lib/onboardingLayout';
+import MoneyStressPanaIllustration from '../../components/onboarding/MoneyStressPanaIllustration';
 import { getData, setData } from '../../lib/storage';
 import { getCurrencySymbol } from '../../lib/currency';
 import { C, S, T, R } from '../../constants/onboarding-theme';
 import QuestionScreen from '../../components/onboarding/QuestionScreen';
 import PillToggle from '../../components/onboarding/PillToggle';
-import DatePicker from '../../components/onboarding/DatePicker';
-import { elevationShadow } from '../../lib/shadow';
+import SplitDateFields from '../../components/onboarding/SplitDateFields';
 import AnimatedSlideIn from '../../components/onboarding/AnimatedSlideIn';
 import RemoveButton from '../../components/onboarding/RemoveButton';
 import LabeledInput from '../../components/onboarding/LabeledInput';
@@ -16,139 +20,28 @@ import YesNoToggle from '../../components/onboarding/YesNoToggle';
 import AddAnotherButton from '../../components/onboarding/AddAnotherButton';
 import InputGroup from '../../components/onboarding/InputGroup';
 import ScrollFocusAnchor from '../../components/onboarding/ScrollFocusAnchor';
+import DayOfMonthPicker from '../../components/onboarding/DayOfMonthPicker';
 import { useSectionExit } from '../../lib/finishOnboardingSection';
 
 const DEBT_TYPES = ['creditCard', 'personalLoan', 'carLoan', 'studentLoan', 'medical', 'family', 'bnpl', 'other'];
 
-/** Day-of-month dropdown (1–31) matching the DatePicker Dropdown style. */
-function DayPicker({ value, onChange, placeholder }) {
-  const [open, setOpen] = useState(false);
-  const [hovered, setHovered] = useState(false);
-  const [pressed, setPressed] = useState(false);
-  const triggerRef = useRef(null);
-  const [triggerLayout, setTriggerLayout] = useState(null);
-
-  const days = Array.from({ length: 31 }, (_, i) => i + 1);
-  const displayValue = value ? String(value) : '';
-
-  const handleOpen = () => {
-    if (triggerRef.current) {
-      triggerRef.current.measureInWindow((x, y, width, height) => {
-        setTriggerLayout({ x, y, width, height });
-        setOpen(true);
-      });
-    }
-  };
-
-  return (
-    <View>
-      <Pressable
-        ref={triggerRef}
-        onPress={handleOpen}
-        onHoverIn={() => setHovered(true)}
-        onHoverOut={() => setHovered(false)}
-        onPressIn={() => setPressed(true)}
-        onPressOut={() => setPressed(false)}
-        style={{
-          paddingVertical: 12,
-          paddingHorizontal: 12,
-          borderRadius: 8,
-          borderWidth: 1,
-          borderColor: C.border,
-          backgroundColor: hovered ? C.bg : pressed ? C.addPressed : C.surface,
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          minHeight: 44,
-        }}
-      >
-        <Text style={{
-          fontSize: 14,
-          color: displayValue ? C.text : C.placeholder,
-          fontWeight: displayValue ? '500' : '400',
-        }}>
-          {displayValue || placeholder}
-        </Text>
-        <Text style={{ fontSize: 10, color: C.muted, marginLeft: 4 }}>▼</Text>
-      </Pressable>
-
-      <Modal
-        visible={open}
-        transparent
-        animationType="none"
-        onRequestClose={() => setOpen(false)}
-      >
-        <Pressable style={{ flex: 1 }} onPress={() => setOpen(false)}>
-          {triggerLayout && (
-            <View
-              style={{
-                position: 'absolute',
-                top: triggerLayout.y + triggerLayout.height + 2,
-                left: triggerLayout.x,
-                width: triggerLayout.width,
-                backgroundColor: C.surface,
-                borderRadius: 12,
-                maxHeight: 200,
-                overflow: 'hidden',
-                borderWidth: 1,
-                borderColor: C.border,
-                ...elevationShadow({ offsetY: 4, blur: 8, opacity: 0.15 }),
-              }}
-            >
-              <ScrollView style={{ maxHeight: 200 }} bounces={false} keyboardShouldPersistTaps="handled">
-                {days.map((day) => {
-                  const isSelected = String(day) === String(value);
-                  return (
-                    <Pressable
-                      key={day}
-                      onPress={() => { onChange(String(day)); setOpen(false); }}
-                      style={({ pressed: btnPressed }) => ({
-                        paddingVertical: 12,
-                        paddingHorizontal: 16,
-                        backgroundColor: isSelected
-                          ? C.chipSelectedBg
-                          : btnPressed
-                            ? C.bg
-                            : 'transparent',
-                        borderBottomWidth: 1,
-                        borderBottomColor: C.border,
-                      })}
-                    >
-                      <Text style={{
-                        fontSize: 14,
-                        color: isSelected ? C.primary : C.text,
-                        fontWeight: isSelected ? '600' : '400',
-                      }}>
-                        {day}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-              </ScrollView>
-            </View>
-          )}
-        </Pressable>
-      </Modal>
-    </View>
-  );
-}
-
 export default function DebtsScreen() {
   const { t } = useI18n();
   const router = useRouter();
+  const layout = useOnboardingLayout();
   const { isEditMode, completeSection, leaveSection, editContinueLabel } = useSectionExit();
 
   // ── Loaded data ──
   const [currencyCode, setCurrencyCode] = useState('CZK');
   const currency = getCurrencySymbol(currencyCode);
 
-  const [step, setStep] = useState('q13');
+  const [step, setStep] = useState('hasDebts');
   const [validationError, setValidationError] = useState('');
 
-  // Q13 — Has debts
-  const [hasDebts, setHasDebts] = useState(null);
+  // hasDebts — Has debts
+  const [hasDebts, setHasDebts] = useState(false);
 
-  // Q13a — Debt details
+  // debtDetails — Debt details
   const [debts, setDebts] = useState([]);
   const [visibleDebts, setVisibleDebts] = useState({});
   const [focusToken, setFocusToken] = useState(null);
@@ -156,7 +49,7 @@ export default function DebtsScreen() {
   // ── Load currency from location data ──
   useEffect(() => {
     (async () => {
-      const loc = await getData('pocketos_location');
+      const loc = await getData('beaverr_location');
       if (loc?.currency) setCurrencyCode(loc.currency);
     })();
   }, []);
@@ -164,9 +57,10 @@ export default function DebtsScreen() {
   const persistDebts = async () => {
     const data = hasDebts === false ? [] : debts;
     await completeSection({
-      persist: async () => { await setData('pocketos_debts', data); },
+      persist: async () => { await setData('beaverr_debts', data); },
       onboardingPatch: { completed: false, currentStep: 'debts', percentComplete: 90 },
       nextRoute: '/(onboarding)/splash-budget',
+      routeName: 'debts',
     });
   };
 
@@ -178,36 +72,34 @@ export default function DebtsScreen() {
       return;
     }
 
-    if (step === 'q13') {
-      if (hasDebts === null) {
-        setValidationError(t('onboarding.debts.q13.validation'));
-        return;
-      }
+    if (step === 'hasDebts') {
       if (hasDebts) {
         if (debts.length === 0) addDebt();
-        setStep('q13a');
+        setStep('debtDetails');
       } else {
         await completeSection({
-          persist: async () => { await setData('pocketos_debts', []); },
+          persist: async () => { await setData('beaverr_debts', []); },
           onboardingPatch: { completed: false, currentStep: 'debts', percentComplete: 90 },
           nextRoute: '/(onboarding)/splash-budget',
+          routeName: 'debts',
         });
       }
       return;
     }
 
-    if (step === 'q13a') {
+    if (step === 'debtDetails') {
       for (let i = 0; i < debts.length; i++) {
         if (!debts[i].balance || !debts[i].minPayment) {
-          setValidationError(t('onboarding.debts.q13a.validation'));
+          setValidationError(t('onboarding.debts.debtDetails.validation'));
           return;
         }
       }
 
       await completeSection({
-        persist: async () => { await setData('pocketos_debts', debts); },
+        persist: async () => { await setData('beaverr_debts', debts); },
         onboardingPatch: { completed: false, currentStep: 'debts', percentComplete: 90 },
         nextRoute: '/(onboarding)/splash-budget',
+        routeName: 'debts',
       });
       return;
     }
@@ -215,8 +107,8 @@ export default function DebtsScreen() {
 
   const handleBack = () => {
     setValidationError('');
-    if (step === 'q13a') { setStep('q13'); return; }
-    leaveSection(() => router.replace('/(onboarding)/splash-debts'));
+    if (step === 'debtDetails') { setStep('hasDebts'); return; }
+    leaveSection(() => navigateBack());
   };
 
   const addDebt = () => {
@@ -256,16 +148,16 @@ export default function DebtsScreen() {
   const progress = 90;
   const screenProgress = isEditMode ? undefined : progress;
 
-  const renderQ13 = () => (
+  const renderHasDebts = () => (
     <View>
       <Text style={{ ...T.helper, color: C.muted, marginBottom: 16 }}>
-        {t('onboarding.debts.q13.helper')}
+        {t('onboarding.debts.hasDebts.helper')}
       </Text>
       <YesNoToggle
         value={hasDebts}
         onChange={(val) => { setHasDebts(val); setValidationError(''); }}
-        yesLabel={t('onboarding.debts.q13.yes')}
-        noLabel={t('onboarding.debts.q13.no')}
+        yesLabel={t('onboarding.debts.hasDebts.yes')}
+        noLabel={t('onboarding.debts.hasDebts.no')}
       />
     </View>
   );
@@ -273,10 +165,10 @@ export default function DebtsScreen() {
   const renderDebtForm = (debt, idx) => (
     <ScrollFocusAnchor key={debt.id || idx} focusId={debt.id || String(idx)} focusToken={focusToken}>
     <AnimatedSlideIn visible={visibleDebts[idx] !== false}>
-      <View style={{ marginBottom: 20, padding: 16, backgroundColor: C.surface, borderRadius: 12, borderWidth: 1, borderColor: C.border }}>
+      <View style={{ marginBottom: 20, paddingHorizontal: 16, paddingTop: 16, paddingBottom: 24, backgroundColor: C.surface, borderRadius: 12, borderWidth: 1, borderColor: C.border }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
           <Text style={{ fontSize: 15, fontWeight: '600', color: C.primary }}>
-            {t('onboarding.debts.q13a.debtLabel', { n: idx + 1 })}
+            {t('onboarding.debts.debtDetails.debtLabel', { n: idx + 1 })}
           </Text>
           {debts.length > 1 && (
             <RemoveButton onPress={() => removeDebt(idx)} />
@@ -285,73 +177,77 @@ export default function DebtsScreen() {
 
         {/* Debt type pills */}
         <Text style={{ ...T.fieldLabel, color: C.muted, marginBottom: 8 }}>
-          {t('onboarding.debts.q13a.typeLabel')}
+          {t('onboarding.debts.debtDetails.typeLabel')}
         </Text>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
           {DEBT_TYPES.map(type => (
-            <Pressable
+            <OnboardingPressable
               key={type}
               onPress={() => updateDebt(idx, { type })}
-              style={{
-                paddingVertical: 8,
-                paddingHorizontal: 14,
-                borderRadius: 8,
-                backgroundColor: debt.type === type ? C.chipSelectedBg : C.bg,
-                borderWidth: 1,
-                borderColor: debt.type === type ? C.primary : C.border,
-              }}
+              style={({ pressed, hovered }) => ({
+                paddingVertical: 10,
+                paddingHorizontal: 16,
+                borderRadius: R.pill,
+                backgroundColor: chipBg({ pressed, hovered, active: debt.type === type, activeBg: C.pillSelectedBg }),
+                borderWidth: debt.type === type ? 0 : 1,
+                borderColor: C.pillUnselectedBorder,
+              })}
             >
-              <Text style={{ fontSize: 13, fontWeight: '500', color: debt.type === type ? C.primary : C.muted }}>
-                {t(`onboarding.debts.q13a.${type}`)}
+              <Text style={{
+                fontSize: 13,
+                fontWeight: debt.type === type ? '600' : '500',
+                color: debt.type === type ? C.pillSelectedText : C.pillUnselectedText,
+              }}>
+                {t(`onboarding.debts.debtDetails.${type}`)}
               </Text>
-            </Pressable>
+            </OnboardingPressable>
           ))}
         </View>
 
-        <InputGroup label={t('onboarding.debts.q13a.balanceLabel')}>
+        <InputGroup label={t('onboarding.debts.debtDetails.balanceLabel')}>
           <LabeledInput
             value={debt.balance}
             onChangeText={(v) => updateDebt(idx, { balance: v })}
             numeric
-            placeholder={t('onboarding.debts.q13a.balancePlaceholder')}
+            placeholder={t('onboarding.debts.debtDetails.balancePlaceholder')}
             large
             inGroup
             currency={currency}
           />
         </InputGroup>
 
-        <InputGroup label={t('onboarding.debts.q13a.minPaymentLabel')}>
+        <InputGroup label={t('onboarding.debts.debtDetails.minPaymentLabel')}>
           <LabeledInput
             value={debt.minPayment}
             onChangeText={(v) => updateDebt(idx, { minPayment: v })}
             numeric
-            placeholder={t('onboarding.debts.q13a.minPaymentPlaceholder')}
+            placeholder={t('onboarding.debts.debtDetails.minPaymentPlaceholder')}
             large
             inGroup
             currency={currency}
           />
         </InputGroup>
         <Text style={{ ...T.caption, color: C.muted, marginTop: -8, marginBottom: 12 }}>
-          {t('onboarding.debts.q13a.minPaymentHelper')}
+          {t('onboarding.debts.debtDetails.minPaymentHelper')}
         </Text>
 
         {/* APR */}
         <LabeledInput
-          label={t('onboarding.debts.q13a.aprLabel')}
+          label={t('onboarding.debts.debtDetails.aprLabel')}
           value={debt.apr}
           onChangeText={(v) => updateDebt(idx, { apr: v })}
           numeric
-          placeholder={t('onboarding.debts.q13a.aprPlaceholder')}
+          placeholder={t('onboarding.debts.debtDetails.aprPlaceholder')}
         />
         <Text style={{ ...T.caption, color: C.muted, marginTop: -4, marginBottom: 8 }}>
-          {t('onboarding.debts.q13a.aprHelper')}
+          {t('onboarding.debts.debtDetails.aprHelper')}
         </Text>
 
         {/* High APR flag */}
         {parseFloat(debt.apr) > 20 && (
           <View style={{ padding: 10, backgroundColor: C.dangerBg, borderRadius: 8, borderWidth: 1, borderColor: C.dangerBorder, marginBottom: 8 }}>
             <Text style={{ fontSize: 13, color: '#991B1B', lineHeight: 20 }}>
-              {t('onboarding.debts.q13a.highAprWarning')}
+              {t('onboarding.debts.debtDetails.highAprWarning')}
             </Text>
           </View>
         )}
@@ -360,9 +256,9 @@ export default function DebtsScreen() {
         {parseFloat(debt.apr) === 0 && (
           <View style={{ marginBottom: 8 }}>
             <Text style={{ ...T.fieldLabel, color: C.muted, marginBottom: S.labelGap }}>
-              {t('onboarding.debts.q13a.promoEndLabel')}
+              {t('onboarding.debts.debtDetails.promoEndLabel')}
             </Text>
-            <DatePicker
+            <SplitDateFields
               value={debt.promoEndDate}
               onChange={(v) => updateDebt(idx, { promoEndDate: v })}
               showDay={false}
@@ -372,58 +268,61 @@ export default function DebtsScreen() {
 
         {/* Payment due day */}
         <Text style={{ ...T.fieldLabel, color: C.muted, marginBottom: S.labelGap }}>
-          {t('onboarding.debts.q13a.dueDayLabel')}
+          {t('onboarding.debts.debtDetails.dueDayLabel')}
         </Text>
-        <DayPicker
+        <DayOfMonthPicker
           value={debt.paymentDueDay}
           onChange={(v) => updateDebt(idx, { paymentDueDay: v })}
-          placeholder={t('onboarding.debts.q13a.dueDayPlaceholder')}
+          placeholder={t('onboarding.debts.debtDetails.dueDayPlaceholder')}
+          style={{ marginBottom: 0 }}
         />
 
         {/* Notes */}
         <LabeledInput
-          label={t('onboarding.debts.q13a.notesLabel')}
+          label={t('onboarding.debts.debtDetails.notesLabel')}
           value={debt.notes}
           onChangeText={(v) => updateDebt(idx, { notes: v })}
-          placeholder={t('onboarding.debts.q13a.notesPlaceholder')}
+          placeholder={t('onboarding.debts.debtDetails.notesPlaceholder')}
           multiline
+          containerStyle={{ marginTop: 16 }}
         />
       </View>
     </AnimatedSlideIn>
     </ScrollFocusAnchor>
   );
 
-  const renderQ13a = () => (
+  const renderDebtDetails = () => (
     <View>
       <Text style={{ ...T.helper, color: C.muted, marginBottom: 16 }}>
-        {t('onboarding.debts.q13a.helper')}
+        {t('onboarding.debts.debtDetails.helper')}
       </Text>
       {debts.map((debt, idx) => renderDebtForm(debt, idx))}
       <AddAnotherButton
-        label={t('onboarding.debts.q13a.addDebt')}
+        label={t('onboarding.debts.debtDetails.addDebt')}
         onPress={addDebt}
       />
     </View>
   );
 
   const stepTitles = {
-    q13: t('onboarding.debts.q13.title'),
-    q13a: t('onboarding.debts.q13a.title'),
+    hasDebts: t('onboarding.debts.hasDebts.title'),
+    debtDetails: t('onboarding.debts.debtDetails.title'),
   };
 
   return (
     <QuestionScreen
+      illustration={<MoneyStressPanaIllustration width={layout.illustrationWidth} />}
       chapter={t('onboarding.debts.chapter')}
       title={stepTitles[step]}
       onContinue={handleContinue}
       onBack={handleBack}
       validationError={validationError}
-      progress={screenProgress}
+        setValidationError={setValidationError}
       continueLabel={editContinueLabel}
       animationKey={step}
     >
-      {step === 'q13' && renderQ13()}
-      {step === 'q13a' && renderQ13a()}
+      {step === 'hasDebts' && renderHasDebts()}
+      {step === 'debtDetails' && renderDebtDetails()}
     </QuestionScreen>
   );
 }

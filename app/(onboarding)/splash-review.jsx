@@ -1,21 +1,31 @@
-import React from 'react';
-import { useRouter } from 'expo-router';
+import React, { useCallback } from 'react';
 import { useI18n } from '../../lib/i18n';
+import { useOnboardingLayout } from '../../lib/onboardingLayout';
+import { navigateForward } from '../../lib/onboardingNavigation';
+import { navigateBackFromSectionSplash } from '../../lib/onboardingResume';
 import SplashScreen from '../../components/onboarding/SplashScreen';
+import ConfirmedAmicoIllustration from '../../components/onboarding/ConfirmedAmicoIllustration';
 
-/** Section 13 splash — Review */
+/** Section 13 splash — Review & Confirm */
 export default function SplashReviewScreen() {
   const { t } = useI18n();
-  const router = useRouter();
+  const layout = useOnboardingLayout();
+
+  const handleBack = useCallback(
+    () => navigateBackFromSectionSplash('/(onboarding)/splash-review'),
+    [],
+  );
 
   return (
     <SplashScreen
+      illustration={<ConfirmedAmicoIllustration width={layout.illustrationWidth} />}
+      animationKey="splash-review"
       heading={t('onboarding.s13.heading')}
+      description={t('onboarding.s13.body')}
       cta={t('common.continue')}
-      onContinue={() => router.replace('/(onboarding)/review')}
+      onContinue={() => navigateForward('/(onboarding)/review')}
+      onBack={handleBack}
       chapter={t('onboarding.review.chapter')}
-      onBack={() => router.replace('/(onboarding)/budget')}
-      progress={96}
     />
   );
 }

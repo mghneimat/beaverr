@@ -1,21 +1,32 @@
-import React from 'react';
-import { useRouter } from 'expo-router';
+import React, { useCallback } from 'react';
 import { useI18n } from '../../lib/i18n';
+import { useOnboardingLayout } from '../../lib/onboardingLayout';
+import { navigateForward } from '../../lib/onboardingNavigation';
+import { navigateBackFromSectionSplash } from '../../lib/onboardingResume';
 import SplashScreen from '../../components/onboarding/SplashScreen';
+import FinanceAppAmicoIllustration from '../../components/onboarding/FinanceAppAmicoIllustration';
 
-/** Section 12 splash — Budget & Strategy */
+/** Section 12 splash — Setup Budget */
 export default function SplashBudgetScreen() {
   const { t } = useI18n();
-  const router = useRouter();
+  const layout = useOnboardingLayout();
+
+  const handleBack = useCallback(
+    () => navigateBackFromSectionSplash('/(onboarding)/splash-budget'),
+    [],
+  );
 
   return (
     <SplashScreen
+      illustration={<FinanceAppAmicoIllustration width={layout.illustrationWidth} />}
+      animationKey="splash-budget"
       heading={t('onboarding.s12.heading')}
+      description={t('onboarding.s12.body')}
       cta={t('common.continue')}
-      onContinue={() => router.replace('/(onboarding)/budget')}
+      onContinue={() => navigateForward('/(onboarding)/budget-setup')}
+      onBack={handleBack}
       chapter={t('onboarding.budget.chapter')}
-      onBack={() => router.replace('/(onboarding)/debts')}
-      progress={93}
+      resumeRoute="/(onboarding)/splash-budget"
     />
   );
 }

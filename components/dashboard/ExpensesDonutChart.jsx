@@ -1,18 +1,36 @@
+import { useEffect, useMemo } from 'react';
 import { View } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
 import Svg, { Path, Circle, G } from 'react-native-svg';
+import Animated, {
+  Easing,
+  useAnimatedProps,
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withTiming,
+} from 'react-native-reanimated';
 import { C, T, tabularNums } from '../../constants/onboarding-theme';
 import { formatSharePct } from '../../lib/formatSharePct';
 import { donutSegmentPath } from '../../lib/donutSegment';
-import { useBreakdownTableColumns, useIsDashboardNarrow } from '../../lib/dashboardLayout';
+import { useBreakdownTableColumns } from '../../lib/dashboardLayout';
 import { formatDashboardAmount } from './formatDashboardAmount';
+
+const AnimatedPath = Animated.createAnimatedComponent(Path);
 
 const CHART_COLORS = [C.primary, C.accent, C.positive, '#6B4FA0', '#F59E0B', '#0EA5E9'];
 
 const NAME_COL_W = 140;
 const LEGEND_COL_GAP = 12;
-const CARD_PADDING = 20;
-const LEGEND_MAX_W = 420;
+const LEGEND_MAX_W = 480;
+const SEGMENT_STAGGER_MS = 70;
+const SEGMENT_DURATION_MS = 520;
+
+const SIZE = 280;
+const CX = SIZE / 2;
+const CY = SIZE / 2;
+const OUTER_R = 118;
+const INNER_R = 76;
 
 function LegendColumn({ children, align = 'left', width, flex }) {
   return (
@@ -35,7 +53,7 @@ function LegendHeader({ nameLabel, amountLabel, shareLabel, stacked, amountColW,
       marginBottom: 10,
       paddingBottom: 8,
       borderBottomWidth: 1,
-      borderBottomColor: C.divider,
+      borderBottomColor: C.tableRowBorder,
       width: '100%',
     }}>
       <View style={{ width: 10, flexShrink: 0 }} />
@@ -44,13 +62,13 @@ function LegendHeader({ nameLabel, amountLabel, shareLabel, stacked, amountColW,
           {nameLabel}
         </Text>
       </LegendColumn>
-      <LegendColumn width={amountColW} align="center">
-        <Text style={{ ...T.caption, fontWeight: '600', color: C.muted, textAlign: 'center' }} numberOfLines={1}>
+      <LegendColumn width={amountColW} align="right">
+        <Text style={{ ...T.caption, fontWeight: '600', color: C.muted, textAlign: 'right' }} numberOfLines={1}>
           {amountLabel}
         </Text>
       </LegendColumn>
-      <LegendColumn width={shareColW} align="center">
-        <Text style={{ ...T.caption, fontWeight: '600', color: C.muted, textAlign: 'center' }} numberOfLines={1}>
+      <LegendColumn width={shareColW} align="right">
+        <Text style={{ ...T.caption, fontWeight: '600', color: C.muted, textAlign: 'right' }} numberOfLines={1}>
           {shareLabel}
         </Text>
       </LegendColumn>
@@ -62,9 +80,20 @@ function LegendRows({
   segments, total, frequency, currency, daysInMonth, stacked, amountColW, shareColW,
 }) {
   return (
-    <View style={{ gap: 8, width: '100%' }}>
+    <View style={{ gap: 0, width: '100%' }}>
       {segments.map((seg, i) => (
-        <View key={seg.key} style={{ flexDirection: 'row', alignItems: 'center', gap: LEGEND_COL_GAP, width: '100%' }}>
+        <View
+          key={seg.key}
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: LEGEND_COL_GAP,
+            width: '100%',
+            paddingVertical: 12,
+            borderBottomWidth: i < segments.length - 1 ? 1 : 0,
+            borderBottomColor: C.tableRowBorder,
+          }}
+        >
           <View style={{
             width: 10,
             height: 10,
@@ -73,17 +102,17 @@ function LegendRows({
             backgroundColor: CHART_COLORS[i % CHART_COLORS.length],
           }} />
           <LegendColumn width={stacked ? undefined : NAME_COL_W} flex={stacked ? 1 : undefined} align="left">
-            <Text style={{ ...T.caption, color: C.text }} numberOfLines={stacked ? 2 : 1}>
+            <Text style={{ fontSize: 14, fontWeight: '500', color: C.text }} numberOfLines={stacked ? 2 : 1}>
               {seg.label}
             </Text>
           </LegendColumn>
-          <LegendColumn width={amountColW} align="center">
-            <Text style={{ ...T.caption, color: C.primary, fontWeight: '600', textAlign: 'center', ...tabularNums }} numberOfLines={1}>
+          <LegendColumn width={amountColW} align="right">
+            <Text style={{ fontSize: 14, fontWeight: '600', color: C.primary, textAlign: 'right', ...tabularNums }} numberOfLines={1}>
               {formatDashboardAmount(seg.value, frequency, currency, daysInMonth)}
             </Text>
           </LegendColumn>
-          <LegendColumn width={shareColW} align="center">
-            <Text style={{ ...T.caption, color: C.muted, fontWeight: '600', textAlign: 'center', ...tabularNums }} numberOfLines={1}>
+          <LegendColumn width={shareColW} align="right">
+            <Text style={{ fontSize: 14, fontWeight: '500', color: C.muted, textAlign: 'right', ...tabularNums }} numberOfLines={1}>
               {formatSharePct(seg.value, total)}
             </Text>
           </LegendColumn>
@@ -93,8 +122,30 @@ function LegendRows({
   );
 }
 
+function AnimatedDonutSegment({
+  cx, cy, outerR, innerR, startAngle, sweep, fill, delay,
+}) {
+  const progress = useSharedValue(0);
+
+  useEffect(() => {
+    progress.value = withDelay(
+      delay,
+      withTiming(1, { duration: SEGMENT_DURATION_MS, easing: Easing.out(Easing.cubic) }),
+    );
+  }, [delay, progress]);
+
+  const animatedProps = useAnimatedProps(() => {
+    const end = startAngle + sweep * progress.value;
+    return {
+      d: donutSegmentPath(cx, cy, outerR, innerR, startAngle, end),
+    };
+  });
+
+  return <AnimatedPath animatedProps={animatedProps} fill={fill} />;
+}
+
 /**
- * Donut chart + three-column legend (section, amount, %).
+ * Donut chart + Maytech-style legend table below.
  */
 export default function ExpensesDonutChart({
   segments,
@@ -106,88 +157,115 @@ export default function ExpensesDonutChart({
   nameLabel,
   amountLabel,
   shareLabel,
+  chartKey,
 }) {
-  const stacked = useIsDashboardNarrow();
+  const stacked = true;
   const { amountColW, shareColW } = useBreakdownTableColumns();
-
-  const size = 228;
-  const cx = size / 2;
-  const cy = size / 2;
-  const outerR = 96;
-  const innerR = 62;
 
   const hasData = total > 0 && segments.length > 0;
   const displayTotal = formatDashboardAmount(total, frequency, currency, daysInMonth);
 
-  let angle = 0;
-  const arcs = hasData
-    ? segments.map((seg, i) => {
-        const sweep = (seg.value / total) * 360;
-        const start = angle;
-        const end = angle + sweep;
-        angle = end;
-        const d = donutSegmentPath(cx, cy, outerR, innerR, start, end);
-        return (
-          <Path
-            key={seg.key}
-            d={d}
-            fill={CHART_COLORS[i % CHART_COLORS.length]}
-          />
-        );
-      })
-    : [];
+  const chartScale = useSharedValue(0.92);
+  const centerOpacity = useSharedValue(0);
+
+  useEffect(() => {
+    chartScale.value = 0.92;
+    centerOpacity.value = 0;
+    chartScale.value = withTiming(1, { duration: 420, easing: Easing.out(Easing.cubic) });
+    centerOpacity.value = withDelay(
+      segments.length * SEGMENT_STAGGER_MS + 180,
+      withTiming(1, { duration: 320 }),
+    );
+  }, [chartKey, segments.length, chartScale, centerOpacity]);
+
+  const chartAnimStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: chartScale.value }],
+  }));
+
+  const centerAnimStyle = useAnimatedStyle(() => ({
+    opacity: centerOpacity.value,
+  }));
+
+  const arcMeta = useMemo(() => {
+    let angle = 0;
+    return segments.map((seg, i) => {
+      const sweep = (seg.value / total) * 360;
+      const start = angle;
+      angle += sweep;
+      return {
+        key: seg.key,
+        start,
+        sweep,
+        fill: CHART_COLORS[i % CHART_COLORS.length],
+        delay: i * SEGMENT_STAGGER_MS,
+      };
+    });
+  }, [segments, total]);
 
   return (
     <View style={{
       alignItems: 'center',
       justifyContent: 'center',
       width: '100%',
-      paddingVertical: CARD_PADDING,
-      paddingHorizontal: CARD_PADDING,
+      paddingVertical: 8,
     }}>
       <View style={{
-        flexDirection: stacked ? 'column' : 'row',
+        flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: stacked ? 16 : 20,
+        gap: 20,
         width: '100%',
       }}>
-        <View style={{
-          width: size,
-          height: size,
+        <Animated.View style={[{
+          width: SIZE,
+          height: SIZE,
           alignItems: 'center',
           justifyContent: 'center',
           flexShrink: 0,
-        }}>
-          <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+        }, chartAnimStyle]}
+        >
+          <Svg width={SIZE} height={SIZE} viewBox={`0 0 ${SIZE} ${SIZE}`}>
             {!hasData ? (
               <>
-                <Circle cx={cx} cy={cy} r={outerR} fill="none" stroke={C.border} strokeWidth={12} />
-                <Circle cx={cx} cy={cy} r={innerR} fill={C.surface} />
+                <Circle cx={CX} cy={CY} r={OUTER_R} fill="none" stroke={C.border} strokeWidth={14} />
+                <Circle cx={CX} cy={CY} r={INNER_R} fill={C.surface} />
               </>
             ) : (
-              <G>{arcs}</G>
+              <G>
+                {arcMeta.map((arc) => (
+                  <AnimatedDonutSegment
+                    key={arc.key}
+                    cx={CX}
+                    cy={CY}
+                    outerR={OUTER_R}
+                    innerR={INNER_R}
+                    startAngle={arc.start}
+                    sweep={arc.sweep}
+                    fill={arc.fill}
+                    delay={arc.delay}
+                  />
+                ))}
+              </G>
             )}
           </Svg>
-          <View style={{ position: 'absolute', alignItems: 'center', maxWidth: innerR * 2 - 8 }}>
+          <Animated.View style={[{ position: 'absolute', alignItems: 'center', maxWidth: INNER_R * 2 - 8 }, centerAnimStyle]}>
             <Text style={{ fontSize: 11, fontWeight: '500', color: C.muted, textAlign: 'center' }}>
               {hasData ? '' : emptyLabel}
             </Text>
             {hasData ? (
-              <Text style={{ fontSize: 13, fontWeight: '700', color: C.primary, textAlign: 'center', ...tabularNums }}>
+              <Text style={{ fontSize: 15, fontWeight: '700', color: C.primary, textAlign: 'center', ...tabularNums }}>
                 {displayTotal}
               </Text>
             ) : null}
-          </View>
-        </View>
+          </Animated.View>
+        </Animated.View>
 
         {hasData ? (
           <View style={{
-            width: stacked ? '100%' : undefined,
-            maxWidth: stacked ? LEGEND_MAX_W : undefined,
-            flexShrink: stacked ? undefined : 1,
-            minWidth: stacked ? undefined : 0,
-            alignSelf: stacked ? 'center' : undefined,
+            width: '100%',
+            maxWidth: LEGEND_MAX_W,
+            alignSelf: 'center',
+            alignItems: 'center',
           }}>
             <LegendHeader
               nameLabel={nameLabel}

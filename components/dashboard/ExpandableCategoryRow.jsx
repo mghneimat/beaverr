@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { View, Pressable } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
-import { formatCurrency, toMonthly } from '../../lib/finance';
+import { toMonthly, formatCurrency } from '../../lib/finance';
 import { C, T, tabularNums } from '../../constants/onboarding-theme';
+import ExpandCollapseIcon from '../onboarding/ExpandCollapseIcon';
 
 /**
  * Expandable cost category row for dashboard top-costs list.
@@ -31,24 +32,26 @@ export default function ExpandableCategoryRow({
         accessibilityRole="button"
         accessibilityLabel={label}
         accessibilityState={{ expanded }}
-        style={({ pressed }) => ({
+        style={({ pressed, hovered }) => ({
           flexDirection: 'row',
           alignItems: 'center',
           minHeight: 44,
           paddingVertical: 12,
           paddingHorizontal: 4,
-          backgroundColor: pressed ? C.overlayHover : 'transparent',
+          backgroundColor: pressed ? C.overlayHover : hovered ? C.overlayHover : 'transparent',
         })}
       >
-        <Text style={{ flex: 1, fontSize: 15, fontWeight: '600', color: C.primary }} numberOfLines={2}>
-          {label}
-        </Text>
-        <Text style={{ fontSize: 15, fontWeight: '600', color: C.primary, marginRight: 8, ...tabularNums }}>
-          {formatCurrency(monthlyTotal, currency)}
-        </Text>
-        <Text style={{ fontSize: 12, color: C.muted, width: 16, textAlign: 'center' }}>
-          {expanded ? '▲' : '▼'}
-        </Text>
+        {({ pressed, hovered }) => (
+          <>
+            <Text style={{ flex: 1, fontSize: 15, fontWeight: '600', color: C.primary }} numberOfLines={2}>
+              {label}
+            </Text>
+            <Text style={{ fontSize: 15, fontWeight: '600', color: C.primary, marginRight: 8, ...tabularNums }}>
+              {formatCurrency(monthlyTotal, currency)}
+            </Text>
+            <ExpandCollapseIcon expanded={expanded} color={C.muted} compact size={16} hovered={hovered} pressed={pressed} />
+          </>
+        )}
       </Pressable>
 
       {expanded ? (

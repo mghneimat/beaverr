@@ -1,54 +1,98 @@
-import React from 'react';
-import { View } from 'react-native';
-import { Box, Text } from '@gluestack-ui/themed';
-import PrimaryButton from '../../components/ui/PrimaryButton';
 import { useRouter } from 'expo-router';
-import { useI18n } from '../../lib/i18n';
-import { isConsentAccepted } from '../../lib/consent';
-import { C, R, T, S } from '../../constants/onboarding-theme';
+import React from 'react';
+import { ScrollView, View } from 'react-native';
 import FadeUpView from '../../components/onboarding/FadeUpView';
+import OnboardingBottomBar from '../../components/onboarding/OnboardingBottomBar';
+import OnboardingIntroCardLayout from '../../components/onboarding/OnboardingIntroCardLayout';
+import WelcomeAvatarIllustration from '../../components/onboarding/WelcomeAvatarIllustration';
+import { C, S, T } from '../../constants/onboarding-theme';
+import { isConsentAccepted } from '../../lib/consent';
+import { useI18n } from '../../lib/i18n';
+import { useOnboardingLayout } from '../../lib/onboardingLayout';
+import {
+  navigateForward,
+  ONBOARDING_ENTRY_HISTORY,
+  resetNavHistory,
+  restoreNavHistoryForResume,
+  useOnboardingScreen,
+} from '../../lib/onboardingNavigation';
+import {
+  getOnboardingState,
+  getSavedResumeRoute,
+  isDashboardUnlocked,
+  isQuestionnaireComplete,
+} from '../../lib/onboardingProgress';
 
 export default function WelcomeScreen() {
   const { t } = useI18n();
   const router = useRouter();
+  const layout = useOnboardingLayout();
+  useOnboardingScreen();
 
   const handleGetStarted = async () => {
-    if (await isConsentAccepted()) {
-      router.push('/(onboarding)/household');
-    } else {
+    const onboarding = await getOnboardingState();
+
+    if (!(await isConsentAccepted())) {
+      await resetNavHistory([{ route: '/(onboarding)/welcome' }]);
       router.push('/(onboarding)/consent');
+      return;
     }
+
+    if (isDashboardUnlocked(onboarding) && !isQuestionnaireComplete(onboarding)) {
+      const saved = getSavedResumeRoute(onboarding);
+      if (saved) {
+        await restoreNavHistoryForResume(onboarding);
+        navigateForward(saved);
+        return;
+      }
+    }
+
+    await resetNavHistory([
+      ...ONBOARDING_ENTRY_HISTORY,
+    ]);
+    navigateForward('/(onboarding)/setup-mode');
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center', paddingHorizontal: S.pagePadH }}>
-      <FadeUpView style={{ alignItems: 'center', width: '100%', maxWidth: S.maxWidth }}>
-        {/* Brand title */}
-        <Box style={{ marginBottom: 28, alignItems: 'center', justifyContent: 'center' }}>
-          <Text style={{ ...T.displayBrand, fontWeight: '700', letterSpacing: -1 }}>
-            {t('app.name')}
-          </Text>
-        </Box>
-
-        {/* Motto */}
-        <Text style={{ ...T.welcomeTagline, textAlign: 'center', marginBottom: 12 }}>
-          {t('app.tagline')}
-        </Text>
-
-        <Text
-          style={{ ...T.welcomeBody, textAlign: 'center', marginBottom: 32, paddingHorizontal: 24, maxWidth: 360 }}
-        >
-          {t('app.description')}
-        </Text>
-
-        <PrimaryButton
-          onPress={handleGetStarted}
-          fullWidth={false}
-          style={{ width: '100%' }}
-        >
-          {t('onboarding.welcome.cta')}
-        </PrimaryButton>
-      </FadeUpView>
+    <View style={{ flex: 1, backgroundColor: C.bg }}>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1 }}>
+        <View style={{
+          paddingHorizontal: S.pagePadH,
+          paddingVertical: 48,
+          maxWidth: S.maxWidth,
+          marginHorizontal: 'auto',
+          width: '100%',
+          flex: 1,
+          justifyContent: 'center',
+        }}>
+          <FadeUpView style={{ alignItems: 'stretch', width: '100%', maxWidth: S.maxWidth }}>
+            <OnboardingIntroCardLayout
+              illustration={<WelcomeAvatarIllustration size={layout.illustrationWidth} />}
+              title={t('onboarding.welcome.heading')}
+              titleTextStyle={{
+                ...T.questionTitle,
+                textAlign: 'left',
+                marginTop: 0,
+              }}
+              description={t('onboarding.welcome.description')}
+              descriptionTextStyle={{
+                ...T.welcomeBody,
+                textAlign: 'left',
+                marginBottom: 0,
+              }}
+              footer={(
+                <OnboardingBottomBar
+                  inCard
+                  layout={layout}
+                  primaryLabel={t('onboarding.welcome.cta')}
+                  onPrimary={handleGetStarted}
+                  showExit={false}
+                />
+              )}
+            />
+          </FadeUpView>
+        </View>
+      </ScrollView>
     </View>
   );
 }

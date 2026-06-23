@@ -3,7 +3,7 @@ import { Text } from '@gluestack-ui/themed';
 import { useRouter } from 'expo-router';
 import { useI18n } from '../../lib/i18n';
 import { sectionEditPath } from '../../lib/sectionEditRegistry';
-import { C, R } from '../../constants/onboarding-theme';
+import { C, R, T } from '../../constants/onboarding-theme';
 
 export default function EditSectionButton({
   sectionId,
@@ -34,10 +34,10 @@ export default function EditSectionButton({
         alignSelf: variant === 'header' ? 'flex-start' : undefined,
         backgroundColor: isPrimary
           ? pressed
-            ? C.accentPressed
+            ? C.pillSelectedPressed
             : hovered
-              ? C.accentPressed
-              : C.accent
+              ? C.pillSelectedPressed
+              : C.pillSelectedBg
           : pressed
             ? C.overlayPressed
             : hovered
@@ -51,8 +51,8 @@ export default function EditSectionButton({
       })}
     >
       <Text style={{
+        ...T.btnPrimary,
         fontSize: 14,
-        fontWeight: '600',
         color: isPrimary ? '#FFFFFF' : C.accent,
       }}>
         {text}

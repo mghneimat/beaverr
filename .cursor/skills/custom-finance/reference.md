@@ -1,4 +1,4 @@
-# Finance Reference — PocketOS
+# Finance Reference — Beaverr
 
 ## Module contract (`lib/finance.js`)
 

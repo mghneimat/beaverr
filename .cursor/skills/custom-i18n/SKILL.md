@@ -66,7 +66,7 @@ Missing params leave the placeholder literal (`{{percent}}`).
 
 ### Language switching
 
-Locale persists to `pocketos_settings.language` via `setLocale('en' | 'cs')`. Language picker lives in `components/HamburgerMenu.jsx`.
+Locale persists to `beaverr_settings.language` via `setLocale('en' | 'cs')`. Language picker lives in `components/HamburgerMenu.jsx`.
 
 ## Key naming conventions
 

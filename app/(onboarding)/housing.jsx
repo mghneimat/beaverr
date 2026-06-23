@@ -1,58 +1,81 @@
 import { useState, useEffect, useRef } from 'react';
 import { View, Text, Pressable, ScrollView } from 'react-native';
+import OnboardingPressable from '../../components/onboarding/OnboardingPressable';
+import { washBg, listRowBg } from '../../components/onboarding/pressableFeedback';
+import SkipButton from '../../components/onboarding/SkipButton';
 import { useRouter } from 'expo-router';
 import { useI18n } from '../../lib/i18n';
+import { navigateBack, navigateForward } from '../../lib/onboardingNavigation';
 import { getData, setData } from '../../lib/storage';
 import { getCurrencySymbol } from '../../lib/currency';
+import { useOnboardingLayout } from '../../lib/onboardingLayout';
 import { formatCurrency } from '../../lib/finance';
+import {
+  UTILITY_CATEGORY_ORDER,
+  UTILITY_CATALOG,
+  UTILITY_FREQUENCIES,
+  utilityCategoryLabelKey,
+  utilityLabelKey,
+  emptyUtilityItem,
+  utilityDisplayName,
+  migrateUtilityItemsFromHousing,
+  computeUtilitiesMonthlyTotal,
+} from '../../lib/housingUtilities';
 import { C, S, T, R } from '../../constants/onboarding-theme';
 import QuestionScreen from '../../components/onboarding/QuestionScreen';
+import BroadcastIllustration from '../../components/onboarding/BroadcastIllustration';
+import ApartmentRentRafikiIllustration from '../../components/onboarding/ApartmentRentRafikiIllustration';
+import PropertyAgreementIllustration from '../../components/onboarding/PropertyAgreementIllustration';
+import PrintingInvoicesRafikiIllustration from '../../components/onboarding/PrintingInvoicesRafikiIllustration';
+import InvoiceRafikiIllustration from '../../components/onboarding/InvoiceRafikiIllustration';
+import TaxRafikiIllustration from '../../components/onboarding/TaxRafikiIllustration';
 import OptionCard from '../../components/onboarding/OptionCard';
-import PillToggle from '../../components/onboarding/PillToggle';
-import DatePicker from '../../components/onboarding/DatePicker';
+import OnOffSwitch from '../../components/onboarding/OnOffSwitch';
+import SplitDateFields from '../../components/onboarding/SplitDateFields';
 import AnimatedSlideIn from '../../components/onboarding/AnimatedSlideIn';
+import AddAnotherButton from '../../components/onboarding/AddAnotherButton';
+import RevealAfterToggle from '../../components/onboarding/RevealAfterToggle';
 import AnimatedRow from '../../components/onboarding/AnimatedRow';
 import RemoveButton from '../../components/onboarding/RemoveButton';
+import OptionalPaymentDatesFields from '../../components/onboarding/OptionalPaymentDatesFields';
 import LabeledInput from '../../components/onboarding/LabeledInput';
 import YesNoToggle from '../../components/onboarding/YesNoToggle';
 import FrequencyPills from '../../components/onboarding/FrequencyPills';
-import AddAnotherButton from '../../components/onboarding/AddAnotherButton';
+import CardHeaderActionButton from '../../components/dashboard/CardHeaderActionButton';
 import CostCard from '../../components/onboarding/CostCard';
 import InputGroup from '../../components/onboarding/InputGroup';
 import ScrollFocusAnchor from '../../components/onboarding/ScrollFocusAnchor';
+import OnboardingCategoryAccordion from '../../components/onboarding/OnboardingCategoryAccordion';
+import UtilityCategoryIcon from '../../components/onboarding/UtilityCategoryIcon';
 import { useSectionExit } from '../../lib/finishOnboardingSection';
 import {
   buildWasteTaxMemberSummary,
   estimateAnnualWasteTax,
   shouldEstimateCzechWasteTax,
 } from '../../lib/wasteTax';
-
-const UTILITY_KEYS = ['water', 'hotWater', 'heating', 'electricity', 'gas', 'sewer', 'garbage'];
-
-const EMPTY_UTILITY_BREAKDOWN = Object.fromEntries(UTILITY_KEYS.map((k) => [k, '']));
-
-function computeItemizedUtilitiesSum(breakdown, otherRows) {
-  const fixedTotal = Object.values(breakdown).reduce((sum, v) => sum + (parseFloat(v) || 0), 0);
-  const otherTotal = (otherRows || [])
-    .filter((row) => row.visible !== false)
-    .reduce((sum, row) => sum + (parseFloat(row.amount) || 0), 0);
-  return fixedTotal + otherTotal;
-}
+import {
+  buildHousingPayload,
+  HOUSING_ROW_VALIDATION_KEYS,
+  HOUSING_UTILITY_ERROR_KEYS,
+  resolveHousingBack,
+  resolveHousingContinue,
+} from '../../lib/housing/housingFlow';
 
 /**
- * Q6 — Housing type (renting / own / family)
- * Q6a — Monthly rent (renting)
- * Q6b — Utilities (renting)
- * Q6c — Internet (all)
- * Q6d — Mortgage toggle (own)
- * Q6e — Mortgage payment (mortgage)
- * Q6f — Other ownership costs (own)
- * Q6h — Family contribution (family)
- * Q6g — Government & city taxes (all)
+ * housingStatus — Housing type (renting / own / family)
+ * rentDetails — Monthly rent (renting)
+ * rentUtilities — Utilities (renting)
+ * housingUtilities — Internet (all paths)
+ * mortgageStatus — Mortgage toggle (own)
+ * mortgageDetails — Mortgage payment (mortgage)
+ * ownershipCosts — Other ownership costs (own)
+ * familyHousing — Family contribution (family)
+ * govtTaxes — Government & city taxes (all)
  */
 export default function HousingScreen() {
   const { t } = useI18n();
   const router = useRouter();
+  const layout = useOnboardingLayout();
   const { isEditMode, completeSection, leaveSection, editContinueLabel } = useSectionExit();
 
   // ── Loaded data ──
@@ -60,48 +83,61 @@ export default function HousingScreen() {
   const currency = getCurrencySymbol(currencyCode);
 
   // ── Step tracking ──
-  const [step, setStep] = useState('q6');
+  const [step, setStep] = useState('housing-status');
 
-  // ── Q6: Housing type ──
+  // ── housingStatus: Housing type ──
   const [housingType, setHousingType] = useState(null); // 'renting' | 'own' | 'family'
 
-  // ── Q6a: Monthly rent ──
+  // ── rentDetails: Monthly rent ──
   const [rentAmount, setRentAmount] = useState('');
+  const [rentEndDate, setRentEndDate] = useState('');
+  const [rentDueDate, setRentDueDate] = useState('');
+  const [rentChargeDay, setRentChargeDay] = useState('');
 
-  // ── Q6b: Utilities ──
+  // ── rentUtilities: Utilities ──
   const [utilitiesMode, setUtilitiesMode] = useState('total'); // 'total' | 'itemized'
   const [utilitiesAmount, setUtilitiesAmount] = useState('');
-  const [utilityBreakdown, setUtilityBreakdown] = useState({ ...EMPTY_UTILITY_BREAKDOWN });
-  const [utilityOtherRows, setUtilityOtherRows] = useState([]);
-  const nextUtilityOtherId = useRef(0);
+  const [utilitiesFrequency, setUtilitiesFrequency] = useState('monthly');
+  const [utilitiesItemStep, setUtilitiesItemStep] = useState('select'); // 'select' | 'fill'
+  const [utilitySelections, setUtilitySelections] = useState([]);
+  const [activeUtilityIdx, setActiveUtilityIdx] = useState(0);
+  const [customUtilityPrompt, setCustomUtilityPrompt] = useState(null);
+  const [utilityFieldErrors, setUtilityFieldErrors] = useState({});
+  const [otherCostFieldErrors, setOtherCostFieldErrors] = useState({});
+  const [familyContributionFieldErrors, setFamilyContributionFieldErrors] = useState({});
+  const [utilitySearchQuery, setUtilitySearchQuery] = useState('');
+  const [expandedUtilityCategoryId, setExpandedUtilityCategoryId] = useState(null);
 
-  // ── Q6c: Internet ──
-  const [hasInternet, setHasInternet] = useState(null); // null | true | false
+  // ── housingUtilities: Internet ──
+  const [hasInternet, setHasInternet] = useState(false);
   const [internetAmount, setInternetAmount] = useState('');
+  const [internetEndDate, setInternetEndDate] = useState('');
+  const [internetDueDate, setInternetDueDate] = useState('');
+  const [internetChargeDay, setInternetChargeDay] = useState('');
   const [internetFrequency, setInternetFrequency] = useState('monthly');
 
-  // ── Q6d: Mortgage toggle ──
-  const [hasMortgage, setHasMortgage] = useState(null); // null | true | false
+  // ── mortgageStatus: Mortgage toggle ──
+  const [hasMortgage, setHasMortgage] = useState(false);
 
-  // ── Q6e: Mortgage payment ──
+  // ── mortgageDetails: Mortgage payment ──
   const [mortgageAmount, setMortgageAmount] = useState('');
   const [mortgageEndDate, setMortgageEndDate] = useState('');
 
-  // ── Q6f: Other ownership costs ──
-  const [hasOtherCosts, setHasOtherCosts] = useState(null); // null | true | false
+  // ── ownershipCosts: Other ownership costs ──
+  const [hasOtherCosts, setHasOtherCosts] = useState(false);
   const [otherCostRows, setOtherCostRows] = useState([
     { id: 0, amount: '', description: '', dueDate: '', visible: true },
   ]);
   const nextCostRowId = useRef(1);
 
-  // ── Q6h: Family contribution ──
-  const [contributesToFamily, setContributesToFamily] = useState(null); // null | true | false
+  // ── familyHousing: Family contribution ──
+  const [contributesToFamily, setContributesToFamily] = useState(false);
   const [familyContributionRows, setFamilyContributionRows] = useState([
     { id: 0, amount: '', description: '', dueDate: '', visible: true },
   ]);
   const nextFamilyRowId = useRef(1);
 
-  // ── Q6g: Government taxes ──
+  // ── govtTaxes: Government taxes ──
   const [household, setHousehold] = useState(null);
   const [location, setLocation] = useState(null);
   const [wasteTax, setWasteTax] = useState(true);
@@ -120,41 +156,30 @@ export default function HousingScreen() {
 
   useEffect(() => {
     async function loadData() {
-      const loc = await getData('pocketos_location');
+      const loc = await getData('beaverr_location');
       if (loc?.currency) setCurrencyCode(loc.currency);
       setLocation(loc || null);
 
-      const hh = await getData('pocketos_household');
+      const hh = await getData('beaverr_household');
       setHousehold(hh || null);
 
-      const saved = await getData('pocketos_housing');
+      const saved = await getData('beaverr_housing');
       if (saved) {
         if (saved.type) setHousingType(saved.type);
         if (saved.rent) setRentAmount(String(saved.rent));
+        if (saved.rentEndDate) setRentEndDate(saved.rentEndDate);
+        if (saved.rentDueDate) setRentDueDate(saved.rentDueDate);
+        if (saved.rentChargeDay != null) setRentChargeDay(String(saved.rentChargeDay));
         if (saved.utilitiesMode) setUtilitiesMode(saved.utilitiesMode);
         if (saved.utilities) setUtilitiesAmount(String(saved.utilities));
-        if (saved.utilityBreakdown) {
-          const fixedOnly = { ...EMPTY_UTILITY_BREAKDOWN };
-          UTILITY_KEYS.forEach((key) => {
-            if (saved.utilityBreakdown[key] != null) {
-              fixedOnly[key] = String(saved.utilityBreakdown[key]);
-            }
-          });
-          setUtilityBreakdown(fixedOnly);
-        }
-        if (saved.utilityOtherRows?.length) {
-          const restored = saved.utilityOtherRows.map((row, i) => ({
-            id: i,
-            label: row.label || '',
-            amount: row.amount != null ? String(row.amount) : '',
-            visible: true,
-          }));
-          setUtilityOtherRows(restored);
-          nextUtilityOtherId.current = restored.length;
-        }
+        if (saved.utilitiesFrequency) setUtilitiesFrequency(saved.utilitiesFrequency);
+        setUtilitySelections(migrateUtilityItemsFromHousing(saved));
         if (saved.hasInternet !== undefined) setHasInternet(saved.hasInternet);
         if (saved.internetAmount) setInternetAmount(String(saved.internetAmount));
         if (saved.internetFrequency) setInternetFrequency(saved.internetFrequency);
+        if (saved.internetEndDate) setInternetEndDate(saved.internetEndDate);
+        if (saved.internetDueDate) setInternetDueDate(saved.internetDueDate);
+        if (saved.internetChargeDay != null) setInternetChargeDay(String(saved.internetChargeDay));
         if (saved.hasMortgage !== undefined) setHasMortgage(saved.hasMortgage);
         if (saved.mortgageAmount) setMortgageAmount(String(saved.mortgageAmount));
         if (saved.mortgageEndDate) setMortgageEndDate(saved.mortgageEndDate);
@@ -192,7 +217,7 @@ export default function HousingScreen() {
         setWasteTaxAmount(String(estimateAnnualWasteTax(hh)));
       }
 
-      if (isEditMode) setStep('q6');
+      if (isEditMode) setStep('housing-status');
     }
     loadData();
   }, [isEditMode]);
@@ -205,145 +230,144 @@ export default function HousingScreen() {
       return;
     }
 
-    if (step === 'q6') {
-      if (!housingType) {
-        setValidationError(t('onboarding.housing.q6.validation'));
-        return;
-      }
-      if (housingType === 'renting') setStep('q6a');
-      else if (housingType === 'own') setStep('q6d');
-      else setStep('q6h');
-    } else if (step === 'q6a') {
-      if (!rentAmount) {
-        setValidationError(t('onboarding.housing.q6a.validation'));
-        return;
-      }
-      setStep('q6b');
-    } else if (step === 'q6b') {
-      setStep('q6c');
-    } else if (step === 'q6c') {
-      if (hasInternet === true && !internetAmount) {
-        setValidationError(t('onboarding.housing.q6c.validation'));
-        return;
-      }
-      setStep('q6g');
-    } else if (step === 'q6d') {
-      if (hasMortgage === null) {
-        setValidationError(t('onboarding.housing.q6d.validation'));
-        return;
-      }
-      if (hasMortgage) setStep('q6e');
-      else setStep('q6f');
-    } else if (step === 'q6e') {
-      if (!mortgageAmount) {
-        setValidationError(t('onboarding.housing.q6e.validation'));
-        return;
-      }
-      setStep('q6f');
-    } else if (step === 'q6f') {
-      setStep('q6c');
-    } else if (step === 'q6h') {
-      setStep('q6c');
-    } else if (step === 'q6g') {
+    const result = resolveHousingContinue({
+      step,
+      housingType,
+      utilitiesMode,
+      utilitiesItemStep,
+      utilitySelections,
+      rentAmount,
+      hasInternet,
+      internetAmount,
+      hasMortgage,
+      mortgageAmount,
+      hasOtherCosts,
+      otherCostRows,
+      contributesToFamily,
+      familyContributionRows,
+    });
+
+    if (result.type === 'validationError') {
+      setValidationError(t(result.key));
+      return;
+    }
+    if (result.type === 'utilityFill') {
+      setUtilityFieldErrors({});
+      setActiveUtilityIdx(0);
+      setUtilitiesItemStep('fill');
+      return;
+    }
+    if (result.type === 'validateUtilities') {
+      const localizedErrors = {};
+      utilitySelections.forEach((item) => {
+        if (result.errors[item.id]?.amount) {
+          localizedErrors[item.id] = { amount: t(HOUSING_UTILITY_ERROR_KEYS.amount) };
+        } else if (result.errors[item.id]?.customLabel) {
+          localizedErrors[item.id] = { customLabel: t(HOUSING_UTILITY_ERROR_KEYS.customLabel) };
+        }
+      });
+      setUtilityFieldErrors(localizedErrors);
+      setActiveUtilityIdx(result.firstInvalidIdx);
+      return;
+    }
+    if (result.type === 'validateRows') {
+      const localizedErrors = {};
+      const rows = result.step === 'ownership-costs' ? otherCostRows : familyContributionRows;
+      rows.filter((row) => row.visible).forEach((row) => {
+        if (result.errors[row.id]) {
+          localizedErrors[row.id] = {
+            description: t(HOUSING_ROW_VALIDATION_KEYS[result.step]),
+          };
+        }
+      });
+      if (result.step === 'ownership-costs') setOtherCostFieldErrors(localizedErrors);
+      else setFamilyContributionFieldErrors(localizedErrors);
+      setFocusToken(String(result.firstInvalidId));
+      return;
+    }
+    if (result.type === 'nextStep') {
+      setStep(result.step);
+      return;
+    }
+    if (result.type === 'complete') {
       await saveAll();
     }
   };
 
   const saveAll = async () => {
-    const housingData = {
-      type: housingType,
-      rent: rentAmount ? parseFloat(rentAmount) : null,
+    const housingData = buildHousingPayload({
+      housingType,
+      rentAmount,
+      rentEndDate,
+      rentDueDate,
+      rentChargeDay,
       utilitiesMode,
-      utilities: utilitiesMode === 'total'
-        ? (utilitiesAmount ? parseFloat(utilitiesAmount) : null)
-        : computeItemizedUtilitiesSum(utilityBreakdown, utilityOtherRows) || null,
-      utilityBreakdown: utilitiesMode === 'itemized'
-        ? Object.fromEntries(
-          Object.entries(utilityBreakdown).map(([key, value]) => [
-            key,
-            value ? parseFloat(value) : null,
-          ]),
-        )
-        : null,
-      utilityOtherRows: utilitiesMode === 'itemized'
-        ? utilityOtherRows
-          .filter((row) => row.visible !== false)
-          .map((row) => ({
-            label: row.label || null,
-            amount: row.amount ? parseFloat(row.amount) : null,
-          }))
-        : [],
+      utilitiesAmount,
+      utilitiesFrequency,
+      utilitySelections,
       hasInternet,
-      internetAmount: hasInternet && internetAmount ? parseFloat(internetAmount) : null,
-      internetFrequency: hasInternet ? internetFrequency : null,
+      internetAmount,
+      internetFrequency,
+      internetEndDate,
+      internetDueDate,
+      internetChargeDay,
       hasMortgage,
-      mortgageAmount: hasMortgage && mortgageAmount ? parseFloat(mortgageAmount) : null,
-      mortgageEndDate: hasMortgage ? mortgageEndDate : null,
+      mortgageAmount,
+      mortgageEndDate,
       hasOtherCosts,
-      otherCostRows: hasOtherCosts ? otherCostRows.map(r => ({
-        amount: r.amount ? parseFloat(r.amount) : null,
-        description: r.description || null,
-        dueDate: r.dueDate || null,
-      })) : [],
-      contributesToFamily: housingType === 'family' ? contributesToFamily : false,
-      familyContributionRows: housingType === 'family' && contributesToFamily === true
-        ? familyContributionRows
-          .filter((r) => r.visible !== false)
-          .map(r => ({
-            amount: r.amount ? parseFloat(r.amount) : null,
-            description: r.description || null,
-            dueDate: r.dueDate || null,
-          }))
-        : [],
-      govtTaxes: {
-        wasteTax,
-        wasteTaxAmount: wasteTax ? parseFloat(wasteTaxAmount) : null,
-        wasteTaxUserEdited,
-        wasteTaxEstimatedAmount: shouldEstimateCzechWasteTax(location)
-          ? estimateAnnualWasteTax(household)
-          : null,
-        tvLicence,
-        tvLicenceAmount: tvLicence ? parseFloat(tvLicenceAmount) : null,
-        radioLicence,
-        radioLicenceAmount: radioLicence ? parseFloat(radioLicenceAmount) : null,
-        customItems: customTaxItems.map(item => ({
-          name: item.name,
-          amount: item.amount ? parseFloat(item.amount) : null,
-          frequency: item.frequency || 'annual',
-        })),
-      },
-    };
+      otherCostRows,
+      contributesToFamily,
+      familyContributionRows,
+      wasteTax,
+      wasteTaxAmount,
+      wasteTaxUserEdited,
+      location,
+      household,
+      tvLicence,
+      tvLicenceAmount,
+      radioLicence,
+      radioLicenceAmount,
+      customTaxItems,
+    });
 
     await completeSection({
-      persist: async () => { await setData('pocketos_housing', housingData); },
+      persist: async () => { await setData('beaverr_housing', housingData); },
       onboardingPatch: { completed: false, currentStep: 'housing', percentComplete: 65 },
       nextRoute: '/(onboarding)/splash-transport',
+      routeName: 'housing',
     });
   };
 
   const handleBack = () => {
     setValidationError('');
-    if (step === 'q6a') { setStep('q6'); return; }
-    if (step === 'q6b') { setStep('q6a'); return; }
-    if (step === 'q6c') {
-      if (housingType === 'renting') { setStep('q6b'); return; }
-      if (housingType === 'own') { setStep('q6f'); return; }
-      if (housingType === 'family') { setStep('q6h'); return; }
-    }
-    if (step === 'q6d') { setStep('q6'); return; }
-    if (step === 'q6e') { setStep('q6d'); return; }
-    if (step === 'q6f') {
-      if (hasMortgage) { setStep('q6e'); return; }
-      setStep('q6d');
+    const result = resolveHousingBack({
+      step,
+      housingType,
+      utilitiesMode,
+      utilitiesItemStep,
+      utilitySelections,
+      activeUtilityIdx,
+      hasMortgage,
+    });
+
+    if (result.type === 'utilityPrevItem') {
+      setActiveUtilityIdx((i) => i - 1);
       return;
     }
-    if (step === 'q6h') { setStep('q6'); return; }
-    if (step === 'q6g') {
-      // Go back to Q6c
-      setStep('q6c');
+    if (result.type === 'utilityBack') {
+      setUtilitiesItemStep('select');
+      setUtilityFieldErrors({});
       return;
     }
-    leaveSection(() => router.replace('/(onboarding)/splash-housing'));
+    if (result.type === 'setStep') {
+      if (result.restoreUtilitiesFill) {
+        setUtilitiesItemStep('fill');
+        setActiveUtilityIdx(result.utilityFillIdx ?? 0);
+      }
+      setStep(result.step);
+      return;
+    }
+    leaveSection(() => navigateBack());
   };
 
   // ── Helpers for repeating rows ──
@@ -357,6 +381,17 @@ export default function HousingScreen() {
     const rows = [...otherCostRows];
     rows[index] = { ...rows[index], [field]: value };
     setOtherCostRows(rows);
+    const rowId = rows[index].id;
+    setOtherCostFieldErrors((prev) => {
+      if (!prev[rowId]?.[field]) return prev;
+      const nextRow = { ...prev[rowId] };
+      delete nextRow[field];
+      if (Object.keys(nextRow).length === 0) {
+        const { [rowId]: _, ...rest } = prev;
+        return rest;
+      }
+      return { ...prev, [rowId]: nextRow };
+    });
   };
 
   const removeCostRow = (id) => {
@@ -378,6 +413,17 @@ export default function HousingScreen() {
     const rows = [...familyContributionRows];
     rows[index] = { ...rows[index], [field]: value };
     setFamilyContributionRows(rows);
+    const rowId = rows[index].id;
+    setFamilyContributionFieldErrors((prev) => {
+      if (!prev[rowId]?.[field]) return prev;
+      const nextRow = { ...prev[rowId] };
+      delete nextRow[field];
+      if (Object.keys(nextRow).length === 0) {
+        const { [rowId]: _, ...rest } = prev;
+        return rest;
+      }
+      return { ...prev, [rowId]: nextRow };
+    });
   };
 
   const removeFamilyRow = (id) => {
@@ -389,29 +435,97 @@ export default function HousingScreen() {
     setFamilyContributionRows((prev) => prev.filter(r => r.id !== id));
   };
 
-  const addUtilityOtherRow = () => {
-    const id = nextUtilityOtherId.current++;
-    setUtilityOtherRows((prev) => [...prev, { id, label: '', amount: '', visible: true }]);
-    setFocusToken(`utility-${id}`);
+  const isUtilitySelected = (categoryId, key) =>
+    utilitySelections.some((item) => item.category === categoryId && item.key === key && key !== 'other');
+
+  const toggleUtility = (categoryId, key) => {
+    if (isUtilitySelected(categoryId, key)) {
+      setUtilitySelections((prev) => prev.filter(
+        (item) => !(item.category === categoryId && item.key === key),
+      ));
+      return;
+    }
+    setUtilitySelections((prev) => [...prev, emptyUtilityItem(categoryId, key)]);
   };
 
-  const updateUtilityOtherRow = (index, field, value) => {
-    setUtilityOtherRows((prev) => {
-      const rows = [...prev];
-      rows[index] = { ...rows[index], [field]: value };
-      return rows;
+  const removeUtilityItem = (id) => {
+    setUtilitySelections((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const addCustomUtilityToCategory = (categoryId) => {
+    setExpandedUtilityCategoryId(categoryId);
+    setCustomUtilityPrompt({ category: categoryId, name: '' });
+  };
+
+  const toggleUtilityCategoryExpanded = (categoryId) => {
+    if (expandedUtilityCategoryId === categoryId) {
+      if (customUtilityPrompt?.category === categoryId) setCustomUtilityPrompt(null);
+      setExpandedUtilityCategoryId(null);
+      return;
+    }
+    if (customUtilityPrompt) setCustomUtilityPrompt(null);
+    setExpandedUtilityCategoryId(categoryId);
+  };
+
+  const confirmCustomUtility = () => {
+    const name = customUtilityPrompt?.name?.trim();
+    if (!name || !customUtilityPrompt?.category) {
+      setCustomUtilityPrompt(null);
+      return;
+    }
+    setUtilitySelections((prev) => [
+      ...prev,
+      emptyUtilityItem(customUtilityPrompt.category, 'other', name),
+    ]);
+    setCustomUtilityPrompt(null);
+  };
+
+  const updateUtilityItem = (id, patch) => {
+    setUtilitySelections((prev) => prev.map((item) => (item.id === id ? { ...item, ...patch } : item)));
+    setUtilityFieldErrors((prev) => {
+      if (!prev[id]) return prev;
+      const next = { ...prev };
+      delete next[id];
+      return next;
     });
   };
 
-  const removeUtilityOtherRow = (id) => {
-    setUtilityOtherRows((prev) => prev.map((row) => (
-      row.id === id ? { ...row, visible: false } : row
-    )));
+  const utilityItemErrors = (id) => utilityFieldErrors[id] || {};
+
+  const handleUtilitiesModeChange = (mode) => {
+    setUtilitiesMode(mode);
+    setUtilitiesItemStep('select');
+    setUtilityFieldErrors({});
+    setCustomUtilityPrompt(null);
+    setExpandedUtilityCategoryId(null);
+    setUtilitySearchQuery('');
   };
 
-  const finalizeRemoveUtilityOther = (id) => {
-    setUtilityOtherRows((prev) => prev.filter((row) => row.id !== id));
+  const utilityItemLabel = (key) => {
+    const labelKey = utilityLabelKey(key);
+    const translated = t(labelKey);
+    return translated !== labelKey ? translated : key;
   };
+
+  const utilityCategoryTitle = (categoryId) => {
+    const labelKey = utilityCategoryLabelKey(categoryId);
+    const translated = t(labelKey);
+    return translated !== labelKey ? translated : categoryId;
+  };
+
+  useEffect(() => {
+    if (step !== 'rent-utilities' || utilitiesMode !== 'itemized' || utilitiesItemStep === 'fill') return;
+    const norm = utilitySearchQuery.trim().toLowerCase();
+    if (!norm) return;
+    const filtered = UTILITY_CATEGORY_ORDER.filter((categoryId) => {
+      const title = utilityCategoryTitle(categoryId).toLowerCase();
+      if (title.includes(norm)) return true;
+      return (UTILITY_CATALOG[categoryId] || []).some(
+        (key) => utilityItemLabel(key).toLowerCase().includes(norm),
+      );
+    });
+    if (filtered.length > 0) setExpandedUtilityCategoryId(filtered[0]);
+  }, [step, utilitiesMode, utilitiesItemStep, utilitySearchQuery, t]);
 
   const addCustomTaxItem = () => {
     const id = nextTaxItemId.current++;
@@ -434,38 +548,32 @@ export default function HousingScreen() {
   };
 
   // ── Progress calculation ──
-  const progressMap = { q6: 56, q6a: 57, q6b: 58, q6c: 59, q6d: 57, q6e: 58, q6f: 59, q6h: 57, q6g: 62 };
-  const progress = progressMap[step] || 56;
-  const screenProgress = isEditMode ? undefined : progress;
-
-  // ── Q6: Housing type ──
-  if (step === 'q6') {
-    const options = [
-      { key: 'renting', emoji: '🏢' },
-      { key: 'own', emoji: '🏠' },
-      { key: 'family', emoji: '👨‍👩‍👧' },
-    ];
+  // ── housingStatus: Housing type ──
+  if (step === 'housing-status') {
+    const options = ['renting', 'own', 'family'];
 
     return (
       <QuestionScreen
+        progressStep={step}
         animationKey={step}
         chapter={t('onboarding.housing.chapter')}
-        title={t('onboarding.housing.q6.title')}
-        helper={t('onboarding.housing.q6.helper')}
+        title={t('onboarding.housing.housingStatus.title')}
+        helper={t('onboarding.housing.housingStatus.helper')}
+        illustration={<ApartmentRentRafikiIllustration width={layout.illustrationWidth} />}
         onContinue={handleContinue}
         onBack={handleBack}
         validationError={validationError}
-        progress={screenProgress}
+        setValidationError={setValidationError}
+
         continueLabel={editContinueLabel}
       >
         <View style={{ gap: 0 }}>
-          {options.map((opt) => (
+          {options.map((key) => (
             <OptionCard
-              key={opt.key}
-              icon={opt.emoji}
-              label={t(`onboarding.housing.q6.${opt.key}`)}
-              selected={housingType === opt.key}
-              onPress={() => setHousingType(opt.key)}
+              key={key}
+              label={t(`onboarding.housing.housingStatus.${key}`)}
+              selected={housingType === key}
+              onPress={() => setHousingType(key)}
             />
           ))}
         </View>
@@ -473,21 +581,24 @@ export default function HousingScreen() {
     );
   }
 
-  // ── Q6a: Monthly rent ──
-  if (step === 'q6a') {
+  // ── rentDetails: Monthly rent ──
+  if (step === 'rent-details') {
     return (
       <QuestionScreen
+        progressStep={step}
         animationKey={step}
         chapter={t('onboarding.housing.chapter')}
-        title={t('onboarding.housing.q6a.title')}
-        helper={t('onboarding.housing.q6a.helper')}
+        title={t('onboarding.housing.rentDetails.title')}
+        helper={t('onboarding.housing.rentDetails.helper')}
+        illustration={<ApartmentRentRafikiIllustration width={layout.illustrationWidth} />}
         onContinue={handleContinue}
         onBack={handleBack}
         validationError={validationError}
-        progress={screenProgress}
+        setValidationError={setValidationError}
+
         continueLabel={editContinueLabel}
       >
-        <InputGroup label={t('onboarding.housing.q6a.amountLabel')}>
+        <InputGroup label={t('onboarding.housing.rentDetails.amountLabel')}>
           <LabeledInput
             value={rentAmount}
             onChangeText={setRentAmount}
@@ -498,115 +609,305 @@ export default function HousingScreen() {
             currency={currency}
           />
         </InputGroup>
+        <OptionalPaymentDatesFields
+          values={{ rentEndDate, rentDueDate, rentChargeDay }}
+          onChange={(patch) => {
+            if (patch.rentEndDate !== undefined) setRentEndDate(patch.rentEndDate);
+            if (patch.rentDueDate !== undefined) setRentDueDate(patch.rentDueDate);
+            if (patch.rentChargeDay !== undefined) setRentChargeDay(patch.rentChargeDay);
+          }}
+          prefix="rent"
+        />
       </QuestionScreen>
     );
   }
 
-  // ── Q6b: Utilities ──
-  if (step === 'q6b') {
-    const utilitiesSum = computeItemizedUtilitiesSum(utilityBreakdown, utilityOtherRows);
+  // ── rentUtilities: Utilities ──
+  if (step === 'rent-utilities') {
+    const utilitiesSum = computeUtilitiesMonthlyTotal(utilitySelections);
+    const isItemizedFill = utilitiesMode === 'itemized' && utilitiesItemStep === 'fill';
+    const showUtilityTabs = isItemizedFill && utilitySelections.length > 1;
+    const activeUtility = utilitySelections[activeUtilityIdx] || utilitySelections[0];
+    const rentUtilitiesTitle = isItemizedFill
+      ? t('onboarding.housing.rentUtilities.fillTitle')
+      : t('onboarding.housing.rentUtilities.title');
+    const rentUtilitiesHelper = isItemizedFill
+      ? t('onboarding.housing.rentUtilities.fillHelper')
+      : (utilitiesMode === 'itemized'
+        ? t('onboarding.housing.rentUtilities.selectHelper')
+        : t('onboarding.housing.rentUtilities.helper'));
+
+    const utilitySearchNorm = utilitySearchQuery.trim().toLowerCase();
+    const filteredUtilityCategories = !utilitySearchNorm
+      ? UTILITY_CATEGORY_ORDER
+      : UTILITY_CATEGORY_ORDER.filter((categoryId) => {
+        const title = utilityCategoryTitle(categoryId).toLowerCase();
+        if (title.includes(utilitySearchNorm)) return true;
+        return (UTILITY_CATALOG[categoryId] || []).some(
+          (key) => utilityItemLabel(key).toLowerCase().includes(utilitySearchNorm),
+        );
+      });
+
+    const renderUtilityFillForm = (item) => {
+      const errors = utilityItemErrors(item.id);
+      return (
+        <AnimatedSlideIn key={item.id} visible>
+          <View style={{
+            marginBottom: 20,
+            padding: 16,
+            borderRadius: R.card,
+            borderWidth: 1,
+            borderColor: C.border,
+            backgroundColor: C.surface,
+          }}>
+            {utilitySelections.length === 1 ? (
+              <Text style={{ fontSize: 15, fontWeight: '600', color: C.text, marginBottom: 12 }}>
+                {utilityDisplayName(item, t)}
+              </Text>
+            ) : null}
+
+            {item.key === 'other' ? (
+              <LabeledInput
+                label={t('onboarding.housing.rentUtilities.otherUtilityLabel')}
+                value={item.customLabel || ''}
+                onChangeText={(v) => updateUtilityItem(item.id, { customLabel: v })}
+                placeholder={t('onboarding.housing.rentUtilities.otherUtilityPlaceholder')}
+                containerStyle={{ marginBottom: 12 }}
+                errorText={errors.customLabel}
+              />
+            ) : null}
+
+            <InputGroup label={t('onboarding.housing.rentUtilities.amountLabel')}>
+              <LabeledInput
+                value={item.amount}
+                onChangeText={(v) => updateUtilityItem(item.id, { amount: v })}
+                numeric
+                placeholder="0"
+                large
+                inGroup
+                currency={currency}
+                errorText={errors.amount}
+              />
+              <FrequencyPills
+                options={UTILITY_FREQUENCIES}
+                value={item.frequency}
+                onChange={(freq) => updateUtilityItem(item.id, { frequency: freq })}
+                labelMap={{
+                  monthly: t('onboarding.housing.rentUtilities.frequencyMonthly'),
+                  quarterly: t('onboarding.housing.rentUtilities.frequencyQuarterly'),
+                  annual: t('onboarding.housing.rentUtilities.frequencyAnnual'),
+                }}
+                small
+              />
+            </InputGroup>
+          </View>
+        </AnimatedSlideIn>
+      );
+    };
 
     return (
       <QuestionScreen
-        animationKey={step}
+        animationKey={isItemizedFill ? `rent-utilities-fill-${activeUtilityIdx}` : 'rent-utilities'}
         chapter={t('onboarding.housing.chapter')}
-        title={t('onboarding.housing.q6b.title')}
-        helper={t('onboarding.housing.q6b.helper')}
+        title={rentUtilitiesTitle}
+        helper={rentUtilitiesHelper}
+        illustration={<PrintingInvoicesRafikiIllustration width={layout.illustrationWidth} />}
         onContinue={handleContinue}
         onBack={handleBack}
         validationError={validationError}
-        progress={screenProgress}
+        setValidationError={setValidationError}
+
         continueLabel={editContinueLabel}
       >
-        <Text style={{ ...T.fieldLabel, marginBottom: S.labelGap }}>
-          {t('onboarding.housing.q6b.modeLabel')}
-        </Text>
-        <View style={{ flexDirection: 'row', gap: 10, marginBottom: 16 }}>
-          <OptionCard
-            label={t('onboarding.housing.q6b.modeTotal')}
-            selected={utilitiesMode === 'total'}
-            onPress={() => setUtilitiesMode('total')}
-            style={{ flex: 1 }}
-          />
-          <OptionCard
-            label={t('onboarding.housing.q6b.modeItemized')}
-            selected={utilitiesMode === 'itemized'}
-            onPress={() => setUtilitiesMode('itemized')}
-            style={{ flex: 1 }}
-          />
-        </View>
-
-        <AnimatedSlideIn visible={utilitiesMode === 'total'}>
-          <InputGroup label={t('onboarding.housing.q6b.amountLabel')}>
-            <LabeledInput
-              value={utilitiesAmount}
-              onChangeText={setUtilitiesAmount}
-              numeric
-              placeholder="0"
-              large
-              inGroup
-              currency={currency}
-            />
-          </InputGroup>
-        </AnimatedSlideIn>
-
-        <AnimatedSlideIn visible={utilitiesMode === 'itemized'}>
-          <InputGroup>
-            {UTILITY_KEYS.map((key) => (
-              <LabeledInput
-                key={key}
-                label={t(`onboarding.housing.q6b.utility${key.charAt(0).toUpperCase()}${key.slice(1)}`)}
-                value={utilityBreakdown[key]}
-                onChangeText={(v) => setUtilityBreakdown((prev) => ({ ...prev, [key]: v }))}
-                numeric
-                placeholder="0"
-                inCard
-                currency={currency}
+        {!isItemizedFill ? (
+          <>
+            <Text style={{ ...T.fieldLabel, marginBottom: S.labelGap }}>
+              {t('onboarding.housing.rentUtilities.modeLabel')}
+            </Text>
+            <View style={{ flexDirection: 'row', gap: 10, marginBottom: 16 }}>
+              <OptionCard
+                label={t('onboarding.housing.rentUtilities.modeTotal')}
+                selected={utilitiesMode === 'total'}
+                onPress={() => handleUtilitiesModeChange('total')}
+                style={{ flex: 1 }}
               />
-            ))}
+              <OptionCard
+                label={t('onboarding.housing.rentUtilities.modeItemized')}
+                selected={utilitiesMode === 'itemized'}
+                onPress={() => handleUtilitiesModeChange('itemized')}
+                style={{ flex: 1 }}
+              />
+            </View>
 
-            <AddAnotherButton
-              label={`+ ${t('onboarding.housing.q6b.addOtherUtility')}`}
-              onPress={addUtilityOtherRow}
-            />
-
-            {utilityOtherRows.map((row, index) => (
-              <ScrollFocusAnchor key={row.id} focusId={`utility-${row.id}`} focusToken={focusToken}>
-                <AnimatedRow
-                  visible={row.visible}
-                  onAnimationEnd={() => {
-                    if (!row.visible) finalizeRemoveUtilityOther(row.id);
+            <AnimatedSlideIn visible={utilitiesMode === 'total'}>
+              <InputGroup label={t('onboarding.housing.rentUtilities.amountLabel')}>
+                <LabeledInput
+                  value={utilitiesAmount}
+                  onChangeText={setUtilitiesAmount}
+                  numeric
+                  placeholder="0"
+                  large
+                  inGroup
+                  currency={currency}
+                />
+                <FrequencyPills
+                  options={UTILITY_FREQUENCIES}
+                  value={utilitiesFrequency}
+                  onChange={setUtilitiesFrequency}
+                  labelMap={{
+                    monthly: t('onboarding.housing.rentUtilities.frequencyMonthly'),
+                    quarterly: t('onboarding.housing.rentUtilities.frequencyQuarterly'),
+                    annual: t('onboarding.housing.rentUtilities.frequencyAnnual'),
                   }}
-                >
-                  <View style={{ flexDirection: 'row', gap: 8, alignItems: 'flex-end' }}>
-                    <LabeledInput
-                      label={t('onboarding.housing.q6b.otherUtilityLabel')}
-                      value={row.label}
-                      onChangeText={(v) => updateUtilityOtherRow(index, 'label', v)}
-                      placeholder={t('onboarding.housing.q6b.otherUtilityPlaceholder')}
-                      inCard
-                      containerStyle={{ flex: 1, marginBottom: 0 }}
-                    />
-                    <LabeledInput
-                      label={t('onboarding.housing.q6b.otherUtilityAmount')}
-                      value={row.amount}
-                      onChangeText={(v) => updateUtilityOtherRow(index, 'amount', v)}
-                      numeric
-                      placeholder="0"
-                      inCard
-                      currency={currency}
-                      containerStyle={{ flex: 1, marginBottom: 0 }}
-                    />
-                    <RemoveButton onPress={() => removeUtilityOtherRow(row.id)} />
-                  </View>
-                </AnimatedRow>
-              </ScrollFocusAnchor>
-            ))}
+                  small
+                />
+              </InputGroup>
+            </AnimatedSlideIn>
 
-            <Pressable
-              disabled
-              style={{
-                marginTop: 8,
+            <AnimatedSlideIn visible={utilitiesMode === 'itemized'}>
+              <LabeledInput
+                value={utilitySearchQuery}
+                onChangeText={setUtilitySearchQuery}
+                placeholder={t('onboarding.housing.rentUtilities.searchPlaceholder')}
+                containerStyle={{ marginBottom: 16 }}
+                accessibilityLabel={t('onboarding.housing.rentUtilities.searchPlaceholder')}
+              />
+
+              <Text style={{ ...T.fieldLabel, color: C.muted, marginBottom: 10 }}>
+                {t('onboarding.housing.rentUtilities.browseCategories')}
+              </Text>
+
+              {filteredUtilityCategories.length === 0 ? (
+                <Text style={{ ...T.helper, color: C.muted, marginBottom: 16 }}>
+                  {t('onboarding.housing.rentUtilities.noSearchResults')}
+                </Text>
+              ) : null}
+
+              {filteredUtilityCategories.map((categoryId) => {
+                const keys = UTILITY_CATALOG[categoryId] || [];
+                const countLabel = t('onboarding.housing.rentUtilities.suggestionCount', {
+                  count: keys.length,
+                });
+                return (
+                  <OnboardingCategoryAccordion
+                    key={categoryId}
+                    categoryId={categoryId}
+                    title={utilityCategoryTitle(categoryId)}
+                    suggestionCount={countLabel}
+                    selectedCountLabel={(count) => t('onboarding.housing.rentUtilities.selectedInCategory', { count })}
+                    itemKeys={keys}
+                    itemLabel={utilityItemLabel}
+                    isItemSelected={isUtilitySelected}
+                    onToggleItem={toggleUtility}
+                    onAddCustom={addCustomUtilityToCategory}
+                    addCustomLabel={t('common.add')}
+                    expanded={expandedUtilityCategoryId === categoryId}
+                    onToggleExpanded={toggleUtilityCategoryExpanded}
+                    customItems={utilitySelections.filter(
+                      (item) => item.category === categoryId && item.key === 'other' && item.customLabel?.trim(),
+                    ).map((item) => ({ id: item.id, customName: item.customLabel }))}
+                    onRemoveCustomItem={removeUtilityItem}
+                    showCustomInput={customUtilityPrompt?.category === categoryId}
+                    customName={customUtilityPrompt?.category === categoryId ? customUtilityPrompt.name : ''}
+                    onCustomNameChange={(name) => setCustomUtilityPrompt((p) => ({ ...p, name }))}
+                    onConfirmCustom={confirmCustomUtility}
+                    onCancelCustom={() => setCustomUtilityPrompt(null)}
+                    customPlaceholder={t('onboarding.housing.rentUtilities.otherUtilityPlaceholder')}
+                    customAccessibilityLabel={t('onboarding.housing.rentUtilities.otherUtilityLabel')}
+                    cancelAccessibilityLabel={t('common.cancel')}
+                    renderIcon={(id) => <UtilityCategoryIcon categoryId={id} size={40} />}
+                  />
+                );
+              })}
+
+              {utilitySelections.length > 0 ? (
+                <View style={{
+                  marginTop: 16,
+                  padding: 16,
+                  borderRadius: R.card,
+                  borderWidth: 1,
+                  borderColor: C.border,
+                  backgroundColor: C.surface,
+                }}>
+                  <Text style={{ ...T.fieldLabel, color: C.muted, marginBottom: 10 }}>
+                    {t('onboarding.housing.rentUtilities.addedSoFar', { count: utilitySelections.length })}
+                  </Text>
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                    {utilitySelections.map((item) => (
+                      <View
+                        key={item.id}
+                        style={{
+                          paddingVertical: 8,
+                          paddingHorizontal: 12,
+                          borderRadius: R.pill,
+                          backgroundColor: C.chipSelectedBg,
+                        }}
+                      >
+                        <Text style={{ fontSize: 12, color: C.chipSelectedText, fontWeight: '500' }}>
+                          {utilityDisplayName(item, t)}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              ) : null}
+            </AnimatedSlideIn>
+          </>
+        ) : (
+          <>
+            {utilitySelections.length > 1 ? (
+              <Text style={{ ...T.helper, color: C.muted, marginBottom: 16 }}>
+                {t('onboarding.housing.rentUtilities.fillProgress', {
+                  current: activeUtilityIdx + 1,
+                  total: utilitySelections.length,
+                })}
+              </Text>
+            ) : null}
+
+            {showUtilityTabs ? (
+              <View style={{
+                flexDirection: 'row',
+                borderRadius: R.input,
+                borderWidth: 1,
+                borderColor: C.border,
+                overflow: 'hidden',
+                marginBottom: 20,
+              }}>
+                {utilitySelections.map((item, idx) => (
+                  <OnboardingPressable
+                    key={item.id}
+                    onPress={() => {
+                      setActiveUtilityIdx(idx);
+                      setUtilityFieldErrors({});
+                    }}
+                    style={({ pressed, hovered }) => ({
+                      flex: 1,
+                      paddingVertical: 10,
+                      paddingHorizontal: 8,
+                      backgroundColor: listRowBg({ pressed, hovered, selected: activeUtilityIdx === idx }),
+                      alignItems: 'center',
+                    })}
+                  >
+                    <Text
+                      numberOfLines={1}
+                      style={{
+                        fontSize: 13,
+                        fontWeight: '500',
+                        color: activeUtilityIdx === idx ? C.primary : C.muted,
+                      }}
+                    >
+                      {utilityDisplayName(item, t)}
+                    </Text>
+                  </OnboardingPressable>
+                ))}
+              </View>
+            ) : null}
+
+            {activeUtility ? renderUtilityFillForm(activeUtility) : null}
+
+            {utilitiesSum > 0 ? (
+              <View style={{
+                marginTop: 4,
                 paddingVertical: 12,
                 paddingHorizontal: 16,
                 borderRadius: R.input,
@@ -614,71 +915,66 @@ export default function HousingScreen() {
                 borderWidth: 1,
                 borderColor: C.border,
                 alignItems: 'center',
-                opacity: 0.85,
-              }}
-            >
-              <Text style={{ fontSize: 14, fontWeight: '600', color: C.muted }}>
-                {t('onboarding.housing.q6b.utilitiesSum', {
-                  amount: formatCurrency(utilitiesSum, currency),
-                })}
-              </Text>
-            </Pressable>
-          </InputGroup>
-        </AnimatedSlideIn>
+              }}>
+                <Text style={{ fontSize: 14, fontWeight: '600', color: C.muted }}>
+                  {t('onboarding.housing.rentUtilities.utilitiesSumMonthly', {
+                    amount: formatCurrency(utilitiesSum, currency),
+                  })}
+                </Text>
+              </View>
+            ) : null}
+          </>
+        )}
 
-        <Pressable
-          onPress={() => {
-            setUtilitiesAmount('');
-            setUtilityBreakdown({ ...EMPTY_UTILITY_BREAKDOWN });
-            setStep('q6c');
-          }}
-          style={({ pressed }) => ({
-            marginTop: 16,
-            paddingVertical: 12,
-            borderRadius: R.input,
-            borderWidth: 1.5,
-            borderColor: C.addBorder,
-            borderStyle: 'dashed',
-            alignItems: 'center',
-            backgroundColor: pressed ? C.addPressed : 'transparent',
-          })}
-        >
-          <Text style={{ ...T.btnAdd, color: C.addText }}>
-            {t('onboarding.housing.q6b.skip')}
-          </Text>
-        </Pressable>
+        {!isItemizedFill ? (
+          <SkipButton
+            label={t('onboarding.housing.rentUtilities.skip')}
+            onPress={() => {
+              setUtilitiesAmount('');
+              setUtilitySelections([]);
+              setUtilitiesItemStep('select');
+              setStep('housing-utilities');
+            }}
+          />
+        ) : null}
       </QuestionScreen>
     );
   }
 
-  // ── Q6c: Internet ──
-  if (step === 'q6c') {
+  // ── housingUtilities: Internet ──
+  if (step === 'housing-utilities') {
     return (
       <QuestionScreen
+        progressStep={step}
         animationKey={step}
         chapter={t('onboarding.housing.chapter')}
-        title={t('onboarding.housing.q6c.title')}
-        helper={t('onboarding.housing.q6c.helper')}
+        title={t('onboarding.housing.housingUtilities.title')}
+        helper={t('onboarding.housing.housingUtilities.helper')}
+        illustration={<BroadcastIllustration width={layout.illustrationWidth} />}
         onContinue={handleContinue}
         onBack={handleBack}
         validationError={validationError}
-        progress={screenProgress}
+        setValidationError={setValidationError}
+
         continueLabel={editContinueLabel}
       >
         <YesNoToggle
           value={hasInternet}
           onChange={setHasInternet}
-          yesLabel={t('onboarding.housing.q6c.yes')}
-          noLabel={t('onboarding.housing.q6c.no')}
+          yesLabel={t('onboarding.housing.housingUtilities.yes')}
+          noLabel={t('onboarding.housing.housingUtilities.no')}
         />
 
-        <AnimatedSlideIn visible={hasInternet === true}>
-          <InputGroup label={t('onboarding.housing.q6c.amountLabel')}>
+        <RevealAfterToggle show={hasInternet === true}>
+          <InputGroup
+            label={t('onboarding.housing.housingUtilities.amountLabel')}
+            style={{ marginBottom: 0 }}
+          >
             <LabeledInput
               value={internetAmount}
               onChangeText={setInternetAmount}
               numeric
-              placeholder={t('onboarding.housing.q6c.amountPlaceholder')}
+              placeholder={t('onboarding.housing.housingUtilities.amountPlaceholder')}
               large
               inGroup
               currency={currency}
@@ -687,56 +983,72 @@ export default function HousingScreen() {
               options={['monthly', 'annual']}
               value={internetFrequency}
               onChange={setInternetFrequency}
+              small
+              containerStyle={{ marginBottom: 0 }}
               labelMap={{
-                monthly: t('onboarding.housing.q6c.frequencyMonthly'),
-                annual: t('onboarding.housing.q6c.frequencyAnnual'),
+                monthly: t('onboarding.housing.housingUtilities.frequencyMonthly'),
+                annual: t('onboarding.housing.housingUtilities.frequencyAnnual'),
               }}
             />
           </InputGroup>
-        </AnimatedSlideIn>
+          <OptionalPaymentDatesFields
+            values={{ internetEndDate, internetDueDate, internetChargeDay }}
+            onChange={(patch) => {
+              if (patch.internetEndDate !== undefined) setInternetEndDate(patch.internetEndDate);
+              if (patch.internetDueDate !== undefined) setInternetDueDate(patch.internetDueDate);
+              if (patch.internetChargeDay !== undefined) setInternetChargeDay(patch.internetChargeDay);
+            }}
+            prefix="internet"
+          />
+        </RevealAfterToggle>
       </QuestionScreen>
     );
   }
 
-  // ── Q6d: Mortgage toggle ──
-  if (step === 'q6d') {
+  // ── mortgageStatus: Mortgage toggle ──
+  if (step === 'mortgage-status') {
     return (
       <QuestionScreen
+        progressStep={step}
         animationKey={step}
         chapter={t('onboarding.housing.chapter')}
-        title={t('onboarding.housing.q6d.title')}
-        helper={t('onboarding.housing.q6d.helper')}
+        title={t('onboarding.housing.mortgageStatus.title')}
+        helper={t('onboarding.housing.mortgageStatus.helper')}
+        illustration={<PropertyAgreementIllustration width={layout.illustrationWidth} />}
         onContinue={handleContinue}
         onBack={handleBack}
         validationError={validationError}
-        progress={screenProgress}
+        setValidationError={setValidationError}
+
         continueLabel={editContinueLabel}
       >
         <YesNoToggle
           value={hasMortgage}
           onChange={setHasMortgage}
-          yesLabel={t('onboarding.housing.q6d.yes')}
-          noLabel={t('onboarding.housing.q6d.no')}
+          yesLabel={t('onboarding.housing.mortgageStatus.yes')}
+          noLabel={t('onboarding.housing.mortgageStatus.no')}
         />
       </QuestionScreen>
     );
   }
 
-  // ── Q6e: Mortgage payment ──
-  if (step === 'q6e') {
+  // ── mortgageDetails: Mortgage payment ──
+  if (step === 'mortgage-details') {
     return (
       <QuestionScreen
+        progressStep={step}
         animationKey={step}
         chapter={t('onboarding.housing.chapter')}
-        title={t('onboarding.housing.q6e.title')}
-        helper={t('onboarding.housing.q6e.helper')}
+        title={t('onboarding.housing.mortgageDetails.title')}
+        helper={t('onboarding.housing.mortgageDetails.helper')}
         onContinue={handleContinue}
         onBack={handleBack}
         validationError={validationError}
-        progress={screenProgress}
+        setValidationError={setValidationError}
+
         continueLabel={editContinueLabel}
       >
-        <InputGroup label={t('onboarding.housing.q6e.amountLabel')}>
+        <InputGroup label={t('onboarding.housing.mortgageDetails.amountLabel')}>
           <LabeledInput
             value={mortgageAmount}
             onChangeText={setMortgageAmount}
@@ -748,48 +1060,43 @@ export default function HousingScreen() {
           />
         </InputGroup>
 
-        {/* Mortgage end date (optional) */}
-        <View>
-          <Text style={{
-            ...T.fieldLabel,
-            color: C.muted,
-            marginBottom: S.labelGap,
-          }}>
-            {t('onboarding.housing.q6e.endDateLabel')}
-          </Text>
-          <DatePicker
+        <InputGroup label={t('onboarding.housing.mortgageDetails.endDateLabel')} optional>
+          <SplitDateFields
             value={mortgageEndDate}
             onChange={setMortgageEndDate}
-            showDay={false}
           />
-        </View>
+        </InputGroup>
       </QuestionScreen>
     );
   }
 
-  // ── Q6f: Other ownership costs ──
-  if (step === 'q6f') {
+  // ── ownershipCosts: Other ownership costs ──
+  if (step === 'ownership-costs') {
     return (
       <QuestionScreen
+        progressStep={step}
         animationKey={step}
         chapter={t('onboarding.housing.chapter')}
-        title={t('onboarding.housing.q6f.title')}
-        helper={t('onboarding.housing.q6f.helper')}
+        title={t('onboarding.housing.ownershipCosts.title')}
+        helper={t('onboarding.housing.ownershipCosts.helper')}
         onContinue={handleContinue}
         onBack={handleBack}
         validationError={validationError}
-        progress={screenProgress}
+        setValidationError={setValidationError}
+
         continueLabel={editContinueLabel}
       >
         <YesNoToggle
           value={hasOtherCosts}
           onChange={setHasOtherCosts}
-          yesLabel={t('onboarding.housing.q6f.yes')}
-          noLabel={t('onboarding.housing.q6f.no')}
+          yesLabel={t('onboarding.housing.ownershipCosts.yes')}
+          noLabel={t('onboarding.housing.ownershipCosts.no')}
         />
 
-        <AnimatedSlideIn visible={hasOtherCosts === true}>
-          {otherCostRows.map((row, index) => (
+        <RevealAfterToggle show={hasOtherCosts === true}>
+          {otherCostRows.map((row, index) => {
+            const rowErrors = otherCostFieldErrors[row.id] || {};
+            return (
             <ScrollFocusAnchor key={row.id} focusId={String(row.id)} focusToken={focusToken}>
             <AnimatedRow
               visible={row.visible}
@@ -805,82 +1112,90 @@ export default function HousingScreen() {
                 padding: S.cardPad,
               }}>
                 {/* Amount + remove */}
-                <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center', marginBottom: 10 }}>
-                  <LabeledInput
-                    label={t('onboarding.housing.q6f.amountLabel')}
-                    value={row.amount}
-                    onChangeText={(v) => updateCostRow(index, 'amount', v)}
-                    numeric
-                    placeholder={t('onboarding.housing.q6f.amountPlaceholder')}
-                    large
-                    containerStyle={{ flex: 1, marginBottom: 0 }}
-                    currency={currency}
-                  />
-                  {otherCostRows.length > 1 && (
-                    <View style={{ height: 63, justifyContent: 'center' }}>
-                      <Pressable onPress={() => removeCostRow(row.id)} style={{ padding: 8 }}>
-                        <Text style={{ fontSize: 18, color: C.danger }}>✕</Text>
-                      </Pressable>
-                    </View>
-                  )}
+                <Text style={{ ...T.fieldLabel, color: C.muted, marginBottom: S.labelGap }}>
+                  {t('onboarding.housing.ownershipCosts.amountLabel')}
+                </Text>
+                <View style={{ flexDirection: 'row', gap: 4, alignItems: 'center', marginBottom: 10, width: '100%' }}>
+                  <View style={{ flex: 1, minWidth: 0 }}>
+                    <LabeledInput
+                      value={row.amount}
+                      onChangeText={(v) => updateCostRow(index, 'amount', v)}
+                      numeric
+                      placeholder={t('onboarding.housing.ownershipCosts.amountPlaceholder')}
+                      accessibilityLabel={t('onboarding.housing.ownershipCosts.amountLabel')}
+                      large
+                      containerStyle={{ marginBottom: 0, width: '100%' }}
+                      currency={currency}
+                    />
+                  </View>
+                  {otherCostRows.filter((r) => r.visible).length > 1 ? (
+                    <RemoveButton onPress={() => removeCostRow(row.id)} />
+                  ) : null}
                 </View>
 
                 {/* Description */}
                 <LabeledInput
-                  label={t('onboarding.housing.q6f.descriptionPlaceholder')}
+                  label={t('onboarding.housing.ownershipCosts.descriptionLabel')}
+                  required
                   value={row.description}
                   onChangeText={(v) => updateCostRow(index, 'description', v)}
-                  placeholder={t('onboarding.housing.q6f.descriptionPlaceholder')}
-                  inCard
+                  placeholder={t('onboarding.housing.ownershipCosts.descriptionPlaceholder')}
+                  errorText={rowErrors.description}
                   containerStyle={{ marginBottom: 10 }}
                 />
 
                 {/* Due date */}
                 <Text style={{ ...T.fieldLabel, color: C.muted, marginBottom: S.labelGap }}>
-                  {t('onboarding.housing.q6f.dueDateLabel')}
+                  {t('onboarding.housing.ownershipCosts.dueDateLabel')}
                 </Text>
-                <DatePicker
+                <SplitDateFields
                   value={row.dueDate}
                   onChange={(v) => updateCostRow(index, 'dueDate', v)}
-                  showDay={false}
                 />
               </View>
             </AnimatedRow>
             </ScrollFocusAnchor>
-          ))}
+            );
+          })}
 
           <AddAnotherButton
-            label={t('onboarding.housing.q6f.addAnother')}
+            label={t('onboarding.housing.ownershipCosts.addAnother')}
             onPress={addCostRow}
+            style={{ marginTop: 16 }}
           />
-        </AnimatedSlideIn>
+        </RevealAfterToggle>
       </QuestionScreen>
     );
   }
 
-  // ── Q6h: Family contribution ──
-  if (step === 'q6h') {
+  // ── familyHousing: Family contribution ──
+  if (step === 'family-housing') {
     return (
       <QuestionScreen
+        progressStep={step}
         animationKey={step}
         chapter={t('onboarding.housing.chapter')}
-        title={t('onboarding.housing.q6h.title')}
-        helper={t('onboarding.housing.q6h.helper')}
+        title={t('onboarding.housing.familyHousing.title')}
+        helper={t('onboarding.housing.familyHousing.helper')}
+        illustration={<InvoiceRafikiIllustration width={layout.illustrationWidth} />}
         onContinue={handleContinue}
         onBack={handleBack}
         validationError={validationError}
-        progress={screenProgress}
+        setValidationError={setValidationError}
+
         continueLabel={editContinueLabel}
       >
         <YesNoToggle
           value={contributesToFamily}
           onChange={setContributesToFamily}
-          yesLabel={t('onboarding.housing.q6h.yes')}
-          noLabel={t('onboarding.housing.q6h.no')}
+          yesLabel={t('onboarding.housing.familyHousing.yes')}
+          noLabel={t('onboarding.housing.familyHousing.no')}
         />
 
-        <AnimatedSlideIn visible={contributesToFamily === true}>
-          {familyContributionRows.map((row, index) => (
+        <RevealAfterToggle show={contributesToFamily === true}>
+          {familyContributionRows.map((row, index) => {
+            const rowErrors = familyContributionFieldErrors[row.id] || {};
+            return (
             <ScrollFocusAnchor key={row.id} focusId={String(row.id)} focusToken={focusToken}>
             <AnimatedRow
               visible={row.visible}
@@ -889,62 +1204,65 @@ export default function HousingScreen() {
               }}
             >
               <View style={{
-                backgroundColor: C.surface,
+                backgroundColor: C.bg,
                 borderWidth: 1,
                 borderColor: C.border,
                 borderRadius: R.card,
                 padding: S.cardPad,
               }}>
                 {/* Amount + remove */}
-                <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center', marginBottom: 10 }}>
-                  <LabeledInput
-                    label={t('onboarding.housing.q6h.amountLabel')}
-                    value={row.amount}
-                    onChangeText={(v) => updateFamilyRow(index, 'amount', v)}
-                    numeric
-                    placeholder={t('onboarding.housing.q6h.amountPlaceholder')}
-                    large
-                    containerStyle={{ flex: 1, marginBottom: 0 }}
-                    currency={currency}
-                  />
-                  {familyContributionRows.length > 1 && (
-                    <View style={{ height: 63, justifyContent: 'center' }}>
-                      <Pressable onPress={() => removeFamilyRow(row.id)} style={{ padding: 8 }}>
-                        <Text style={{ fontSize: 18, color: C.danger }}>✕</Text>
-                      </Pressable>
-                    </View>
-                  )}
+                <Text style={{ ...T.fieldLabel, color: C.muted, marginBottom: S.labelGap }}>
+                  {t('onboarding.housing.familyHousing.amountLabel')}
+                </Text>
+                <View style={{ flexDirection: 'row', gap: 4, alignItems: 'center', marginBottom: 10, width: '100%' }}>
+                  <View style={{ flex: 1, minWidth: 0 }}>
+                    <LabeledInput
+                      value={row.amount}
+                      onChangeText={(v) => updateFamilyRow(index, 'amount', v)}
+                      numeric
+                      placeholder={t('onboarding.housing.familyHousing.amountPlaceholder')}
+                      accessibilityLabel={t('onboarding.housing.familyHousing.amountLabel')}
+                      large
+                      containerStyle={{ marginBottom: 0, width: '100%' }}
+                      currency={currency}
+                    />
+                  </View>
+                  {familyContributionRows.filter((r) => r.visible).length > 1 ? (
+                    <RemoveButton onPress={() => removeFamilyRow(row.id)} />
+                  ) : null}
                 </View>
 
                 {/* Description */}
                 <LabeledInput
-                  label={t('onboarding.housing.q6h.descriptionPlaceholder')}
+                  label={t('onboarding.housing.familyHousing.descriptionLabel')}
+                  required
                   value={row.description}
                   onChangeText={(v) => updateFamilyRow(index, 'description', v)}
-                  placeholder={t('onboarding.housing.q6h.descriptionPlaceholder')}
-                  inCard
+                  placeholder={t('onboarding.housing.familyHousing.descriptionPlaceholder')}
+                  errorText={rowErrors.description}
                   containerStyle={{ marginBottom: 10 }}
                 />
 
                 {/* Due date */}
                 <Text style={{ ...T.fieldLabel, color: C.muted, marginBottom: S.labelGap }}>
-                  {t('onboarding.housing.q6h.dueDateLabel')}
+                  {t('onboarding.housing.familyHousing.dueDateLabel')}
                 </Text>
-                <DatePicker
+                <SplitDateFields
                   value={row.dueDate}
                   onChange={(v) => updateFamilyRow(index, 'dueDate', v)}
-                  showDay={false}
                 />
               </View>
             </AnimatedRow>
             </ScrollFocusAnchor>
-          ))}
+            );
+          })}
 
           <AddAnotherButton
-            label={t('onboarding.housing.q6h.addAnother')}
+            label={t('onboarding.housing.familyHousing.addAnother')}
             onPress={addFamilyRow}
+            style={{ marginTop: 16 }}
           />
-        </AnimatedSlideIn>
+        </RevealAfterToggle>
       </QuestionScreen>
     );
   }
@@ -957,16 +1275,16 @@ export default function HousingScreen() {
   const getWasteTaxNote = () => {
     const amountLabel = formatCurrency(parseFloat(wasteTaxAmount) || 0, currency);
     if (shouldEstimateCzechWasteTax(location) && household) {
-      return t('onboarding.housing.q6g.wasteTaxNoteEstimated', {
+      return t('onboarding.housing.govtTaxes.wasteTaxNoteEstimated', {
         amount: amountLabel,
         summary: buildWasteTaxMemberSummary(household, t),
       });
     }
-    return t('onboarding.housing.q6g.wasteTaxNote', { amount: amountLabel });
+    return t('onboarding.housing.govtTaxes.wasteTaxNote', { amount: amountLabel });
   };
 
-  // ── Q6g: Government & city taxes ──
-  if (step === 'q6g') {
+  // ── govtTaxes: Government & city taxes ──
+  if (step === 'govt-taxes') {
     const govtChargeItems = [
       {
         key: 'wasteTax',
@@ -1002,29 +1320,47 @@ export default function HousingScreen() {
 
     return (
       <QuestionScreen
+        progressStep={step}
         animationKey={step}
         chapter={t('onboarding.housing.chapter')}
-        title={t('onboarding.housing.q6g.title')}
-        helper={t('onboarding.housing.q6g.helper')}
+        title={t('onboarding.housing.govtTaxes.title')}
+        helper={t('onboarding.housing.govtTaxes.helper')}
+        illustration={<TaxRafikiIllustration width={layout.illustrationWidth} />}
         onContinue={handleContinue}
         onBack={handleBack}
         validationError={validationError}
-        progress={screenProgress}
+        setValidationError={setValidationError}
+
         continueLabel={editContinueLabel}
       >
         {/* Pre-filled government charges as toggle cards */}
         {govtChargeItems.map((item) => (
-          <CostCard key={item.key}>
-            <Text style={{ fontSize: 15, color: C.text, fontWeight: '500', marginBottom: 6 }}>
-              {t(`onboarding.housing.q6g.${item.labelKey}`)}
-            </Text>
+          <CostCard key={item.key} variant="nested">
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 12,
+              marginBottom: 6,
+            }}>
+              <Text style={{ fontSize: 15, color: C.text, fontWeight: '500', flex: 1 }}>
+                {t(`onboarding.housing.govtTaxes.${item.labelKey}`)}
+              </Text>
+              <OnOffSwitch
+                value={item.enabled}
+                onValueChange={item.setEnabled}
+                accessibilityLabel={t('onboarding.housing.govtTaxes.toggleA11y', {
+                  charge: t(`onboarding.housing.govtTaxes.${item.labelKey}`),
+                })}
+              />
+            </View>
             {item.enabled ? (
               <Text style={{ ...T.caption, color: C.muted, marginBottom: 8 }}>
-                {item.getNote ? item.getNote() : t(`onboarding.housing.q6g.${item.noteKey}`)}
+                {item.getNote ? item.getNote() : t(`onboarding.housing.govtTaxes.${item.noteKey}`)}
               </Text>
             ) : null}
             {item.enabled ? (
-              <InputGroup nested label={t('onboarding.housing.q6g.customAmountLabel')}>
+              <InputGroup nested label={t('onboarding.housing.govtTaxes.customAmountLabel')}>
                 <LabeledInput
                   value={item.amount}
                   onChangeText={item.setAmount}
@@ -1038,35 +1374,9 @@ export default function HousingScreen() {
               </InputGroup>
             ) : (
               <Text style={{ ...T.helper, color: C.muted, marginBottom: 8 }}>
-                {t(`onboarding.housing.q6g.${item.dontPayKey}`)}
+                {t(`onboarding.housing.govtTaxes.${item.dontPayKey}`)}
               </Text>
             )}
-            <View style={{
-              width: '100%',
-              borderRadius: R.input,
-              borderWidth: 1,
-              borderColor: C.border,
-              overflow: 'hidden',
-              flexDirection: 'row',
-              marginTop: 8,
-            }}>
-              <PillToggle
-                label={t('common.no')}
-                selected={!item.enabled}
-                onPress={() => item.setEnabled(false)}
-                paddingVertical={8}
-                fontSize={13}
-                fontWeight="500"
-              />
-              <PillToggle
-                label={t('common.yes')}
-                selected={item.enabled}
-                onPress={() => item.setEnabled(true)}
-                paddingVertical={8}
-                fontSize={13}
-                fontWeight="500"
-              />
-            </View>
           </CostCard>
         ))}
 
@@ -1081,20 +1391,23 @@ export default function HousingScreen() {
           >
             <CostCard>
               <LabeledInput
-                label={t('onboarding.housing.q6g.customPlaceholder')}
+                label={t('onboarding.housing.govtTaxes.customPlaceholder')}
                 value={item.name}
                 onChangeText={(v) => updateCustomTaxItem(index, 'name', v)}
-                placeholder={t('onboarding.housing.q6g.customPlaceholder')}
+                placeholder={t('onboarding.housing.govtTaxes.customPlaceholder')}
                 inCard
                 containerStyle={{ marginBottom: 10 }}
               />
-              <View style={{ flexDirection: 'row', gap: 8, alignItems: 'flex-end' }}>
+              <Text style={{ ...T.fieldLabel, marginBottom: S.labelGap }}>
+                {t('onboarding.housing.govtTaxes.customAmountLabel')}
+              </Text>
+              <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center', marginBottom: 10 }}>
                 <LabeledInput
-                  label={t('onboarding.housing.q6g.customAmountLabel')}
                   value={item.amount}
                   onChangeText={(v) => updateCustomTaxItem(index, 'amount', v)}
                   numeric
-                  placeholder={t('onboarding.housing.q6g.customAmountPlaceholder')}
+                  placeholder={t('onboarding.housing.govtTaxes.customAmountPlaceholder')}
+                  accessibilityLabel={t('onboarding.housing.govtTaxes.customAmountLabel')}
                   inCard
                   currency={currency}
                   containerStyle={{ flex: 1, marginBottom: 0 }}
@@ -1108,8 +1421,8 @@ export default function HousingScreen() {
                 onChange={(v) => updateCustomTaxItem(index, 'frequency', v)}
                 small
                 labelMap={{
-                  monthly: t('onboarding.housing.q6g.frequencyMonthly'),
-                  annual: t('onboarding.housing.q6g.frequencyAnnual'),
+                  monthly: t('onboarding.housing.govtTaxes.frequencyMonthly'),
+                  annual: t('onboarding.housing.govtTaxes.frequencyAnnual'),
                 }}
               />
             </CostCard>
@@ -1117,10 +1430,14 @@ export default function HousingScreen() {
           </ScrollFocusAnchor>
         ))}
 
-        <AddAnotherButton
-          label={t('onboarding.housing.q6g.addCustom')}
-          onPress={addCustomTaxItem}
-        />
+        <View style={{ alignItems: 'center', marginTop: 4 }}>
+          <CardHeaderActionButton
+            label={t('common.add')}
+            onPress={addCustomTaxItem}
+            accessibilityLabel={t('onboarding.housing.govtTaxes.addCustom')}
+            style={{ alignSelf: 'stretch', minWidth: undefined, width: '100%' }}
+          />
+        </View>
       </QuestionScreen>
     );
   }

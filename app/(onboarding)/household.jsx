@@ -1,59 +1,132 @@
-import { useState, useEffect } from 'react';
-import { View, Pressable } from 'react-native';
+import { useState, useCallback, useRef, useEffect } from 'react';
+import { View } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { useI18n } from '../../lib/i18n';
 import { getData, setData } from '../../lib/storage';
-import { isConsentAccepted } from '../../lib/consent';
-import { C, R, T, S } from '../../constants/onboarding-theme';
+import { patchOnboardingState, patchProgressOnSectionComplete } from '../../lib/onboardingProgress';
+import { navigateBack, navigateForward, recordVisit } from '../../lib/onboardingNavigation';
+import {
+  buildHouseholdResumeRoute,
+  computeHouseholdReturnPoint,
+  householdNavParams,
+  persistHouseholdDraft,
+  resolveHouseholdReturnPoint,
+} from '../../lib/householdOnboardingSave';
+import { useOnboardingMultiStep } from '../../lib/useOnboardingMultiStep';
+import { useOnboardingLayout } from '../../lib/onboardingLayout';
+import { C, T } from '../../constants/onboarding-theme';
 import QuestionScreen from '../../components/onboarding/QuestionScreen';
 import OptionCard from '../../components/onboarding/OptionCard';
 import LabeledInput from '../../components/onboarding/LabeledInput';
+import QuantityStepper from '../../components/onboarding/QuantityStepper';
+import HouseholdChillingIllustration from '../../components/onboarding/HouseholdChillingIllustration';
+import HouseholdPartnerIllustration from '../../components/onboarding/HouseholdPartnerIllustration';
+import HouseholdChildrenIllustration from '../../components/onboarding/HouseholdChildrenIllustration';
+import HouseholdTrueFriendsIllustration from '../../components/onboarding/HouseholdTrueFriendsIllustration';
+import ChildrenRafikiIllustration from '../../components/onboarding/ChildrenRafikiIllustration';
 
-const STEP_PROGRESS = {
-  type: 10,
-  partner: 20,
-  children: 30,
-  numChildren: 40,
-  childDetails: 50,
-};
+function readRouteParam(value) {
+  if (value == null) return undefined;
+  return Array.isArray(value) ? value[0] : value;
+}
+
+function readChildIndexParam(value) {
+  const raw = readRouteParam(value);
+  if (raw == null) return 0;
+  return Math.max(0, parseInt(String(raw), 10) || 0);
+}
 
 export default function HouseholdScreen() {
   const { t } = useI18n();
-  const router = useRouter();
+  const params = useLocalSearchParams();
+  const layout = useOnboardingLayout();
+  const urlStep = readRouteParam(params.step);
+  const urlChildIndex = readChildIndexParam(params.childIndex);
   const [householdType, setHouseholdType] = useState('');
   const [partnerName, setPartnerName] = useState('');
-  const [hasChildren, setHasChildren] = useState(null);
+  const [hasChildren, setHasChildren] = useState(false);
   const [numChildren, setNumChildren] = useState(1);
   const [children, setChildren] = useState([]);
-  const [currentStep, setCurrentStep] = useState('type'); // type, partner, children, numChildren, childDetails
-  const [currentChildIndex, setCurrentChildIndex] = useState(0);
   const [validationError, setValidationError] = useState('');
+  const [isResumingChildStep, setIsResumingChildStep] = useState(urlStep === 'childDetails');
+  const loadedNumChildrenRef = useRef(1);
 
-  useEffect(() => {
-    async function loadData() {
-      const household = await getData('pocketos_household');
+  const {
+    step: currentStep,
+    setStep: setCurrentStep,
+    childIndex: currentChildIndex,
+    setChildIndex: setCurrentChildIndex,
+  } = useOnboardingMultiStep('household', {
+    defaultStep: 'type',
+    childIndex: urlChildIndex,
+    onFocus: async () => {
+      const household = await getData('beaverr_household');
+
+      let loadedChildren = [];
+      let loadedNumChildren = 1;
+      let loadedHasChildren = false;
+
       if (household) {
         setHouseholdType(household.type || '');
         setPartnerName(household.partnerName || '');
-        if (household.children && household.children.length > 0) {
-          setHasChildren(true);
-          setNumChildren(household.children.length);
-          setChildren(household.children);
+        if (household.hasChildren === false) {
+          loadedHasChildren = false;
+        } else if (household.hasChildren || (household.children && household.children.length > 0)) {
+          loadedHasChildren = true;
+          loadedNumChildren = household.numChildren || household.children.length;
+          loadedChildren = Array.from({ length: loadedNumChildren }, (_, i) => ({
+            displayName: household.children[i]?.displayName || '',
+            ageGroup: household.children[i]?.ageGroup || '',
+          }));
         }
       }
+
+      loadedNumChildrenRef.current = loadedNumChildren;
+      setHasChildren(loadedHasChildren);
+      setNumChildren(loadedNumChildren);
+      setChildren(loadedChildren);
+      setIsResumingChildStep(false);
+    },
+    loadStepFromStorage: (household) => {
+      const returnPoint = resolveHouseholdReturnPoint(household);
+      if (returnPoint.step === 'childDetails') {
+        returnPoint.childIndex = Math.min(
+          returnPoint.childIndex,
+          Math.max(0, loadedNumChildrenRef.current - 1),
+        );
+      }
+      return {
+        step: returnPoint.step,
+        childIndex: returnPoint.childIndex,
+      };
+    },
+  });
+
+  useEffect(() => {
+    if (urlStep === 'childDetails') {
+      setIsResumingChildStep(true);
     }
-    loadData();
-  }, []);
+  }, [urlStep]);
+
+  const handleSaveDraft = useCallback(async () => {
+    await persistHouseholdDraft({
+      householdType,
+      partnerName,
+      hasChildren,
+      numChildren,
+      children,
+      currentStep,
+      currentChildIndex,
+    });
+  }, [householdType, partnerName, hasChildren, numChildren, children, currentStep, currentChildIndex]);
+
+  const resumeRoute = buildHouseholdResumeRoute(currentStep, currentChildIndex);
 
   const handleBack = async () => {
     setValidationError('');
     if (currentStep === 'type') {
-      if (await isConsentAccepted()) {
-        router.replace('/(onboarding)/welcome');
-      } else {
-        router.replace('/(onboarding)/consent');
-      }
+      navigateBack();
     } else if (currentStep === 'partner') {
       setCurrentStep('type');
     } else if (currentStep === 'children') {
@@ -96,10 +169,6 @@ export default function HouseholdScreen() {
       }
       setCurrentStep('children');
     } else if (currentStep === 'children') {
-      if (hasChildren === null) {
-        setValidationError(t('onboarding.household.children.validation'));
-        return;
-      }
       if (hasChildren) {
         setCurrentStep('numChildren');
       } else {
@@ -115,6 +184,13 @@ export default function HouseholdScreen() {
       setCurrentStep('childDetails');
     } else if (currentStep === 'childDetails') {
       const currentChild = children[currentChildIndex];
+      if (!currentChild) {
+        return;
+      }
+      if (!currentChild.displayName?.trim()) {
+        setValidationError(t('onboarding.household.childDetails.nameValidation'));
+        return;
+      }
       if (!currentChild.ageGroup) {
         setValidationError(t('onboarding.household.childDetails.validation'));
         return;
@@ -134,15 +210,42 @@ export default function HouseholdScreen() {
       children: hasChildren ? children : [],
     };
 
-    await setData('pocketos_household', householdData);
-
-    await setData('pocketos_onboarding', {
-      completed: false,
-      currentStep: 'household',
-      percentComplete: 20,
+    const returnPoint = computeHouseholdReturnPoint({
+      householdType,
+      hasChildren,
+      numChildren,
     });
 
-    router.replace('/(onboarding)/splash-location');
+    await setData('beaverr_household', {
+      ...householdData,
+      householdOnboardingStep: returnPoint.step,
+      householdOnboardingChildIndex: returnPoint.childIndex,
+      numChildren,
+      hasChildren,
+    });
+
+    await patchProgressOnSectionComplete('household');
+    await patchOnboardingState({
+      completed: false,
+      setupMode: 'full',
+      currentStep: 'household',
+      resumeRoute: '/(onboarding)/splash-location',
+    });
+
+    recordVisit('/(onboarding)/household', householdNavParams(returnPoint.step, returnPoint.childIndex));
+    navigateForward('/(onboarding)/splash-location');
+  };
+
+  const sharedScreenProps = {
+    chapter: t('onboarding.splashHousehold.chapter'),
+    onContinue: handleContinue,
+    onBack: handleBack,
+    validationError,
+    setValidationError,
+    progressStep: currentStep,
+    progressChildIndex: currentStep === 'childDetails' ? currentChildIndex : undefined,
+    resumeRoute,
+    onSaveDraft: handleSaveDraft,
   };
 
   const updateChild = (field, value) => {
@@ -154,35 +257,27 @@ export default function HouseholdScreen() {
     setChildren(newChildren);
   };
 
-  const progress = STEP_PROGRESS[currentStep] ?? 10;
-
   // Q1: Household Type
   if (currentStep === 'type') {
     return (
       <QuestionScreen
+        {...sharedScreenProps}
         animationKey={currentStep}
-        chapter={t('onboarding.household.chapter')}
+        illustration={<HouseholdChillingIllustration width={layout.illustrationWidth} />}
         title={t('onboarding.household.type.title')}
         helper={t('onboarding.household.type.helper')}
-        onContinue={handleContinue}
-        onBack={handleBack}
-        validationError={validationError}
-        progress={progress}
       >
         <OptionCard
-          icon="🧍"
           label={t('onboarding.household.type.solo')}
           selected={householdType === 'solo'}
           onPress={() => setHouseholdType('solo')}
         />
         <OptionCard
-          icon="👫"
           label={t('onboarding.household.type.partner')}
           selected={householdType === 'partner'}
           onPress={() => setHouseholdType('partner')}
         />
         <OptionCard
-          icon="👨‍👧"
           label={t('onboarding.household.type.singleParent')}
           selected={householdType === 'single_parent'}
           onPress={() => setHouseholdType('single_parent')}
@@ -195,14 +290,11 @@ export default function HouseholdScreen() {
   if (currentStep === 'partner') {
     return (
       <QuestionScreen
+        {...sharedScreenProps}
         animationKey={currentStep}
-        chapter={t('onboarding.household.chapter')}
+        illustration={<HouseholdPartnerIllustration width={layout.illustrationWidth} />}
         title={t('onboarding.household.partnerName.title')}
         helper={t('onboarding.household.partnerName.helper')}
-        onContinue={handleContinue}
-        onBack={handleBack}
-        validationError={validationError}
-        progress={progress}
       >
         <LabeledInput
           label={t('onboarding.household.partnerName.label')}
@@ -219,24 +311,19 @@ export default function HouseholdScreen() {
   if (currentStep === 'children') {
     return (
       <QuestionScreen
+        {...sharedScreenProps}
         animationKey={currentStep}
-        chapter={t('onboarding.household.chapter')}
+        illustration={<HouseholdChildrenIllustration width={layout.illustrationWidth} />}
         title={t('onboarding.household.children.title')}
         helper={t('onboarding.household.children.helper')}
-        onContinue={handleContinue}
-        onBack={handleBack}
-        validationError={validationError}
-        progress={progress}
       >
         <View style={{ gap: 10 }}>
           <OptionCard
-            icon="🙅"
             label={t('common.no')}
             selected={hasChildren === false}
             onPress={() => setHasChildren(false)}
           />
           <OptionCard
-            icon="👶"
             label={t('common.yes')}
             selected={hasChildren === true}
             onPress={() => setHasChildren(true)}
@@ -248,109 +335,27 @@ export default function HouseholdScreen() {
 
   // Q2a: Number of Children
   if (currentStep === 'numChildren') {
-    const atMin = numChildren <= 1;
-    const atMax = numChildren >= 10;
-
     return (
       <QuestionScreen
+        {...sharedScreenProps}
         animationKey={currentStep}
-        chapter={t('onboarding.household.chapter')}
+        illustration={<HouseholdTrueFriendsIllustration width={layout.illustrationWidth} />}
         title={t('onboarding.household.numChildren.title')}
         helper={t('onboarding.household.numChildren.helper')}
-        onContinue={handleContinue}
-        onBack={handleBack}
-        validationError={validationError}
-        progress={progress}
       >
         <View style={{ alignItems: 'center', paddingVertical: 8 }}>
-          {/* Stepper row */}
-          <View style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            borderWidth: 1.5,
-            borderColor: C.border,
-            borderRadius: R.input,
-            overflow: 'hidden',
-            backgroundColor: C.surface,
-          }}>
-            {/* Minus button */}
-            <Pressable
-              onPress={() => !atMin && setNumChildren(numChildren - 1)}
-              disabled={atMin}
-              style={({ pressed }) => ({
-                width: 52,
-                height: 56,
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: pressed && !atMin ? C.overlayPressed : 'transparent',
-                opacity: atMin ? 0.35 : 1,
-              })}
-            >
-              <Text style={{
-                fontSize: 24,
-                lineHeight: 24,
-                color: atMin ? C.addBorder : C.muted,
-                fontWeight: '300',
-                textAlign: 'center',
-                includeFontPadding: false,
-              }}>
-                {'\u2212'}
-              </Text>
-            </Pressable>
+          <QuantityStepper
+            value={numChildren}
+            min={1}
+            max={10}
+            onDecrement={() => setNumChildren(numChildren - 1)}
+            onIncrement={() => setNumChildren(numChildren + 1)}
+          />
 
-            {/* Value display */}
-            <View style={{
-              minWidth: 64,
-              height: 56,
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderLeftWidth: 1,
-              borderRightWidth: 1,
-              borderColor: C.border,
-              paddingHorizontal: 8,
-            }}>
-              <Text style={{
-                fontSize: 28,
-                lineHeight: 34,
-                fontWeight: '300',
-                color: C.text,
-                letterSpacing: -0.5,
-                textAlign: 'center',
-                includeFontPadding: false,
-              }}>
-                {numChildren}
-              </Text>
-            </View>
-
-            {/* Plus button */}
-            <Pressable
-              onPress={() => !atMax && setNumChildren(numChildren + 1)}
-              disabled={atMax}
-              style={({ pressed }) => ({
-                width: 52,
-                height: 56,
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: pressed && !atMax ? C.overlayPressed : 'transparent',
-                opacity: atMax ? 0.35 : 1,
-              })}
-            >
-              <Text style={{
-                fontSize: 24,
-                lineHeight: 24,
-                color: atMax ? C.addBorder : C.muted,
-                fontWeight: '300',
-                textAlign: 'center',
-                includeFontPadding: false,
-              }}>
-                {'+'}
-              </Text>
-            </Pressable>
-          </View>
-
-          {/* Hint */}
           <Text style={{ ...T.hint, color: C.muted, marginTop: 12 }}>
-            {numChildren === 1 ? "We'll set up 1 child profile" : `We'll set up ${numChildren} child profiles`}
+            {numChildren === 1
+              ? t('onboarding.household.numChildren.profileHintSingle')
+              : t('onboarding.household.numChildren.profileHintPlural', { count: numChildren })}
           </Text>
         </View>
       </QuestionScreen>
@@ -359,25 +364,36 @@ export default function HouseholdScreen() {
 
   // Q2b: Child Details
   if (currentStep === 'childDetails') {
+    if (isResumingChildStep) {
+      return null;
+    }
+
     const currentChild = children[currentChildIndex];
+    if (!currentChild) {
+      return null;
+    }
+
+    const nameValidationMsg = t('onboarding.household.childDetails.nameValidation');
+    const isNameValidation = validationError === nameValidationMsg;
+
     return (
       <QuestionScreen
+        {...sharedScreenProps}
         animationKey={`childDetails-${currentChildIndex}`}
-        chapter={t('onboarding.household.chapter')}
+        illustration={<ChildrenRafikiIllustration width={layout.illustrationWidth} />}
         title={t('onboarding.household.childDetails.title', { n: currentChildIndex + 1 })}
         helper={t('onboarding.household.childDetails.helper')}
-        onContinue={handleContinue}
-        onBack={handleBack}
-        validationError={validationError}
-        progress={progress}
+        validationError={isNameValidation ? '' : validationError}
       >
         <LabeledInput
           label={t('onboarding.household.childDetails.nameLabel')}
+          required
           value={currentChild.displayName}
           onChangeText={(value) => updateChild('displayName', value)}
           placeholder={t('onboarding.household.childDetails.namePlaceholder')}
           maxLength={30}
           containerStyle={{ marginBottom: 20 }}
+          errorText={isNameValidation ? validationError : validationError ? '' : undefined}
         />
 
         <Text style={{ ...T.fieldLabel, color: C.muted, marginBottom: 10 }}>

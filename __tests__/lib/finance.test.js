@@ -9,6 +9,10 @@ import {
   displayBudget,
   debtPayoff,
   formatCurrency,
+  roundMoney,
+  divideMoney,
+  sanitizeAmountInput,
+  formatAmountInput,
   totalMonthlyCosts,
   availableBudget,
   effectiveSpendingBudget,
@@ -51,6 +55,11 @@ describe('toMonthly', () => {
 
   test('handles unknown frequency by defaulting to monthly', () => {
     expect(toMonthly(100, 'unknown')).toBe(100);
+  });
+
+  test('parses Czech-formatted amount strings', () => {
+    expect(toMonthly('1 500,00', 'monthly')).toBe(1500);
+    expect(toMonthly('500,00', 'monthly')).toBe(500);
   });
 });
 
@@ -142,25 +151,30 @@ describe('debtPayoff', () => {
 });
 
 describe('formatCurrency', () => {
-  test('formats amount with space separator', () => {
-    expect(formatCurrency(12500)).toBe('12 500 Kč');
+  test('formats amount with space separator and always 2dp', () => {
+    expect(formatCurrency(12500)).toBe('12 500,00 Kč');
   });
 
   test('formats small amounts', () => {
-    expect(formatCurrency(100)).toBe('100 Kč');
+    expect(formatCurrency(100)).toBe('100,00 Kč');
   });
 
   test('formats large amounts', () => {
-    expect(formatCurrency(1234567)).toBe('1 234 567 Kč');
+    expect(formatCurrency(1234567)).toBe('1 234 567,00 Kč');
   });
 
-  test('rounds decimal amounts', () => {
-    expect(formatCurrency(123.45)).toBe('123 Kč');
-    expect(formatCurrency(123.67)).toBe('124 Kč');
+  test('shows two decimal places for fractional amounts', () => {
+    expect(formatCurrency(123.45)).toBe('123,45 Kč');
+    expect(formatCurrency(123.67)).toBe('123,67 Kč');
+    expect(formatCurrency(100.1)).toBe('100,10 Kč');
   });
 
   test('handles custom currency', () => {
-    expect(formatCurrency(1000, '€')).toBe('1 000 €');
+    expect(formatCurrency(1000, '€')).toBe('1 000,00 €');
+  });
+
+  test('omits currency symbol when empty string', () => {
+    expect(formatCurrency(1000, '')).toBe('1 000,00');
   });
 
   test('returns em dash for null', () => {
@@ -169,6 +183,51 @@ describe('formatCurrency', () => {
 
   test('returns em dash for undefined', () => {
     expect(formatCurrency(undefined)).toBe('—');
+  });
+
+  test('parses Czech-formatted amount strings', () => {
+    expect(formatCurrency('800,00', 'CZK')).toBe('800,00 CZK');
+    expect(formatCurrency('1 200,50', 'CZK')).toBe('1 200,50 CZK');
+    expect(formatCurrency('10 000,00', 'CZK')).toBe('10 000,00 CZK');
+  });
+});
+
+describe('roundMoney', () => {
+  test('rounds to two decimal places', () => {
+    expect(roundMoney(123.456)).toBe(123.46);
+    expect(roundMoney(123.454)).toBe(123.45);
+  });
+});
+
+describe('divideMoney', () => {
+  test('divides without rounding', () => {
+    expect(divideMoney(15000, 31)).toBeCloseTo(483.8709677419355, 10);
+  });
+
+  test('returns 0 for zero divisor', () => {
+    expect(divideMoney(100, 0)).toBe(0);
+  });
+});
+
+describe('sanitizeAmountInput', () => {
+  test('allows digits and comma decimal', () => {
+    expect(sanitizeAmountInput('123,45')).toBe('123,45');
+    expect(sanitizeAmountInput('123.45')).toBe('123,45');
+  });
+
+  test('limits fractional digits to two', () => {
+    expect(sanitizeAmountInput('1,234')).toBe('1,23');
+  });
+
+  test('strips spaces and non-numeric chars', () => {
+    expect(sanitizeAmountInput('1 234,5')).toBe('1234,5');
+  });
+});
+
+describe('formatAmountInput', () => {
+  test('formats without currency symbol', () => {
+    expect(formatAmountInput(200)).toBe('200,00');
+    expect(formatAmountInput(123.4)).toBe('123,40');
   });
 });
 

@@ -1,16 +1,25 @@
 import { useState } from 'react';
 
-import { View, Pressable, Platform } from 'react-native';
+import { View, Pressable, Platform, StyleSheet } from 'react-native';
 
 import { Text } from '@gluestack-ui/themed';
 
+import Animated, { interpolate, useAnimatedStyle, LinearTransition } from 'react-native-reanimated';
+
 import { C, R, T, tabularNums } from '../../constants/onboarding-theme';
+import { DASHBOARD_MOTION_DURATION } from '../../lib/dashboardMotion';
+import { useReducedMotion } from '../../lib/useReducedMotion';
 
 import { InfoIcon } from '../app/AppNavIcons';
 
 import StatusChip from './StatusChip';
+import AnimatedCollapse from './AnimatedCollapse';
 
-import { DASHBOARD_CARD_TONES, resolveDashboardCardTone } from './dashboardCardTones';
+import { getDashboardCardTones, resolveDashboardCardTone } from './dashboardCardTones';
+import { GLASS_ON_MESH } from '../../constants/dashboard-showcase';
+import { useJarGridEnterProgress } from './useJarGridEnterProgress';
+import { formatSignedCurrency } from '../../lib/finance';
+import SettleCrossfade from '../ui/SettleCrossfade';
 
 
 
@@ -20,29 +29,27 @@ const INFO_HIT = 40;
 
 
 
-function InfoIconButton({ onPress, accessibilityLabel, tone }) {
+function InfoIconButton({ onPress, accessibilityLabel, tone, glass = false }) {
 
   const [hovered, setHovered] = useState(false);
 
   const [pressed, setPressed] = useState(false);
 
-  const palette = tone ? DASHBOARD_CARD_TONES[tone] : null;
+  const palette = tone ? getDashboardCardTones()[tone] : null;
 
-  const iconColor = hovered || pressed
+  const iconColor = glass
+    ? (hovered || pressed ? GLASS_ON_MESH.iconActive : GLASS_ON_MESH.icon)
+    : hovered || pressed
+      ? (palette?.valueColor ?? C.primary)
+      : (palette?.iconColor ?? C.muted);
 
-    ? (palette?.valueColor ?? C.primary)
-
-    : (palette?.iconColor ?? C.muted);
-
-  const backgroundColor = pressed
-
-    ? (palette?.bgPressed ?? C.overlayPressed)
-
-    : hovered
-
-      ? (palette?.bgHover ?? C.overlayHover)
-
-      : 'transparent';
+  const backgroundColor = glass
+    ? (pressed ? 'rgba(255,255,255,0.18)' : hovered ? 'rgba(255,255,255,0.12)' : 'transparent')
+    : pressed
+      ? (palette?.bgPressed ?? C.overlayPressed)
+      : hovered
+        ? (palette?.bgHover ?? C.overlayHover)
+        : 'transparent';
 
 
 
@@ -110,9 +117,19 @@ export default function MetricExplainCard({
 
   value,
 
+  amountValue,
+
+  amountCurrency,
+
+  amountShowPlus = false,
+
   subtitle,
 
+  valueMeta,
+
   footerLabel,
+
+  footerMeta,
 
   statusChip,
 
@@ -121,6 +138,16 @@ export default function MetricExplainCard({
   statusColor,
 
   frequencySlot,
+
+  frequencySlotVisible,
+
+  frequencyControl,
+
+  frequencyControlVisible,
+
+  valueAnimationKey,
+
+  layoutAnimated = false,
 
   onPress,
 
@@ -136,11 +163,42 @@ export default function MetricExplainCard({
 
   style,
 
+  enterKey,
+
+  enterIndex = 0,
+
+  trailingInset = 0,
+
+  dimmed = false,
+
 }) {
 
   const [hovered, setHovered] = useState(false);
 
   const [pressed, setPressed] = useState(false);
+
+  const reduceMotion = useReducedMotion();
+
+  const isDimmed = dimmed;
+
+  const Container = layoutAnimated && !reduceMotion ? Animated.View : View;
+
+  const containerLayoutProps = layoutAnimated && !reduceMotion
+    ? { layout: LinearTransition.duration(DASHBOARD_MOTION_DURATION) }
+    : {};
+
+  const showFrequencySlot = frequencySlot != null && (frequencySlotVisible ?? true) && frequencyControl == null;
+
+  const showFrequencyControl = frequencyControl != null && (frequencyControlVisible ?? true);
+
+  const glassAnimated = variant === 'glass' && enterKey != null;
+  const enterProgress = useJarGridEnterProgress(glassAnimated ? enterKey : null, enterIndex);
+
+  const glassLayerStyle = useAnimatedStyle(() => ({
+    opacity: glassAnimated
+      ? interpolate(enterProgress.value, [0, 1], [0.2, 1])
+      : 1,
+  }));
 
 
 
@@ -150,6 +208,8 @@ export default function MetricExplainCard({
 
   const isSnapshot = variant === 'snapshot';
 
+  const isGlass = variant === 'glass';
+
   const valueSize = isHero || isPanel ? 32 : 22;
 
   const valueLineHeight = isHero || isPanel ? 38 : 28;
@@ -158,41 +218,80 @@ export default function MetricExplainCard({
 
   const padV = isHero ? 24 : isPanel ? 20 : isSnapshot ? 16 : 16;
 
+  const headerControlsWidth = showFrequencyControl
+    ? 96 + (onInfoPress ? INFO_HIT + 6 : 0)
+    : (onInfoPress ? INFO_HIT - 8 : 0);
 
-
-  const toneStyle = resolveDashboardCardTone(tone, { hovered, pressed });
-
-
-
-  const borderColor = toneStyle
-
-    ? toneStyle.borderColor
-
-    : hovered || pressed
-
-      ? C.chipSelectedBorder
-
-      : C.border;
+  const pressPadRight = padH + Math.max(headerControlsWidth, trailingInset);
 
 
 
-  const backgroundColor = toneStyle
+  const toneStyle = isGlass ? null : resolveDashboardCardTone(tone, { hovered, pressed });
 
-    ? toneStyle.backgroundColor
+  const borderColor = isDimmed
+    ? C.border
+    : isGlass
+      ? (hovered || pressed ? GLASS_ON_MESH.borderActive : GLASS_ON_MESH.border)
+      : toneStyle
+        ? toneStyle.borderColor
+        : hovered || pressed
+          ? C.chipSelectedBorder
+          : C.border;
 
-    : pressed
+  const backgroundColor = isDimmed
+    ? (pressed ? C.surfaceTint : hovered ? C.bg : C.bg)
+    : isGlass
+      ? (pressed ? GLASS_ON_MESH.fillPressed : hovered ? GLASS_ON_MESH.fillHover : GLASS_ON_MESH.fill)
+      : toneStyle
+        ? toneStyle.backgroundColor
+        : pressed
+          ? C.overlayPressed
+          : hovered
+            ? C.overlayHover
+            : C.surface;
 
-      ? C.overlayPressed
+  const valueColor = isDimmed
+    ? C.muted
+    : isGlass
+      ? GLASS_ON_MESH.value
+      : (toneStyle?.valueColor || C.primary);
 
-      : hovered
+  const labelColor = isDimmed ? C.muted : (isGlass ? GLASS_ON_MESH.label : C.text);
 
-        ? C.overlayHover
+  const footerColor = isDimmed ? C.muted : (isGlass ? GLASS_ON_MESH.footer : C.muted);
 
-        : C.surface;
+  const valueStyle = {
+    fontSize: valueSize,
+    lineHeight: valueLineHeight,
+    fontWeight: '700',
+    color: valueColor,
+    letterSpacing: isHero ? -0.02 : 0,
+    ...tabularNums,
+  };
 
+  const resolvedValueLabel = typeof amountValue === 'number'
+    ? formatSignedCurrency(amountValue, amountCurrency, amountShowPlus)
+    : value;
 
+  const valueNode = typeof amountValue === 'number' ? (
+    <Text style={valueStyle} numberOfLines={2}>
+      {formatSignedCurrency(amountValue, amountCurrency, amountShowPlus)}
+    </Text>
+  ) : (
+    <Text style={valueStyle} numberOfLines={2}>
+      {value}
+    </Text>
+  );
 
-  const valueColor = toneStyle?.valueColor || C.primary;
+  const valueBlock = valueAnimationKey != null ? (
+    <SettleCrossfade animationKey={valueAnimationKey} slide={false}>
+      {valueNode}
+    </SettleCrossfade>
+  ) : valueNode;
+
+  const glassWebBlur = isGlass && Platform.OS === 'web'
+    ? { backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)' }
+    : {};
 
 
 
@@ -206,9 +305,11 @@ export default function MetricExplainCard({
 
   return (
 
-    <View
+    <Container
 
       {...hoverHandlers}
+
+      {...containerLayoutProps}
 
       style={{
 
@@ -220,13 +321,15 @@ export default function MetricExplainCard({
 
         width: isHero ? '100%' : undefined,
 
-        backgroundColor,
+        backgroundColor: glassAnimated ? 'transparent' : backgroundColor,
 
         borderRadius: R.card,
 
         borderWidth: 1,
 
         borderColor,
+
+        overflow: glassAnimated ? 'hidden' : undefined,
 
         ...(toneStyle?.borderLeftWidth ? {
 
@@ -238,6 +341,10 @@ export default function MetricExplainCard({
 
         ...(isSnapshot ? { minHeight: 112 } : {}),
 
+        ...(isGlass ? { minHeight: 88 } : {}),
+
+        ...(glassAnimated ? {} : glassWebBlur),
+
         ...(Platform.OS === 'web' ? { transition: 'background-color 0.15s ease, border-color 0.15s ease' } : {}),
 
         ...style,
@@ -246,13 +353,28 @@ export default function MetricExplainCard({
 
     >
 
+      {glassAnimated ? (
+        <Animated.View
+          style={[
+            StyleSheet.absoluteFill,
+            {
+              backgroundColor,
+              borderRadius: R.card,
+              pointerEvents: 'none',
+              ...glassWebBlur,
+            },
+            glassLayerStyle,
+          ]}
+        />
+      ) : null}
+
       <Pressable
 
         onPress={onPress}
 
         accessibilityRole="button"
 
-        accessibilityLabel={accessibilityLabel ?? `${label}, ${value}`}
+        accessibilityLabel={accessibilityLabel ?? `${label}, ${resolvedValueLabel}`}
 
         onPressIn={() => setPressed(true)}
 
@@ -270,7 +392,7 @@ export default function MetricExplainCard({
 
           paddingBottom: frequencySlot ? 8 : padV,
 
-          paddingRight: onInfoPress ? padH + INFO_HIT - 8 : padH,
+          paddingRight: pressPadRight,
 
           ...(Platform.OS === 'web' ? { cursor: onPress ? 'pointer' : 'default' } : {}),
 
@@ -302,7 +424,7 @@ export default function MetricExplainCard({
 
           ) : null}
 
-          <Text style={{ ...T.fieldLabel, flex: 1 }} numberOfLines={2}>
+          <Text style={{ ...T.fieldLabel, flex: 1, color: labelColor }} numberOfLines={2}>
 
             {label}
 
@@ -310,25 +432,13 @@ export default function MetricExplainCard({
 
         </View>
 
-        <Text style={{
+        {valueBlock}
 
-          fontSize: valueSize,
-
-          lineHeight: valueLineHeight,
-
-          fontWeight: '700',
-
-          color: valueColor,
-
-          letterSpacing: isHero ? -0.02 : 0,
-
-          ...tabularNums,
-
-        }} numberOfLines={2}>
-
-          {value}
-
-        </Text>
+        {valueMeta ? (
+          <View style={{ marginTop: isHero || isPanel ? 8 : 4 }}>
+            {valueMeta}
+          </View>
+        ) : null}
 
         {statusChip ? (
 
@@ -346,9 +456,19 @@ export default function MetricExplainCard({
 
         ) : null}
 
-        {footerLabel ? (
+        {footerMeta ? (
 
-          <Text style={{ ...T.caption, color: C.muted, marginTop: statusChip ? 4 : 6 }} numberOfLines={3}>
+          <View style={{ marginTop: statusChip ? 4 : 6 }}>
+
+            {footerMeta}
+
+          </View>
+
+        ) : null}
+
+        {!footerMeta && footerLabel ? (
+
+          <Text style={{ ...T.caption, color: footerColor, marginTop: statusChip ? 4 : 6 }} numberOfLines={1}>
 
             {footerLabel}
 
@@ -370,19 +490,23 @@ export default function MetricExplainCard({
 
 
 
-      {frequencySlot ? (
+      {showFrequencySlot ? (
 
-        <View style={{ paddingHorizontal: padH, paddingBottom: padV }}>
-
-          {frequencySlot}
-
-        </View>
+        <AnimatedCollapse
+          visible={showFrequencySlot}
+          fallbackHeight={36}
+          style={{ paddingHorizontal: padH }}
+        >
+          <View style={{ paddingBottom: padV }}>
+            {frequencySlot}
+          </View>
+        </AnimatedCollapse>
 
       ) : null}
 
 
 
-      {onInfoPress ? (
+      {(showFrequencyControl || onInfoPress) ? (
 
         <View
 
@@ -396,19 +520,31 @@ export default function MetricExplainCard({
 
             zIndex: 1,
 
+            flexDirection: 'row',
+
+            alignItems: 'center',
+
+            gap: 6,
+
             pointerEvents: 'box-none',
 
           }}
 
         >
 
-          <InfoIconButton onPress={onInfoPress} accessibilityLabel={infoAccessibilityLabel} tone={tone} />
+          {showFrequencyControl ? frequencyControl : null}
+
+          {onInfoPress ? (
+
+            <InfoIconButton onPress={onInfoPress} accessibilityLabel={infoAccessibilityLabel} tone={tone} glass={isGlass} />
+
+          ) : null}
 
         </View>
 
       ) : null}
 
-    </View>
+    </Container>
 
   );
 

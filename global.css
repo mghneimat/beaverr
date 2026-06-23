@@ -19,7 +19,8 @@
   --color-divider: #D1DCF0;
   --color-chip-active: rgba(30,58,95,0.1);
   --color-chip-active-border: #1E3A5F;
-  --font-family-sans: 'Inter', sans-serif;
+  /* @font-face injected by expo-font via useFonts — no CSS url() (NativeWind limitation) */
+  --font-family-sans: 'GeneralSans-Regular', system-ui, sans-serif;
 }
 
 .dark {
@@ -42,5 +43,13 @@
 }
 
 body {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-family-sans);
+}
+
+/* Root fills viewport; onboarding question screens lock to visualViewport on mobile web */
+html,
+body,
+#root {
+  height: 100%;
+  overflow: hidden;
 }

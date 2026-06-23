@@ -1,35 +1,26 @@
-import { View } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
-import { useI18n } from '../../lib/i18n';
-import { getCurrencySymbol } from '../../lib/currency';
-import { getSectionInsight, getHeadlineInsight } from '../../lib/insights';
 import { T } from '../../constants/onboarding-theme';
-import DashboardSectionHeader from './DashboardSectionHeader';
+import { getCurrencySymbol } from '../../lib/currency';
+import { useI18n } from '../../lib/i18n';
+import { getTabInsight, getSectionInsight } from '../../lib/insights';
+import AIInsightSection from './AIInsightSection';
 import BudgetSummaryTable from './BudgetSummaryTable';
-import OverviewMetricCards from './OverviewMetricCards';
+import CyclePaceHistorySection from './cycles/CyclePaceHistorySection';
+import MonthEndHistoryList from './MonthEndHistoryList';
+import TabSectionStack from './TabSectionStack';
 
 export default function SummaryContent({ bundle }) {
   const { t } = useI18n();
   const currency = getCurrencySymbol(bundle.financials.currencyCode);
-  const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
+  const tabInsight = getTabInsight('summary', bundle.insights, t);
+  const cyclesEnabled = bundle.financials.budget?.cyclesEnabled === true;
 
   return (
-    <View>
-      <Text style={{ ...T.helper, marginBottom: 16 }}>
+    <TabSectionStack>
+      <Text style={{ ...T.helper }}>
         {t('dashboard.summaryScreen.intro')}
       </Text>
-      <Text style={{ fontSize: 15, lineHeight: 22, color: '#1E3A5F', marginBottom: 20 }}>
-        {getHeadlineInsight(bundle.insights, t)}
-      </Text>
-      <DashboardSectionHeader title={t('dashboard.summaryScreen.healthSection')} />
-      <OverviewMetricCards
-        financials={bundle.financials}
-        insights={bundle.insights}
-        currency={currency}
-        daysInMonth={daysInMonth}
-        showHeroPanels={false}
-        secondaryMetricIds={['fixedLoad', 'recurring']}
-      />
+      {tabInsight ? <AIInsightSection paragraphs={tabInsight.paragraphs} /> : null}
       <BudgetSummaryTable
         financials={bundle.financials}
         insights={bundle.insights}
@@ -37,6 +28,10 @@ export default function SummaryContent({ bundle }) {
         t={t}
         getSectionInsight={getSectionInsight}
       />
-    </View>
+      <CyclePaceHistorySection bundle={bundle} currency={currency} />
+      {!cyclesEnabled ? (
+        <MonthEndHistoryList budget={bundle.financials.budget} currency={currency} />
+      ) : null}
+    </TabSectionStack>
   );
 }

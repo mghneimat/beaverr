@@ -1,72 +1,100 @@
 /** @type {import('tailwindcss').Config} */
+const { PALETTES } = require('./constants/palette');
+
+const light = PALETTES.light;
+const dark = PALETTES.dark;
+
 module.exports = {
   content: [
     "./app/**/*.{js,jsx,ts,tsx}",
     "./components/**/*.{js,jsx,ts,tsx}",
   ],
+  darkMode: ['class', '[data-color-scheme="dark"]'],
   presets: [require("nativewind/preset")],
   theme: {
     extend: {
       colors: {
-        // Blue/navy palette (inspired by UI Examples)
         bg: {
-          DEFAULT: '#EFF4FB',
-          dark: '#0F1724',
+          DEFAULT: light.bg,
+          dark: dark.bg,
         },
         surface: {
-          DEFAULT: '#F8FAFF',
-          dark: '#172032',
+          DEFAULT: light.surface,
+          tint: light.surfaceTint,
+          dark: dark.surface,
         },
         primary: {
-          DEFAULT: '#1E3A5F',
-          hover: '#162B45',
-          dark: '#818CF8',
-          'dark-hover': '#A5B4FC',
+          DEFAULT: light.primary,
+          hover: light.primaryPressed,
+          dark: dark.primary,
+          'dark-hover': dark.primaryPressed,
         },
         accent: {
-          DEFAULT: '#2563EB',
-          hover: '#1D4ED8',
-          dark: '#60A5FA',
-          'dark-hover': '#93C5FD',
+          DEFAULT: light.accent,
+          hover: light.accentPressed,
+          dark: dark.accent,
+          'dark-hover': dark.accentPressed,
+        },
+        delight: {
+          DEFAULT: light.delight,
+          dark: dark.delight,
         },
         positive: {
-          DEFAULT: '#10B981',
-          dark: '#22C55E',
+          DEFAULT: light.positive,
+          bg: light.positiveBg,
+          border: light.positiveBorder,
+          dark: dark.positive,
         },
-        warning: '#F59E0B',
+        warning: {
+          DEFAULT: light.warning,
+          bg: light.warningBg,
+          border: light.warningBorder,
+          cycle: light.cycleWarning,
+        },
         danger: {
-          DEFAULT: '#EF4444',
-          dark: '#EF4444',
+          DEFAULT: light.danger,
+          bg: light.dangerBg,
+          border: light.dangerBorder,
+          dark: dark.danger,
+        },
+        info: {
+          DEFAULT: light.info,
+          bg: light.infoBg,
+          border: light.infoBorder,
         },
         debt: {
-          DEFAULT: '#6B4FA0',
-          dark: '#9F6BFF',
+          DEFAULT: light.debt,
+          dark: dark.debt,
         },
         text: {
-          DEFAULT: '#1E3A5F',
-          dark: '#E8EAF0',
+          DEFAULT: light.text,
+          dark: dark.text,
         },
         muted: {
-          DEFAULT: '#6B7A99',
-          dark: '#8B95A8',
+          DEFAULT: light.muted,
+          dark: dark.muted,
         },
         border: {
-          DEFAULT: '#D1DCF0',
-          dark: '#2A3650',
+          DEFAULT: light.border,
+          dark: dark.border,
         },
         divider: {
-          DEFAULT: '#D1DCF0',
-          dark: '#2A3650',
+          DEFAULT: light.border,
+          dark: dark.border,
         },
         chip: {
-          active: 'rgba(30,58,95,0.1)',
-          'active-border': '#1E3A5F',
-          'active-dark': 'rgba(129,140,248,0.15)',
-          'active-border-dark': '#818CF8',
+          active: light.overlaySelected,
+          'active-border': light.primary,
+          'active-dark': dark.overlaySelected,
+          'active-border-dark': dark.primary,
+        },
+        selected: {
+          bg: light.selectedBg,
+          text: light.selectedText,
         },
       },
       fontFamily: {
-        sans: ['Inter', 'sans-serif'],
+        sans: ['GeneralSans-Regular', 'system-ui', 'sans-serif'],
         serif: ['DM Serif Display', 'serif'],
         mono: ['DM Mono', 'monospace'],
       },
@@ -79,11 +107,14 @@ module.exports = {
         'eyebrow': ['11px', { lineHeight: '1.4', fontWeight: '500', letterSpacing: '0.12em' }],
       },
       borderRadius: {
-        'xl': '12px',
-        'lg': '10px',
-        'md': '8px',
+        card: '22px',
+        input: '22px',
+        pill: '999px',
+        xl: '22px',
+        lg: '22px',
+        md: '16px',
       },
     },
   },
   plugins: [],
-}
+};

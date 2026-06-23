@@ -1,34 +1,31 @@
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'expo-router';
+import React, { useCallback } from 'react';
 import { useI18n } from '../../lib/i18n';
-import { getData } from '../../lib/storage';
+import { useOnboardingLayout } from '../../lib/onboardingLayout';
+import { navigateForward } from '../../lib/onboardingNavigation';
+import { navigateBackFromSectionSplash } from '../../lib/onboardingResume';
 import SplashScreen from '../../components/onboarding/SplashScreen';
+import GoodDoggyCuateIllustration from '../../components/onboarding/GoodDoggyCuateIllustration';
 
 /** Section 8 splash — Pets */
 export default function SplashPetsScreen() {
   const { t } = useI18n();
-  const router = useRouter();
-  const [onBackRoute, setOnBackRoute] = useState('/(onboarding)/health');
+  const layout = useOnboardingLayout();
 
-  useEffect(() => {
-    (async () => {
-      const household = await getData('pocketos_household');
-      setOnBackRoute(
-        household?.children?.length > 0
-          ? '/(onboarding)/children-costs'
-          : '/(onboarding)/health',
-      );
-    })();
-  }, []);
+  const handleBack = useCallback(
+    () => navigateBackFromSectionSplash('/(onboarding)/splash-pets'),
+    [],
+  );
 
   return (
     <SplashScreen
+      illustration={<GoodDoggyCuateIllustration width={layout.illustrationWidth} />}
+      animationKey="splash-pets"
       heading={t('onboarding.s8.heading')}
+      description={t('onboarding.s8.body')}
       cta={t('common.continue')}
-      onContinue={() => router.replace('/(onboarding)/pets')}
+      onContinue={() => navigateForward('/(onboarding)/pets')}
+      onBack={handleBack}
       chapter={t('onboarding.pets.chapter')}
-      onBack={() => router.replace(onBackRoute)}
-      progress={80}
     />
   );
 }

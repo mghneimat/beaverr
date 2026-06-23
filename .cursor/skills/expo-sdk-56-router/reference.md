@@ -31,11 +31,11 @@
 | `package.json` → `main` | `expo-router/entry` — bootstraps router |
 | `app.json` → `plugins` | `expo-router` plugin |
 | `app.json` → `experiments.typedRoutes` | Enables generated route types |
-| `app.json` → `scheme` | Deep link scheme (`pocketostemp`) |
+| `app.json` → `scheme` | Deep link scheme (`beaverr`) |
 | `babel.config.js` | `babel-preset-expo` (+ NativeWind in this project) |
 | `metro.config.js` | `expo/metro-config` (+ NativeWind wrapper) |
 
-## PocketOS onboarding flow (registered order)
+## Beaverr onboarding flow (registered order)
 
 From `app/(onboarding)/_layout.jsx`:
 
@@ -72,7 +72,7 @@ From `app/(onboarding)/_layout.jsx`:
 ## Launch routing (`app/index.jsx`)
 
 ```
-getData('pocketos_onboarding')
+getData('beaverr_onboarding')
   ├─ completed === true  → router.replace('/(app)/dashboard')
   └─ else / error        → router.replace('/(onboarding)/welcome')
 ```
@@ -112,8 +112,8 @@ Set `"main": "expo-router/entry"`, add `"expo-router"` to `plugins`, create `app
 |----------|--------|
 | Linear onboarding forward | `replace` |
 | Optional drill-in (settings detail) | `push` |
-| Tab switch | `push` (PocketOS pattern) |
+| Tab switch | `push` (Beaverr pattern) |
 | Reset to root after auth/logout | `replace` |
 | Generic back button | `back()` or explicit `replace` to known prior step |
 
-PocketOS onboarding uses **explicit `replace` targets** on splash/question back buttons for predictable flow — not only `router.back()`.
+Beaverr onboarding uses **explicit `replace` targets** on splash/question back buttons for predictable flow — not only `router.back()`.

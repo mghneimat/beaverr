@@ -10,7 +10,7 @@ import RemoveButton from './RemoveButton';
  * @param {string} [props.title] - Card header label
  * @param {string} [props.icon] - Optional emoji/icon left of title
  * @param {Function} [props.onRemove] - Shows RemoveButton when provided
- * @param {'default'|'active'} [props.variant] - Surface vs highlighted active chip style
+ * @param {'default'|'active'|'nested'} [props.variant] - Surface vs highlighted active vs inset nested card
  * @param {object} [props.style] - Additional outer View styles
  * @param {React.ReactNode} props.children - Card body (inputs, pills, etc.)
  */
@@ -23,14 +23,15 @@ export default function CostCard({
   children,
 }) {
   const isActive = variant === 'active';
+  const isNested = variant === 'nested';
 
   return (
     <View style={{
       padding: S.cardPad,
-      backgroundColor: isActive ? C.chipSelectedBg : C.surface,
+      backgroundColor: isActive ? C.navSelectedBg : isNested ? C.bg : C.surface,
       borderRadius: R.card,
       borderWidth: 1,
-      borderColor: isActive ? C.chipSelectedBorder : C.border,
+      borderColor: isActive ? C.navSelectedBorder : C.border,
       marginBottom: 10,
       ...style,
     }}>

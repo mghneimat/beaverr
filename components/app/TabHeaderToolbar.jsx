@@ -1,0 +1,424 @@
+import { useRef, useState } from 'react';
+import {
+  View,
+  Pressable,
+  Modal,
+  Platform,
+  StyleSheet,
+  useWindowDimensions,
+} from 'react-native';
+import { Text } from '@gluestack-ui/themed';
+import { useRouter, useSegments } from 'expo-router';
+import { useI18n } from '../../lib/i18n';
+import { resolveProfileDisplayName } from '../../lib/profileDisplay';
+import { revokeConsent } from '../../lib/consent';
+import { navigateAppTab } from '../../lib/screenTransition';
+import { C, R, T } from '../../constants/onboarding-theme';
+import { elevationShadow } from '../../lib/shadow';
+import {
+  AlertsIcon,
+  ProfileIcon,
+  UserIcon,
+  CreditCardIcon,
+  SlidersIcon,
+  SunIcon,
+  CircleHelpIcon,
+  LogOutIcon,
+  ZapIcon,
+} from './AppNavIcons';
+import { CardHeaderChevron } from '../dashboard/CardHeaderActionButton';
+import ConfirmDialog from '../ui/ConfirmDialog';
+
+const MENU_WIDTH = 280;
+const MENU_ITEM_RADIUS = 12;
+const MENU_DROPDOWN_ICON_SIZE = 18;
+const WIDE_BREAKPOINT = 768;
+
+function useToolbarMetrics() {
+  const { width } = useWindowDimensions();
+  const comfortable = width < WIDE_BREAKPOINT;
+  return {
+    comfortable,
+    navActionSize: comfortable ? 48 : 44,
+    alertsHit: comfortable ? 48 : 44,
+    profileAvatarSize: comfortable ? 38 : 36,
+    menuIconSize: comfortable ? 22 : 20,
+    profileHoverPad: comfortable ? 8 : 6,
+    dividerHeight: comfortable ? 28 : 24,
+  };
+}
+
+function ToolbarSegment({ onPress, accessibilityLabel, accessibilityState, children, style, hitSlop }) {
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+      accessibilityState={accessibilityState}
+      hitSlop={hitSlop}
+      style={({ pressed, hovered }) => [{
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: R.input,
+        backgroundColor: pressed
+          ? C.overlayPressed
+          : hovered && Platform.OS === 'web'
+            ? C.overlayHover
+            : 'transparent',
+        ...(Platform.OS === 'web' ? { cursor: 'pointer' } : {}),
+      }, style]}
+    >
+      {children}
+    </Pressable>
+  );
+}
+
+function ProBadge({ t }) {
+  return (
+    <View
+      accessibilityLabel={t('dashboard.headerToolbar.proBadgeA11y')}
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 3,
+        paddingHorizontal: 8,
+        paddingVertical: 3,
+        borderRadius: R.pill,
+        backgroundColor: C.heroIncomeBg,
+        borderWidth: 1,
+        borderColor: C.heroIncomeBorder,
+      }}
+    >
+      <ZapIcon color={C.heroIncomeBadge} size={11} />
+      <Text style={{ fontSize: 10, fontWeight: '700', color: C.heroIncomeBadge, letterSpacing: 0.4 }}>
+        {t('dashboard.headerToolbar.proBadge')}
+      </Text>
+    </View>
+  );
+}
+
+function ProfileMenuOption({
+  label,
+  onPress,
+  icon: Icon,
+  destructive = false,
+  selected = false,
+  trailing = null,
+}) {
+  const [hovered, setHovered] = useState(false);
+  const [pressed, setPressed] = useState(false);
+  const active = pressed || hovered;
+  const iconColor = destructive ? C.danger : C.primary;
+
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="menuitem"
+      accessibilityLabel={label}
+      accessibilityState={{ selected }}
+      onPressIn={() => setPressed(true)}
+      onPressOut={() => setPressed(false)}
+      onHoverIn={() => setHovered(true)}
+      onHoverOut={() => setHovered(false)}
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        minHeight: 44,
+        paddingHorizontal: 10,
+        paddingVertical: 8,
+        borderRadius: MENU_ITEM_RADIUS,
+        marginHorizontal: 6,
+        gap: 10,
+        backgroundColor: selected
+          ? C.navSelectedBg
+          : active
+            ? C.overlayHover
+            : 'transparent',
+        ...(Platform.OS === 'web' ? { cursor: 'pointer' } : {}),
+      }}
+    >
+      <View style={{ width: MENU_DROPDOWN_ICON_SIZE, alignItems: 'center' }}>
+        <Icon color={iconColor} size={MENU_DROPDOWN_ICON_SIZE} />
+      </View>
+      <Text style={{
+        flex: 1,
+        fontSize: 14,
+        fontWeight: '600',
+        color: destructive ? C.danger : C.text,
+      }}>
+        {label}
+      </Text>
+      {trailing}
+    </Pressable>
+  );
+}
+
+/**
+ * Alerts + profile pill for tab headers — notifications left, profile right.
+ */
+export default function TabHeaderToolbar({ alertCount = 0, profileName }) {
+  const { t } = useI18n();
+  const router = useRouter();
+  const segments = useSegments();
+  const currentRoute = segments[segments.length - 1];
+  const {
+    comfortable,
+    navActionSize,
+    alertsHit,
+    profileAvatarSize,
+    menuIconSize,
+    profileHoverPad,
+    dividerHeight,
+  } = useToolbarMetrics();
+
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [profileAnchor, setProfileAnchor] = useState(null);
+  const [logOutDialogOpen, setLogOutDialogOpen] = useState(false);
+  const profileTriggerRef = useRef(null);
+
+  const displayName = resolveProfileDisplayName(
+    profileName ? { displayName: profileName } : null,
+    t,
+  );
+  const isProfileRoute = currentRoute === 'profile';
+
+  const closeProfileMenu = () => {
+    setProfileOpen(false);
+    setProfileAnchor(null);
+  };
+
+  const openProfileMenu = () => {
+    const node = profileTriggerRef.current;
+    if (!node?.measureInWindow) {
+      setProfileOpen(true);
+      return;
+    }
+    node.measureInWindow((x, y, width, height) => {
+      setProfileAnchor({ x, y, width, height });
+      setProfileOpen(true);
+    });
+  };
+
+  const handleAlertsPress = () => {
+    navigateAppTab(router, 'alerts', currentRoute);
+  };
+
+  const handleOpenProfile = () => {
+    closeProfileMenu();
+    setTimeout(() => navigateAppTab(router, 'profile', currentRoute), 0);
+  };
+
+  const openSettingsTab = (route) => {
+    closeProfileMenu();
+    setTimeout(() => navigateAppTab(router, route, currentRoute), 0);
+  };
+
+  const openAppearance = () => {
+    closeProfileMenu();
+    setTimeout(() => navigateAppTab(router, 'appearance', currentRoute), 0);
+  };
+
+  const handleLogOutRequest = () => {
+    closeProfileMenu();
+    setTimeout(() => setLogOutDialogOpen(true), 0);
+  };
+
+  const handleConfirmLogOut = async () => {
+    setLogOutDialogOpen(false);
+    await revokeConsent();
+    router.replace('/(onboarding)/consent');
+  };
+
+  const menuTop = profileAnchor ? profileAnchor.y + profileAnchor.height + 8 : 0;
+  const menuLeft = profileAnchor
+    ? Math.max(8, profileAnchor.x + profileAnchor.width - MENU_WIDTH)
+    : 0;
+
+  const badgeLabel = alertCount > 9 ? '9+' : String(alertCount);
+  const alertsA11y = alertCount > 0
+    ? t('dashboard.headerToolbar.alertsCountA11y', { count: alertCount })
+    : t('dashboard.headerToolbar.alertsA11y');
+
+  return (
+    <>
+      <View style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        flexShrink: 0,
+        gap: comfortable ? 4 : 2,
+      }}>
+        <ToolbarSegment
+          onPress={handleAlertsPress}
+          accessibilityLabel={alertsA11y}
+          hitSlop={comfortable ? { top: 4, bottom: 4, left: 4, right: 4 } : undefined}
+          style={{ width: alertsHit, height: alertsHit, minWidth: alertsHit, minHeight: alertsHit, position: 'relative' }}
+        >
+          <AlertsIcon color={C.primary} size={menuIconSize} />
+          {alertCount > 0 ? (
+            <View style={{
+              position: 'absolute',
+              top: comfortable ? 8 : 6,
+              right: comfortable ? 8 : 6,
+              minWidth: 16,
+              height: 16,
+              paddingHorizontal: 4,
+              borderRadius: 8,
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: C.danger,
+              borderWidth: 1.5,
+              borderColor: C.surface,
+            }}>
+              <Text style={{ fontSize: 9, fontWeight: '700', color: '#FFFFFF', lineHeight: 11 }}>
+                {badgeLabel}
+              </Text>
+            </View>
+          ) : null}
+        </ToolbarSegment>
+
+        <View style={{
+          width: 1,
+          height: dividerHeight,
+          backgroundColor: C.border,
+          flexShrink: 0,
+          marginHorizontal: comfortable ? 6 : 4,
+        }} />
+
+        <View ref={profileTriggerRef} collapsable={false} style={{ flexShrink: 0 }}>
+          <ToolbarSegment
+            onPress={() => (profileOpen ? closeProfileMenu() : openProfileMenu())}
+            accessibilityLabel={t('dashboard.headerToolbar.profileA11y')}
+            accessibilityState={{ expanded: profileOpen }}
+            hitSlop={comfortable ? { top: 4, bottom: 4, left: 4, right: 4 } : undefined}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: comfortable ? 4 : 2,
+              minWidth: navActionSize,
+              minHeight: navActionSize,
+              paddingHorizontal: profileHoverPad,
+              paddingVertical: profileHoverPad,
+            }}
+          >
+            <View style={{
+              width: profileAvatarSize,
+              height: profileAvatarSize,
+              borderRadius: profileAvatarSize / 2,
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: C.navSelectedBg,
+              borderWidth: 1,
+              borderColor: C.border,
+            }}>
+              <ProfileIcon color={C.primary} size={menuIconSize} />
+            </View>
+            <CardHeaderChevron expanded={profileOpen} color={C.muted} active={profileOpen} />
+          </ToolbarSegment>
+        </View>
+      </View>
+
+      <Modal
+        visible={profileOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={closeProfileMenu}
+        statusBarTranslucent
+      >
+        <View style={styles.overlay}>
+          <Pressable
+            style={StyleSheet.absoluteFill}
+            onPress={closeProfileMenu}
+            accessibilityRole="button"
+            accessibilityLabel={t('common.cancel')}
+          />
+          {profileAnchor ? (
+            <View
+              accessibilityRole="menu"
+              accessibilityLabel={t('dashboard.headerToolbar.profileMenuA11y')}
+              style={{
+                position: 'absolute',
+                top: menuTop,
+                left: menuLeft,
+                width: MENU_WIDTH,
+                backgroundColor: C.surface,
+                borderRadius: R.card,
+                paddingTop: 14,
+                paddingBottom: 10,
+                borderWidth: 1,
+                borderColor: C.border,
+                ...elevationShadow({ offsetY: 12, blur: 28, opacity: 0.16 }),
+                ...(Platform.OS === 'web' ? { zIndex: 9999 } : {}),
+              }}
+            >
+              <View style={{ paddingHorizontal: 16, paddingBottom: 12 }}>
+                <Text style={{ ...T.cardTitle, fontSize: 15, color: C.primary }} numberOfLines={1}>
+                  {displayName}
+                </Text>
+              </View>
+
+              <View style={{ height: 1, backgroundColor: C.border, marginHorizontal: 12, marginBottom: 6 }} />
+
+              <ProfileMenuOption
+                label={t('dashboard.headerToolbar.profileLabel')}
+                icon={UserIcon}
+                onPress={handleOpenProfile}
+                selected={isProfileRoute}
+              />
+              <ProfileMenuOption
+                label={t('dashboard.headerToolbar.subscription')}
+                icon={CreditCardIcon}
+                onPress={() => openSettingsTab('subscriptions')}
+                selected={currentRoute === 'subscriptions'}
+                trailing={<ProBadge t={t} />}
+              />
+              <ProfileMenuOption
+                label={t('dashboard.headerToolbar.accountSettings')}
+                icon={SlidersIcon}
+                onPress={() => openSettingsTab('account-settings')}
+                selected={currentRoute === 'account-settings'}
+              />
+              <ProfileMenuOption
+                label={t('dashboard.headerToolbar.appearance')}
+                icon={SunIcon}
+                onPress={openAppearance}
+              />
+
+              <View style={{ height: 1, backgroundColor: C.border, marginVertical: 6, marginHorizontal: 12 }} />
+
+              <ProfileMenuOption
+                label={t('dashboard.headerToolbar.helpFeedback')}
+                icon={CircleHelpIcon}
+                onPress={() => openSettingsTab('help-feedback')}
+                selected={currentRoute === 'help-feedback'}
+              />
+              <ProfileMenuOption
+                label={t('dashboard.headerToolbar.logOut')}
+                icon={LogOutIcon}
+                onPress={handleLogOutRequest}
+                destructive
+              />
+            </View>
+          ) : null}
+        </View>
+      </Modal>
+
+      <ConfirmDialog
+        visible={logOutDialogOpen}
+        title={t('dashboard.headerToolbar.logOutConfirmTitle')}
+        message={t('dashboard.headerToolbar.logOutConfirmMessage')}
+        confirmLabel={t('dashboard.headerToolbar.logOutConfirmButton')}
+        cancelLabel={t('common.cancel')}
+        destructive
+        onConfirm={handleConfirmLogOut}
+        onCancel={() => setLogOutDialogOpen(false)}
+      />
+    </>
+  );
+}
+
+const styles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: Platform.OS === 'web' ? 'rgba(15, 23, 42, 0.06)' : 'rgba(0, 0, 0, 0.18)',
+  },
+});

@@ -1,22 +1,49 @@
 ---
-name: Bida
+name: Beaverr
 description: A smart personal budgeting tool — navy ledger aesthetic, restrained and task-focused
 colors:
-  bg: "#EFF4FB"
-  surface: "#F8FAFF"
-  primary: "#1E3A5F"
-  primary-pressed: "#162B45"
-  accent: "#2563EB"
-  accent-pressed: "#1D4ED8"
-  text: "#1E3A5F"
-  muted: "#6B7A99"
-  border: "#D1DCF0"
-  placeholder: "#6B7A99"
-  positive: "#10B981"
-  danger: "#EF4444"
-  chip-selected-bg: "#DBEAFE"
-  chip-selected-border: "#2563EB"
-  on-accent: "#FFFFFF"
+  primitives:
+    navy900: "#1E3A5F"
+    navy950: "#162B45"
+    blue500: "#3B82F6"
+    blue600: "#2563EB"
+    green600: "#16A34A"
+    red500: "#EF4444"
+    amber500: "#F59E0B"
+    amber600: "#D97706"
+    slate400: "#94A3B8"
+    slate300: "#D1DCF0"
+    slate200: "#ECEEF2"
+    white: "#FFFFFF"
+    paper: "#EFF4FB"
+  semantic:
+    bg: paper
+    surface: white
+    surface-tint: paper
+    primary: navy900
+    primary-pressed: navy950
+    accent: blue500
+    accent-pressed: blue600
+    positive: green600
+    positive-bg: "#F0FDF4"
+    positive-border: "#BBF7D0"
+    danger: red500
+    danger-bg: "#FEF2F2"
+    danger-border: "#FECACA"
+    warning: amber600
+    warning-bg: "#FFFBEB"
+    warning-border: "#FDE68A"
+    cycle-warning: amber500
+    info: "#1E40AF"
+    info-bg: "#DBEAFE"
+    info-border: "#93C5FD"
+    text: navy900
+    muted: slate400
+    border: slate300
+    disabled: "#D1D5DB"
+    selected-bg: navy900
+    selected-text: white
+    debt: "#6B4FA0"
 typography:
   display:
     fontFamily: "Inter, system-ui, sans-serif"
@@ -49,10 +76,10 @@ typography:
     lineHeight: 1.4
     letterSpacing: "normal"
 rounded:
-  input: "10px"
-  card: "10px"
-  button: "10px"
-  chip: "12px"
+  input: "22px"
+  card: "22px"
+  button: "99px"
+  chip: "16px"
   pill: "99px"
 spacing:
   page-pad-h: "20px"
@@ -103,20 +130,20 @@ components:
     padding: "0px 8px"
 ---
 
-# Design System: Bida
+# Design System: Beaverr
 
 ## Overview
 
-**Creative North Star: "Your wallet patron"**
+**Creative North Star: "Not rich. Just ready."**
 
-Bida looks and feels like a calm personal ledger brought into software: navy ink on cool paper, one blue accent for actions, and density only where money math demands it. The interface serves a couple or family sitting down in the evening to understand income, costs, and what is left to spend. It should feel trustworthy and familiar, not like a fintech marketing site or a generic AI workflow tool.
+Beaverr looks and feels like a calm personal ledger brought into software: navy ink on cool paper, one blue accent for actions, and density only where money math demands it. The interface serves a couple or family sitting down in the evening to understand income, costs, and what is left to spend. It should feel trustworthy and familiar, not like a fintech marketing site or a generic AI workflow tool.
 
-The canonical visual source is `constants/onboarding-theme.js` (`C`, `R`, `T`, `S`). Onboarding, consent, splash screens, and the app sidebar use these tokens directly. Authenticated app tab screens partially use NativeWind (`tailwind.config.js`) with hex values mirrored from the same palette. Gluestack provider tokens in `gluestack-ui.config.js` must stay in sync with `onboarding-theme.js`.
+The canonical visual source is `constants/onboarding-theme.js` — **Layer 1** primitives (`P`) hold all hex values; **Layer 2** semantics (`C`) are what components import. Typography (`T`) references `C.text` and `C.muted` only. Gluestack and Tailwind mirror `C` from the same file.
 
 **Key Characteristics:**
 - Restrained color strategy: tinted cool neutrals plus blue accent on primary actions and selection only
 - Single sans family (Inter) across all UI; fixed px scale, not fluid clamp typography
-- Flat surfaces at rest; depth via background tints (`bg` vs `surface` vs `chipSelectedBg`), not decorative shadows
+- Flat page canvas with **elevated white cards** at rest; depth via soft card shadow (`SHADOW.card`), not border-plus-blur ghost cards
 - One question per screen during onboarding; progress bar and fixed continue bar for orientation
 - Collapsible left sidebar in the app shell; mobile drawer below 768px breakpoint
 - Formal Czech ("vy") and English locale parity on all user-facing copy
@@ -139,7 +166,8 @@ A cool navy-and-paper palette tuned for household finance clarity.
 
 ### Neutral
 - **Cool Paper** (`#EFF4FB`): Page background (`C.bg`). Main canvas behind content.
-- **Ledger Surface** (`#F8FAFF`): Cards, nav bars, inputs (`C.surface`). Slightly lighter than bg.
+- **Ledger Surface** (`#FFFFFF`): Elevated cards and capsule inputs (`C.surface`).
+- **Surface Tint** (`#F8FAFF`): Nested rows inside cards, hover washes (`C.surfaceTint`).
 - **Slate Muted** (`#6B7A99`): Helper text, field labels, secondary nav labels. Use for placeholders (audit: darken from `#9CA3AF` for 4.5:1 contrast).
 - **Blue Mist Border** (`#D1DCF0`): Borders, dividers, table rules, progress track.
 - **Selected Chip Wash** (`#DBEAFE`): Active nav rows, selected chips, language badge highlight.
@@ -172,36 +200,40 @@ A cool navy-and-paper palette tuned for household finance clarity.
 
 ## Elevation
 
-Bida is flat-by-default. Depth comes from tonal layering: `bg` page, `surface` panels, `chipSelectedBg` selection, and 1px `border`/`divider` rules. Shadows are rare and should not pair with borders on the same element (no ghost-card pattern).
+Beaverr uses a cool paper canvas (`bg`) with **white elevated cards** (`surface`). Nested content inside cards uses `bg` or `surfaceTint` for subtle layering. Primary buttons carry a tight accent shadow (`SHADOW.button`).
 
 ### Shadow Vocabulary
-- **Dropdown lift (web only):** `0 6px 20px rgba(30, 58, 95, 0.12)` on language menu. Prefer border-only treatment when revisiting; do not add wide blur shadows to cards or buttons.
+- **Card lift:** `SHADOW.card` — `0 2px 12px rgba(30, 58, 95, 0.07)`. Cards use shadow only (no border).
+- **Button lift:** `SHADOW.button` — `0 2px 8px rgba(37, 99, 235, 0.22)` on filled primary CTAs.
+- **Dropdown lift (web only):** `0 6px 20px rgba(30, 58, 95, 0.12)` on language menu.
 
 ### Named Rules
-**The Flat-By-Default Rule.** Surfaces are flat at rest. Hover uses `overlayHover` rgba tints (`rgba(30,58,95,0.05)`), not drop shadows.
+**The Elevated Card Rule.** `SurfaceCard` is white, 22px radius, soft shadow. Do not add a 1px border on the same element.
 
-**The No Ghost-Card Rule.** Never combine `border: 1px` with soft shadows ≥16px blur on the same component. Pick border OR a tight ≤8px shadow.
+**The No Ghost-Card Rule.** Never combine `border: 1px` with soft shadows ≥16px blur on the same component.
+
+**The Flat-By-Default Rule.** Only cards and primary buttons carry shadow. Hover uses `overlayHover` rgba tints elsewhere.
 
 ## Components
 
 ### Buttons
-- **Shape:** Gently rounded (10px, `R.button`)
-- **Primary:** Action Blue fill, white 15px/600 label, 16px vertical / 24px horizontal padding. Full width on onboarding continue bar.
-- **Hover / Press:** Opacity 0.92 on hover; `#1D4ED8` on press. Disabled: `#D1D5DB` fill.
-- **Outline / Skip:** Transparent fill, 1.5px border `#D1DCF0`, muted 13px label.
+- **Shape:** Full pill (`R.button` / 99px)
+- **Primary:** Action Blue fill, white 15px/600 label, light accent shadow. Full width on onboarding continue bar.
+- **Hover / Press:** Opacity 0.94 on hover; `#1D4ED8` on press. Disabled: `#D1D5DB` fill, no shadow.
+- **Outline / Skip:** White fill, 1.5px border `#D1DCF0`, navy 15px/600 label, pill shape.
 
 ### Chips
-- **Suggestion chip:** 12px radius, 1.5px border. Selected: navy border + chip wash bg. Unselected: surface bg + border.
-- **Frequency pill:** Full pill (`R.pill` 99px). Selected: navy bg + white text. Unselected: bg fill + border.
+- **Suggestion chip:** 16px radius (`R.chip`), 1.5px border. Selected: navy border + chip wash bg.
+- **Frequency pill:** Full pill (`R.pill`). Selected: navy bg + white text. Unselected: bg fill + border.
 
 ### Cards / Containers
-- **Corner Style:** 10px (`R.card`, `R.input`)
-- **Background:** `surface` for cards; `bg` for nested table headers and expanded breakdown rows
-- **Border:** 1px `#D1DCF0`; budget summary table uses full grid rules, not side-stripe accents
-- **Internal Padding:** 16px card pad (`S.cardPad`); table cells 12–14px vertical
+- **Corner Style:** 22px (`R.card`, `R.input` for nested fields)
+- **Background:** White `surface` for cards; `bg` or `surfaceTint` for nested table headers and expanded breakdown rows
+- **Border:** None on `SurfaceCard` — shadow only via `SHADOW.card`
+- **Internal Padding:** 20px card pad (`S.cardPad`)
 
 ### Inputs / Fields
-- **Style:** `surface` fill, 2–2.5px border `#D1DCF0`, 10px radius. Large money inputs: 22px/600 value text.
+- **Style:** White `surface` fill, 1.5px border `#D1DCF0`, **pill capsule** (`R.pill`) for standalone fields; 22px radius when nested in cards. Large money inputs: 22px/600 value text.
 - **Focus:** Border shifts to Action Blue (`C.accent`). Web: visible focus ring required (do not zero outline without replacement).
 - **Error:** Danger border + `#FEE2E2` banner pattern. Helper text 12px below field.
 
@@ -233,3 +265,20 @@ Bida is flat-by-default. Depth comes from tonal layering: `bg` page, `surface` p
 - **Don't** mix onboarding inline tokens and NativeWind app screens without mapping to the same hex values (causes handoff drift).
 - **Don't** ship icon-only navigation without `accessibilityLabel` and tooltip/expand affordances for collapsed sidebar.
 - **Don't** use placeholder gray `#9CA3AF` on light surfaces; use `muted` (`#6B7A99`) for readable placeholder contrast.
+
+## Light / dark appearance
+
+Runtime theme lives in `constants/palette.js` (`P.light`, `P.dark`, `buildSemanticColors`) and `lib/theme/ThemeProvider.jsx`. The active palette mutates the shared `C` export so existing components re-read tokens on re-render.
+
+| Token | Light | Dark |
+|-------|-------|------|
+| `bg` | `#E4ECF7` | `#0B1220` |
+| `surface` | `#FFFFFF` | `#141D33` |
+| `primary` / `accent` | Navy `#14274E` / blue `#3B82F6` | Soft blue `#5B9BFF` |
+| `text` / `muted` | `#14274E` / `#8895AB` | `#E8EDF7` / `#8694B0` |
+| `delight` | `#F2994A` (celebrations only) | `#F4A968` |
+| `selectedBg` / `selectedText` | Navy / white | Blue / `#0B1220` |
+
+- **Persistence:** `beaverr_ui_preferences.colorScheme` (`light` \| `dark`).
+- **Web FOUC:** blocking script in `app/+html.jsx` reads localStorage before paint.
+- **Tailwind:** `darkMode: ['class', '[data-color-scheme="dark"]']` — most UI still uses inline `C.*`.

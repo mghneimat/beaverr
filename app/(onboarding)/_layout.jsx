@@ -17,18 +17,27 @@ export default function OnboardingLayout() {
       {/* Entry points */}
       <Stack.Screen name="welcome" />
       <Stack.Screen name="consent" />
+      <Stack.Screen name="setup-mode" />
+      <Stack.Screen name="quick-setup" />
 
       {/* Section 1 — Household Setup */}
+      <Stack.Screen name="splash-household" />
       <Stack.Screen name="household" />
 
       {/* Section 2 — Location & Occupation */}
       <Stack.Screen name="splash-location" />
       <Stack.Screen name="location" />
+      <Stack.Screen name="citizenship" />
+      <Stack.Screen name="residence-permit" />
       <Stack.Screen name="occupation" />
 
       {/* Section 3 — Income */}
       <Stack.Screen name="splash-income" />
       <Stack.Screen name="income" />
+
+      {/* Section 3b — Strategy */}
+      <Stack.Screen name="splash-strategy" />
+      <Stack.Screen name="strategy" />
 
       {/* Section 4 — Housing */}
       <Stack.Screen name="splash-housing" />
@@ -44,7 +53,7 @@ export default function OnboardingLayout() {
 
       {/* Section 7 — Children's Costs */}
       <Stack.Screen name="splash-children" />
-      <Stack.Screen name="children-costs" />
+      <Stack.Screen name="childrenCosts" />
 
       {/* Section 8 — Pets */}
       <Stack.Screen name="splash-pets" />
@@ -62,13 +71,17 @@ export default function OnboardingLayout() {
       <Stack.Screen name="splash-debts" />
       <Stack.Screen name="debts" />
 
-      {/* Section 12 — Budget & Strategy */}
+      {/* Section 12 — Setup Budget */}
       <Stack.Screen name="splash-budget" />
       <Stack.Screen name="budget" />
+      <Stack.Screen name="budget-setup" />
+      <Stack.Screen name="budget-rollover" />
+      <Stack.Screen name="budget-spending-strategy" />
 
       {/* Section 13 — Review & Confirm */}
       <Stack.Screen name="splash-review" />
       <Stack.Screen name="review" />
+      <Stack.Screen name="review-edit" options={{ presentation: 'card' }} />
     </Stack>
   );
 }

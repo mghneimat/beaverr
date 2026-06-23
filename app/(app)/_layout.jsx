@@ -1,35 +1,33 @@
-import { useState } from 'react';
-import { Stack, useSegments } from 'expo-router';
-import { View, Text, useWindowDimensions } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useI18n } from '../../lib/i18n';
-import AppSidebar, { AppSidebarMobileTrigger } from '../../components/app/AppSidebar';
-import { C, S } from '../../constants/onboarding-theme';
+import { useState, useEffect } from 'react';
+import { Stack, useRouter, useSegments } from 'expo-router';
+import { View, useWindowDimensions } from 'react-native';
+import AppSidebar from '../../components/app/AppSidebar';
+import AppTopNavBar from '../../components/app/AppTopNavBar';
+import QuestionnaireBanner from '../../components/app/QuestionnaireBanner';
+import { getData } from '../../lib/storage';
+import { isTabLockedForQuickSetup } from '../../lib/onboardingProgress';
+import { C } from '../../constants/onboarding-theme';
 
 const WIDE_BREAKPOINT = 768;
 
-const TAB_LABEL_MAP = {
-  dashboard: 'dashboard.title',
-  income: 'dashboard.income',
-  costs: 'dashboard.expenses',
-  budget: 'dashboard.budget',
-  tracker: 'dashboard.tracker',
-  goals: 'dashboard.goals',
-  savings: 'dashboard.savings',
-  summary: 'dashboard.summary',
-  alerts: 'dashboard.alerts',
-};
-
 export default function AppLayout() {
-  const { t } = useI18n();
-  const segments = useSegments();
-  const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const isWide = width >= WIDE_BREAKPOINT;
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const router = useRouter();
+  const segments = useSegments();
 
-  const currentRoute = segments[segments.length - 1];
-  const headerTitle = TAB_LABEL_MAP[currentRoute] ? t(TAB_LABEL_MAP[currentRoute]) : '';
+  useEffect(() => {
+    (async () => {
+      if (segments[0] !== '(app)') return;
+      const routeName = segments[segments.length - 1];
+      if (!routeName || routeName === '_layout') return;
+      const onboarding = await getData('beaverr_onboarding');
+      if (isTabLockedForQuickSetup(onboarding, routeName)) {
+        router.replace('/(app)/dashboard');
+      }
+    })();
+  }, [segments, router]);
 
   return (
     <View style={{ flex: 1, flexDirection: 'row', backgroundColor: C.bg }}>
@@ -39,24 +37,12 @@ export default function AppLayout() {
       />
 
       <View style={{ flex: 1 }}>
-        {!isWide ? (
-          <View style={{
-            backgroundColor: C.surface,
-            paddingHorizontal: S.pagePadH,
-            paddingTop: insets.top,
-            minHeight: S.navHeight + insets.top,
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 12,
-            borderBottomWidth: 1,
-            borderBottomColor: C.border,
-          }}>
-            <AppSidebarMobileTrigger onMobileOpen={() => setMobileSidebarOpen(true)} />
-            <Text style={{ fontSize: 17, fontWeight: '600', color: C.primary, flex: 1 }}>
-              {headerTitle}
-            </Text>
-          </View>
-        ) : null}
+        <AppTopNavBar
+          showMobileMenu={!isWide}
+          onMobileMenuOpen={() => setMobileSidebarOpen(true)}
+        />
+
+        <QuestionnaireBanner />
 
         <Stack
           screenOptions={{

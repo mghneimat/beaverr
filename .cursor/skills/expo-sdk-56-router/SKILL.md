@@ -2,15 +2,15 @@
 name: expo-sdk-56-router
 description: >-
   Builds and navigates Expo SDK 56 apps with Expo Router — file-based routes,
-  Stack/Tabs layouts, typed routes, deep links, and PocketOS routing conventions.
+  Stack/Tabs layouts, typed routes, deep links, and Beaverr routing conventions.
   MUST apply when adding or editing screens, routes, layouts, navigation, deep
   links, app entry, tabs, or Expo config — even if the user does not mention
   Expo Router, SDK 56, or file-based routing.
 ---
 
-# Expo SDK 56 + Expo Router — PocketOS
+# Expo SDK 56 + Expo Router — Beaverr
 
-PocketOS is an **Expo SDK 56** app using **Expo Router** (file-based routing). Routes live under `app/`; navigation uses `expo-router` hooks and layouts.
+Beaverr is an **Expo SDK 56** app using **Expo Router** (file-based routing). Routes live under `app/`; navigation uses `expo-router` hooks and layouts.
 
 **Versioned docs (read before writing Expo/Router code):** https://docs.expo.dev/versions/v56.0.0/
 
@@ -49,9 +49,9 @@ Install Expo packages with `npx expo install <pkg>` — never hand-pick versions
 | Non-routes | Components, hooks, lib → **outside** `app/` (`components/`, `lib/`, …) |
 | Typed routes | `app.json` → `experiments.typedRoutes: true` — use valid path strings |
 
-**PocketOS uses `app/` at project root** (not `src/app/`). Both are valid; match this repo.
+**Beaverr uses `app/` at project root** (not `src/app/`). Both are valid; match this repo.
 
-## PocketOS route map
+## Beaverr route map
 
 ```
 app/
@@ -84,7 +84,7 @@ import { useRouter, useSegments, useLocalSearchParams, Link } from 'expo-router'
 const router = useRouter();
 ```
 
-| Action | Method | PocketOS usage |
+| Action | Method | Beaverr usage |
 |--------|--------|----------------|
 | Forward (stack) | `router.push('/(onboarding)/consent')` | Welcome → consent |
 | Replace (no back) | `router.replace('/(onboarding)/splash-budget')` | Onboarding step advance |
@@ -165,14 +165,14 @@ Task Progress:
 ```json
 {
   "expo": {
-    "scheme": "pocketostemp",
+    "scheme": "beaverr",
     "plugins": ["expo-router"],
     "experiments": { "typedRoutes": true }
   }
 }
 ```
 
-Deep links: `pocketostemp://(app)/dashboard` — scheme + route path.
+Deep links: `beaverr://(app)/dashboard` — scheme + route path.
 
 ## SDK 56 specifics
 
@@ -197,5 +197,5 @@ Deep links: `pocketostemp://(app)/dashboard` — scheme + route path.
 
 ## Additional resources
 
-- PocketOS route inventory + navigation graph: [reference.md](reference.md)
+- Beaverr route inventory + navigation graph: [reference.md](reference.md)
 - Copy-paste screen/layout examples: [examples.md](examples.md)

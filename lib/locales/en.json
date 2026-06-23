@@ -1,10 +1,11 @@
 {
   "app": {
-    "name": "Bida",
-    "tagline": "Your wallet patron",
-    "fullTitle": "Bida – Your wallet patron",
-    "description": "Household budgeting in one place. Income, costs, and what's left to spend.",
+    "name": "Beaverr",
+    "tagline": "Not rich. Just ready.",
+    "fullTitle": "Beaverr – Not rich. Just ready.",
+    "description": "Beaverr walks you through your household finances step by step — income, fixed costs, and what remains for everyday spending. Plain language, one clear monthly picture.",
     "sidebar": {
+      "alphaLabel": "Alpha",
       "navigation": "Navigation",
       "tools": "Tools",
       "planLabel": "Household budget",
@@ -12,7 +13,18 @@
       "languageRow": "{{language}}",
       "collapse": "Collapse sidebar",
       "expand": "Expand sidebar",
-      "retakeQuestionnaire": "Retake questionnaire"
+      "retakeQuestionnaire": "Retake questionnaire",
+      "continueQuestionnaire": "Continue questionnaire",
+      "startNewQuestionnaire": "Start new questionnaire",
+      "lockedTabA11y": "{{tab}} — complete the questionnaire to unlock",
+      "lockedTabTitle": "Section locked",
+      "lockedTabMessage": "Submit the full questionnaire to unlock Expenses, Budget, Goals, Savings, Summary, and Reminders."
+    },
+    "questionnaireBanner": {
+      "title": "Questionnaire completion",
+      "progressA11y": "Questionnaire completion, {{percent}} percent complete",
+      "progressHint": "Finish the full questionnaire to unlock Expenses, Budget, Goals, Savings, Summary, and Reminders.",
+      "estimateWarning": "Figures are estimates until you complete the full questionnaire."
     }
   },
   "common": {
@@ -21,10 +33,13 @@
     "skip": "Skip for now",
     "skipped": "Skipped",
     "save": "Save",
+    "done": "Done",
     "cancel": "Cancel",
     "edit": "Edit",
     "delete": "Delete",
     "add": "Add",
+    "decrease": "Decrease",
+    "increase": "Increase",
     "loading": "Loading...",
     "saving": "Saving...",
     "retry": "Try again",
@@ -41,12 +56,16 @@
     "annual": "Annual",
     "frequency": "Frequency",
     "custom": "Custom",
+    "optional": "optional",
     "datePicker": {
       "day": "Day",
       "month": "Month",
       "year": "Year",
       "placeholderFull": "DD/MM/YYYY",
       "placeholderMonthYear": "MM/YYYY",
+      "placeholderDay": "DD",
+      "placeholderMonth": "MM",
+      "placeholderYear": "YYYY",
       "hint": "Type a date or pick a suggestion"
     },
     "months": {
@@ -62,50 +81,141 @@
       "october": "October",
       "november": "November",
       "december": "December"
+    },
+    "monthsShort": {
+      "january": "JAN",
+      "february": "FEB",
+      "march": "MAR",
+      "april": "APR",
+      "may": "MAY",
+      "june": "JUN",
+      "july": "JUL",
+      "august": "AUG",
+      "september": "SEP",
+      "october": "OCT",
+      "november": "NOV",
+      "december": "DEC"
     }
   },
   "onboarding": {
     "welcome": {
-      "title": "Bida",
-      "subtitle": "Your wallet patron",
+      "heading": "Welcome to Beaverr",
+      "description": "Beaverr walks you through your household finances step by step — income, fixed costs, and what remains for everyday spending. Plain language, one clear monthly picture.",
+      "illustrationA11y": "Friendly person avatar illustration",
+      "title": "Beaver",
+      "subtitle": "Not rich. Just ready.",
       "cta": "Start now"
     },
     "consent": {
-      "title": "Your Data, Your Privacy",
-      "body": "Everything you enter stays with you. We never sell your data or share it with anyone. You can delete all your data from Settings at any time.",
-      "checkbox": "I understand and agree to proceed"
+      "title": "Your privacy",
+      "body": "During alpha and beta, Beaverr stores your budget data locally in this app. We never sell your data or share it with third parties for marketing. You can delete everything from Settings at any time. We process your information in compliance with the GDPR (EU General Data Protection Regulation). If we add optional cloud sync later, we will ask for your consent again.",
+      "checkbox": "I agree to GDPR-compliant data processing and want to continue",
+      "illustrationA11y": "Illustration of a person holding a GDPR privacy shield and flag"
+    },
+    "setupMode": {
+      "chapter": "Setup",
+      "title": "How would you like to set up Beaverr?",
+      "body": "The more detail you add, the more accurate your plan. Full setup gives you the clearest picture of your household finances.",
+      "illustrationA11y": "Illustration of an onboarding checklist on a screen",
+      "recommended": "Recommended",
+      "cta": "Continue",
+      "full": {
+        "title": "Full questionnaire",
+        "helper": "Walk through every section — income, housing, transport, health, and more — for the most accurate budget.",
+        "duration": "About 25–30 minutes"
+      },
+      "quick": {
+        "title": "Quick setup",
+        "helper": "Enter essentials only — name, household, employment, income, rent, and utilities — then explore the dashboard.",
+        "duration": "About 3–5 minutes"
+      }
+    },
+    "exit": {
+      "saveForLater": "Save for later",
+      "discard": "Discard progress",
+      "discardShort": "Discard",
+      "discardTitle": "Discard this progress?",
+      "discardMessageFirstTime": "Your answers so far will be deleted. You will return to the dashboard with limited access until you complete setup.",
+      "discardMessageQuickSetup": "Your full questionnaire progress will be cleared. Your quick setup details stay on the dashboard until you finish the full questionnaire.",
+      "discardMessageReturning": "Your in-progress changes will be discarded. Your last submitted questionnaire will be restored.",
+      "discardConfirm": "Discard"
+    },
+    "quickSetup": {
+      "chapter": "Quick setup",
+      "finishCta": "Go to my dashboard",
+      "partnerFallback": "your partner",
+      "name": {
+        "title": "What should we call you?",
+        "helper": "We use this to personalise your plan and milestone messages.",
+        "label": "Your name",
+        "placeholder": "Your first name",
+        "validation": "Please enter your name"
+      },
+      "rent": {
+        "helper": "Your typical monthly rent — an estimate is fine for now."
+      },
+      "income": {
+        "title": "Your monthly income",
+        "titleNotWorking": "Any other income?",
+        "helper": "Net amount — what actually lands in your account each month.",
+        "helperNotWorking": "If you receive benefits, support, or other regular income, add it here. Otherwise you can skip.",
+        "amountLabel": "Monthly amount",
+        "partnerTitle": "{{name}}'s monthly income",
+        "partnerHelper": "Net take-home pay per month.",
+        "validation": "Please enter your monthly income",
+        "partnerValidation": "Please enter {{name}}'s monthly income",
+        "skipNoIncome": "No income to add — continue"
+      },
+      "utilities": {
+        "helper": "Combined monthly utilities (gas, electricity, water). Estimate is OK.",
+        "validation": "Please enter your monthly utilities"
+      }
+    },
+    "splashHousehold": {
+      "chapter": "About Your Home",
+      "heading": "Tell us more about your family",
+      "body": "Tell us who lives in your household — just you, you and a partner, or children too. We'll ask for your partner's display name and each child's age so the right income and cost questions appear in later sections.",
+      "illustrationA11y": "Illustration of a family standing together"
     },
     "household": {
       "chapter": "Household Setup",
       "type": {
-        "title": "Who are we budgeting for?",
+        "title": "Who's at home",
         "helper": "This helps us set up income and cost fields for your whole household.",
-        "solo": "Just me",
-        "partner": "Me + partner",
-        "singleParent": "Single parent",
+        "illustrationA11y": "Illustration of a person relaxing on a sofa at home",
+        "solo": "Only me",
+        "partner": "Me and my partner",
+        "singleParent": "Solo parent",
         "validation": "Please select your household type"
       },
       "partnerName": {
         "title": "What should we call your partner?",
         "helper": "Used only to personalise labels like 'Sarah's income'. Nothing else.",
-        "label": "Partner's name",
-        "placeholder": "Partner's name",
-        "validation": "Please enter your partner's name"
+        "illustrationA11y": "Illustration of a couple together",
+        "label": "Partner's display name",
+        "placeholder": "Partner's display name",
+        "validation": "Please enter your partner's display name"
       },
       "children": {
         "title": "Do you have any children?",
         "helper": "This unlocks a dedicated section for children's costs.",
+        "illustrationA11y": "Illustration of a family with children",
         "validation": "Please select yes or no"
       },
       "numChildren": {
         "title": "How many children do you have?",
-        "helper": "Each child gets their own cost section later in the setup."
+        "helper": "Each child gets their own cost section later in the setup.",
+        "illustrationA11y": "Illustration of friends together",
+        "profileHintSingle": "We'll set up 1 child profile",
+        "profileHintPlural": "We'll set up {{count}} child profiles"
       },
       "childDetails": {
         "title": "Child {{n}} — a couple of quick details",
         "helper": "The name is just for display. The age group shows the right cost fields.",
-        "nameLabel": "Name (optional)",
-        "namePlaceholder": "Child's name",
+        "illustrationA11y": "Illustration of a parent and child flying a kite",
+        "nameLabel": "Display name",
+        "namePlaceholder": "Child's display name",
+        "nameValidation": "Please enter a display name",
         "ageLabel": "Age group",
         "age0": "Under 3",
         "age3": "3–5 years",
@@ -116,25 +226,73 @@
       }
     },
     "s2": {
-      "eyebrow": "Section 2 — Location & Occupation",
+      "eyebrow": "Section 2 — Location & Work",
       "heading": "Where you live and what you do",
-      "body": "Shapes what you pay. Let's get that right."
+      "body": "We'll ask for your country, city, and currency, plus citizenship and employment for each adult. If anyone needs a visa or residence permit, we'll capture permit type and renewal costs so they land in your plan.",
+      "illustrationA11y": "Illustration of a person with a globe"
     },
     "location": {
-      "chapter": "Location & Occupation",
-      "title": "Where are you living?",
+      "chapter": "Location & Work",
+      "title": "Where do you live?",
       "helper": "We use this to pre-fill local costs and show relevant financial context.",
+      "illustrationA11y": "Illustration of a person checking their location on a phone",
       "countryLabel": "Country",
       "countryPlaceholder": "Select your country",
-      "cityLabel": "City / Region (optional)",
+      "countryPreAlphaNote": "Only Czech Republic is supported at the moment. Other countries will be supported soon.",
+      "cityLabel": "City / Region",
       "cityPlaceholder": "e.g. Prague",
       "currencyLabel": "Currency",
       "currencyPlaceholder": "Select currency",
       "noCountriesFound": "No countries found",
+      "countryUnavailableA11y": "{{country}} — not available in pre-alpha",
       "validation": "Please select your country"
     },
+    "citizenship": {
+      "title": "Are you a citizen of the Czech Republic?",
+      "helper": "This helps us show the right employment and residency context for your household.",
+      "allTitle": "Knowing the citizenship status",
+      "allHelper": "This helps us show the right employment and residency context for your household.",
+      "memberWithAge": "{{name}} · {{age}}",
+      "validationAll": "Please answer for everyone listed",
+      "illustrationA11y": "Illustration of a person holding an ID card",
+      "partnerTitle": "Is {{name}} a citizen of the Czech Republic?",
+      "partnerHelper": "We ask because visa and permit costs may apply separately for each adult.",
+      "childTitle": "Is {{name}} a citizen of the Czech Republic?",
+      "childTitleNumber": "Is child {{n}} a citizen of the Czech Republic?",
+      "childHelper": "Children of non-citizen parents may need their own permit — we use this for renewal planning.",
+      "validation": "Please answer whether you are a Czech citizen"
+    },
+    "residencePermit": {
+      "title": "What is your residence permit or visa?",
+      "helper": "We use this to estimate renewal timing and cost so you can plan ahead.",
+      "partnerTitle": "What is {{name}}'s residence permit or visa?",
+      "partnerHelper": "We use this to estimate renewal timing and cost for your partner.",
+      "childTitle": "What is {{name}}'s residence permit or visa?",
+      "childTitleNumber": "What is child {{n}}'s residence permit or visa?",
+      "childHelper": "We use this to estimate renewal timing and cost for your child.",
+      "typeLabel": "Permit type",
+      "startDateLabel": "Valid from",
+      "endDateLabel": "Valid until",
+      "endDateHelper": "When your current permit expires — we'll remind you before renewal.",
+      "renewalCostLabel": "Estimated renewal cost",
+      "renewalCostPlaceholder": "0",
+      "renewalCostHelper": "Typical fee for renewing this permit type.",
+      "validationType": "Please select your permit type",
+      "validationStartDate": "Please enter when your permit started",
+      "validationEndDate": "Please enter when your permit expires",
+      "validationRenewalCost": "Please enter the estimated renewal cost",
+      "types": {
+        "permanentResidence": "Permanent residence",
+        "blueCard": "Blue card (EU)",
+        "employeeCard": "Employee card",
+        "studentVisa": "Student visa",
+        "longTermVisa": "Long-term visa",
+        "familyReunion": "Family reunion",
+        "other": "Other"
+      }
+    },
     "occupation": {
-      "title": "What best describes your work situation?",
+      "title": "Tell us about your work",
       "helper": "This affects your income section and some cost fields — for example, health insurance.",
       "employee": "Employee",
       "selfEmployed": "Self-employed / Freelancer",
@@ -149,12 +307,59 @@
     },
     "s3": {
       "eyebrow": "Section 3 — Income",
-      "heading": "Now the numbers",
-      "body": "Enter net amounts — what actually lands in your account. This is the number everything else is measured against."
+      "heading": "Now Your Income and Savings",
+      "body": "In this section you'll enter take-home pay for you and your partner, any other regular income, and what you already have in savings. We'll also note savings goals so your flexible budget leaves room for them.",
+      "illustrationA11y": "Illustration of a person with a wallet and payment card"
+    },
+    "strategy": {
+      "chapter": "Strategy",
+      "splash": {
+        "heading": "Set your budgeting strategies",
+        "body": "We'll ask what you want from budgeting — clearer spending, spending less, or building savings — and any specific targets you're working toward. Your answers shape how we present your flexible budget and daily spending allowance.",
+        "illustrationA11y": "Illustration of a person planning a budget with charts"
+      },
+      "goalIntents": {
+        "title": "What do you want Beaverr to help with?",
+        "helper": "Select all that apply.",
+        "illustrationA11y": "Illustration of a person setting personal financial goals",
+        "intentClarity": "Get clarity",
+        "intentClarityDesc": "Understand where my money goes",
+        "intentSpendLess": "Spend less",
+        "intentSpendLessDesc": "Cut bills, subscriptions, debt, and waste",
+        "intentBuildMore": "Build more",
+        "intentBuildMoreDesc": "Save, invest, or hit a financial target",
+        "validationType": "Please select at least one option"
+      },
+      "goalMode": {
+        "title": "How do you want to save?",
+        "helper": "Choose whether you are saving toward a specific target or an ongoing monthly amount.",
+        "illustrationA11y": "Illustration of a person saving coins into a piggy bank",
+        "target": "Save toward a specific amount",
+        "targetDesc": "e.g. 250,000 Kč for a car by a target date",
+        "ongoing": "Ongoing monthly saving",
+        "ongoingDesc": "Set aside a fixed amount each month with no end date",
+        "validation": "Please choose how you want to save"
+      },
+      "goalDetails": {
+        "targetTitle": "Your savings target",
+        "targetHelper": "Enter what you are saving for, how much you need, and when you want to reach it.",
+        "ongoingTitle": "Your monthly saving",
+        "ongoingHelper": "How much do you want to set aside each month?",
+        "descriptionLabel": "Goal description",
+        "descriptionPlaceholder": "e.g. Car purchase",
+        "amountLabel": "Target amount",
+        "amountPlaceholder": "0",
+        "dateLabel": "Target date",
+        "monthlyTargetLabel": "Monthly savings target",
+        "monthlyTargetPlaceholder": "0",
+        "validationTargetAmount": "Please enter your target amount",
+        "validationTargetDate": "Please select a target date",
+        "validationOngoingAmount": "Please enter your monthly savings target"
+      }
     },
     "income": {
       "chapter": "Income & Savings",
-      "q5": {
+      "yourIncome": {
         "titleEmployee": "Net monthly salary",
         "titleSelfEmployed": "Average monthly net income",
         "titleStudent": "Monthly stipend or scholarship",
@@ -170,116 +375,175 @@
         "frequencyWeekly": "Weekly",
         "frequencyFortnightly": "Fortnightly",
         "frequencyMonthly": "Monthly",
+        "frequencyAnnual": "Annually",
         "monthlyEquivalent": "= approx. {{amount}}/month",
-        "validation": "Please enter your income"
+        "validation": "Please enter your income",
+        "illustrationA11y": "Illustration of a person receiving money on their phone"
       },
-      "q5a": {
+      "partnerIncome": {
         "title": "What's {{name}}'s monthly take-home?",
         "helper": "Net amount, after tax.",
         "amountLabel": "Monthly take-home",
         "validation": "Please enter {{name}}'s income"
       },
-      "q5b": {
+      "otherIncome": {
         "title": "Any other sources of income?",
         "helper": "Rental income, dividends, financial support — anything regular.",
+        "selectHelper": "Browse categories and tap the income sources you receive. You will enter amounts on the next step.",
+        "fillTitle": "Other income details",
+        "fillHelper": "Enter the amount and how often you receive each source you selected.",
+        "fillProgress": "Source {{current}} of {{total}}",
+        "browseCategories": "Browse by category",
+        "searchPlaceholder": "Search income sources…",
+        "selectedInCategory": "{{count}} selected",
+        "noSearchResults": "No income sources match your search.",
+        "suggestionCount": "{{count}} suggestions",
+        "selectPrompt": "Tap the income sources that apply to you.",
+        "addedSoFar": "Added so far ({{count}})",
+        "clearAll": "Clear all",
+        "addCustomSource": "+ Other",
+        "otherSourceLabel": "Other income",
+        "skip": "Skip — no other income",
         "helperRequired": "Neither you nor your partner has employment income recorded. Add at least one regular income source so we can build your budget.",
         "helperRequiredSolo": "You don't have employment income recorded. Add at least one regular income source so we can build your budget.",
         "requiredNote": "At least one income source is required to continue.",
-        "yes": "Yes",
-        "no": "No",
         "amountLabel": "Amount",
         "amountPlaceholder": "0",
         "frequencyLabel": "Frequency",
+        "nameLabel": "Source name",
+        "namePlaceholder": "e.g. Rental income",
         "descriptionLabel": "Description",
-        "labelPlaceholder": "Label (optional)",
+        "labelPlaceholder": "e.g. Rental income",
         "addAnother": "Add another source",
-        "validationNoIncome": "We can't build your budget without income. Select Yes and enter at least one regular source — such as benefits, rental income, or financial support — or go back and enter {{name}}'s salary or your own income.",
-        "validationNoIncomeSolo": "We can't build your budget without income. Select Yes and enter at least one regular source — such as benefits, rental income, or financial support.",
-        "validationOtherAmount": "Please enter the amount for at least one income source."
+        "validationNoIncome": "We can't build your budget without income. Add at least one regular source — such as benefits, rental income, or financial support — or go back and enter {{name}}'s salary or your own income.",
+        "validationNoIncomeSolo": "We can't build your budget without income. Add at least one regular source — such as benefits, rental income, or financial support.",
+        "validationOtherAmount": "Please enter the amount for each income source.",
+        "validationOtherLabel": "Please enter a name for each custom income source.",
+        "categories": {
+          "propertyRentals": "Property & rentals",
+          "investmentsDividends": "Investments & dividends",
+          "pensionRetirement": "Pension & retirement",
+          "benefitsSupport": "Benefits & support",
+          "sideIncome": "Side income",
+          "otherPassive": "Other passive"
+        },
+        "sources": {
+          "rentalIncome": "Rental income",
+          "airbnb": "Airbnb",
+          "subletting": "Subletting",
+          "landLease": "Land lease",
+          "dividends": "Dividends",
+          "stockSales": "Stock sales",
+          "crypto": "Crypto",
+          "p2pLending": "P2P lending returns",
+          "etfIncome": "ETF income",
+          "statePension": "State pension",
+          "companyPension": "Company pension",
+          "privatePensionDrawdown": "Private pension drawdown",
+          "earlyRetirement": "Early retirement income",
+          "parentalLeave": "Parental leave",
+          "childBenefit": "Child benefit",
+          "unemployment": "Unemployment",
+          "disability": "Disability",
+          "housingBenefit": "Housing benefit",
+          "carersAllowance": "Carer's allowance",
+          "marketplaceSales": "Marketplace sales (Vinted, Bazoš)",
+          "cashbackRewards": "Cashback / rewards",
+          "referralBonuses": "Referral bonuses",
+          "tips": "Tips",
+          "royalties": "Royalties",
+          "licensing": "Licensing",
+          "interestIncome": "Interest income",
+          "inheritanceGifts": "Inheritance / gifts (one-off)"
+        }
       },
-      "q5c": {
+      "savings": {
         "title": "Do you have savings?",
         "helper": "Your balance shows how many months of expenses you have covered.",
+        "illustrationA11y": "Illustration of a person saving coins into a piggy bank",
         "balanceLabel": "Current savings balance",
         "balancePlaceholder": "0"
-      },
-      "q5d": {
-        "title": "What is your financial goal?",
-        "helper": "Choose what you want Bida to help you focus on.",
-        "typeReduceCosts": "Reduce costs",
-        "typeReduceCostsDesc": "Cut spending and find savings in your budget",
-        "typeSaveMoney": "Save money",
-        "typeSaveMoneyDesc": "Build savings toward a target or each month",
-        "typeReduceAndSave": "Reduce costs & save money",
-        "typeReduceAndSaveDesc": "Spend less and put the difference aside",
-        "saveModeTitle": "How do you want to save?",
-        "saveModeHelper": "Choose whether you are saving toward a specific target or an ongoing monthly amount.",
-        "saveModeTarget": "Save toward a specific amount",
-        "saveModeTargetDesc": "e.g. 250,000 Kč for a car by a target date",
-        "saveModeOngoing": "Ongoing monthly saving",
-        "saveModeOngoingDesc": "Set aside a fixed amount each month with no end date",
-        "targetTitle": "Your savings target",
-        "targetHelper": "Enter what you are saving for, how much you need, and when you want to reach it.",
-        "ongoingTitle": "Your monthly saving",
-        "ongoingHelper": "How much do you want to set aside each month?",
-        "descriptionLabel": "Goal description",
-        "descriptionPlaceholder": "e.g. Car purchase",
-        "amountLabel": "Target amount",
-        "amountPlaceholder": "0",
-        "dateLabel": "Target date",
-        "monthlyTargetLabel": "Monthly savings target",
-        "monthlyTargetPlaceholder": "0",
-        "validationType": "Please select your financial goal",
-        "validationSaveMode": "Please choose how you want to save",
-        "validationTargetAmount": "Please enter your target amount",
-        "validationTargetDate": "Please select a target date",
-        "validationOngoingAmount": "Please enter your monthly savings target"
       }
     },
     "s4": {
       "eyebrow": "Section 4 — Housing",
-      "heading": "Housing",
-      "body": "Housing is usually the biggest monthly expense. Let's get a clear picture."
+      "heading": "Living expenses, utilities, and internet",
+      "body": "We'll cover rent or mortgage, utilities, internet, and other regular housing costs. Local property charges and one-off fees can go here too so nothing is left out of your monthly picture.",
+      "illustrationA11y": "Illustration of an apartment building with windows"
     },
     "housing": {
       "chapter": "Housing",
-      "q6": {
+      "housingStatus": {
         "title": "Do you rent, own, or live with family?",
         "helper": "Choose what best describes your current situation.",
+        "illustrationA11y": "Illustration of people moving into an apartment",
         "renting": "Renting",
         "own": "Own my home",
         "family": "Living with family / rent-free",
         "validation": "Please select your housing type"
       },
-      "q6a": {
+      "rentDetails": {
         "title": "How much is your monthly rent?",
         "helper": "If utilities are included in your rent and you know the amount, enter base rent only — you'll enter utilities separately next. If you don't know the split (dorm, all-inclusive, etc.), just enter the total and skip utilities.",
         "amountLabel": "Monthly rent",
         "validation": "Please enter your monthly rent"
       },
-      "q6b": {
+      "rentUtilities": {
         "title": "How much do you pay for utilities?",
         "helper": "Gas, electricity, water — combined. An estimate is fine. Skip if you don't know or prefer not to separate.",
+        "illustrationA11y": "Illustration of a person printing household utility invoices",
+        "selectHelper": "Browse categories and tap the utilities you pay for separately. You will enter amounts on the next step.",
+        "fillTitle": "Utility details",
+        "fillHelper": "Enter the cost and payment schedule for each utility you selected.",
+        "fillProgress": "Utility {{current}} of {{total}}",
+        "browseCategories": "Browse by category",
+        "searchPlaceholder": "Search utilities…",
+        "selectedInCategory": "{{count}} selected",
+        "noSearchResults": "No utilities match your search.",
+        "suggestionCount": "{{count}} suggestions",
+        "selectPrompt": "Tap the utilities you pay for separately.",
+        "addedSoFar": "Added so far ({{count}})",
         "skip": "Skip — I don't know or it's included",
         "modeTotal": "One combined total",
         "modeItemized": "Break down by utility",
         "modeLabel": "How would you like to enter utilities?",
-        "amountLabel": "Monthly utilities total",
-        "utilityWater": "Water",
-        "utilityHotWater": "Hot water",
-        "utilityHeating": "Heating",
+        "amountLabel": "Cost",
+        "frequencyMonthly": "Monthly",
+        "frequencyQuarterly": "Quarterly",
+        "frequencyAnnual": "Annual",
+        "validationAmount": "Please enter the cost for each utility",
+        "validationCustomName": "Please enter a name for custom utilities",
+        "categories": {
+          "energy": "Energy",
+          "waterAndWaste": "Water & waste",
+          "buildingFees": "Building & housing fees",
+          "telecoms": "Telecoms"
+        },
         "utilityElectricity": "Electricity",
         "utilityGas": "Gas",
-        "utilitySewer": "Sewer",
+        "utilityDistrictHeating": "District heating",
+        "utilitySolarFeedIn": "Solar / renewable feed-in",
+        "utilityColdWater": "Cold water",
+        "utilityHotWater": "Hot water",
+        "utilitySewage": "Sewage",
         "utilityGarbage": "Garbage collection",
-        "addOtherUtility": "Add other utility",
-        "otherUtilityLabel": "Other utility",
+        "utilityServiceCharges": "Service charges",
+        "utilityBuildingFund": "Building fund",
+        "utilityElevatorMaintenance": "Elevator maintenance",
+        "utilityBuildingInsurance": "Building insurance",
+        "utilityIntercomEntry": "Intercom / entry system",
+        "utilityLandline": "Landline",
+        "utilityCableTv": "Cable TV",
+        "addOtherUtility": "+ Other",
+        "otherUtilityLabel": "Other utility or fee",
         "otherUtilityPlaceholder": "e.g. Common areas",
         "otherUtilityAmount": "Amount",
-        "utilitiesSum": "Combined total: {{amount}}"
+        "utilitiesSum": "Combined total: {{amount}}",
+        "utilitiesSumMonthly": "Estimated monthly total: {{amount}}"
       },
-      "q6c": {
+      "housingUtilities": {
         "title": "Do you pay for internet separately?",
+        "illustrationA11y": "Illustration of a person with a Wi-Fi signal and connected devices",
         "helper": "Skip if internet is included in your rent or utilities.",
         "no": "No / Included",
         "yes": "Yes",
@@ -289,47 +553,40 @@
         "frequencyAnnual": "Annual",
         "validation": "Please enter the internet amount"
       },
-      "q6d": {
+      "mortgageStatus": {
         "title": "Do you have a mortgage?",
         "helper": "Select 'No' if you own the property outright.",
+        "illustrationA11y": "Illustration of a property agreement and house keys",
         "yes": "Yes",
         "no": "No (owned outright)",
         "validation": "Please select an option"
       },
-      "q6e": {
+      "mortgageDetails": {
         "title": "How much is your monthly mortgage payment?",
         "helper": "Total monthly amount including principal and interest.",
         "amountLabel": "Monthly payment",
-        "endDateLabel": "Mortgage end date (optional)",
-        "endDatePlaceholder": "MM/YYYY",
+        "endDateLabel": "Mortgage end date",
+        "endDatePlaceholder": "DD/MM/YYYY",
         "validation": "Please enter your mortgage payment"
       },
-      "q6f": {
+      "ownershipCosts": {
         "title": "Any other regular home ownership costs?",
         "helper": "Maintenance fund, building insurance, service charge, property tax — anything recurring.",
         "yes": "Yes",
         "no": "No",
         "amountLabel": "Amount",
         "amountPlaceholder": "0",
-        "descriptionPlaceholder": "Description (optional)",
+        "descriptionLabel": "Description",
+        "descriptionPlaceholder": "e.g. Building insurance",
+        "validationDescription": "Please enter a description",
         "dueDateLabel": "Due date",
-        "dueDatePlaceholder": "Due date (optional)",
+        "dueDatePlaceholder": "DD/MM/YYYY",
         "addAnother": "Add another cost"
       },
-      "q6h": {
-        "title": "Do you contribute to household costs?",
-        "helper": "Contributing to rent, groceries, bills — add any regular support.",
-        "yes": "Yes",
-        "no": "No",
-        "amountLabel": "Amount",
-        "amountPlaceholder": "0",
-        "descriptionPlaceholder": "Description (optional)",
-        "dueDateLabel": "Due date",
-        "dueDatePlaceholder": "Due date (optional)",
-        "addAnother": "Add another contribution"
-      },
-      "q6g": {
+      "govtTaxes": {
         "title": "Government and city charges",
+        "illustrationA11y": "Illustration of a person reviewing tax and government documents",
+        "toggleA11y": "Include {{charge}}",
         "helper": "Most households pay fixed statutory charges. We've pre-filled the most common ones — confirm or adjust.",
         "wasteTax": "Waste tax",
         "wasteTaxNote": "{{amount}}/yr — municipal waste collection",
@@ -355,23 +612,72 @@
         "dontPayRadioLicence": "I don't pay Radio licence fees",
         "frequencyMonthly": "Monthly",
         "frequencyAnnual": "Annual"
+      },
+      "familyHousing": {
+        "title": "Do you contribute to household costs?",
+        "helper": "Contributing to rent, groceries, bills — add any regular support.",
+        "illustrationA11y": "Illustration of a person reviewing an invoice and household bills",
+        "yes": "Yes",
+        "no": "No",
+        "amountLabel": "Amount",
+        "amountPlaceholder": "0",
+        "descriptionLabel": "Description",
+        "descriptionPlaceholder": "e.g. Groceries, rent share",
+        "validationDescription": "Please enter a description",
+        "dueDateLabel": "Due date",
+        "dueDatePlaceholder": "DD/MM/YYYY",
+        "addAnother": "Add another contribution"
       }
     },
     "s5": {
       "eyebrow": "Section 5 — Transport",
-      "heading": "Transport",
-      "body": "Cars, fuel, parking, public transport — let's see what you spend on getting around."
+      "heading": "Transportation and getting around",
+      "body": "Tell us about cars, fuel, insurance, parking, and public transport for your household. We'll turn these into monthly amounts so transport doesn't get overlooked in your fixed costs.",
+      "illustrationA11y": "Illustration of a bus driver at a bus stop"
     },
     "transport": {
       "chapter": "Transport",
-      "q7": {
+      "motorcycle": {
+        "illustrationA11y": "Illustration of a person riding a motorcycle on the road"
+      },
+      "passenger": {
+        "illustrationA11y": "Illustration of a person driving a car"
+      },
+      "bicycle": {
+        "title": "Bicycle maintenance",
+        "helper": "Add any planned bicycle maintenance or repairs you're saving for — like a new chain, brake pads, or a flat tyre fix.",
+        "maintenanceLabel": "Planned maintenance items",
+        "maintenanceDescPlaceholder": "What needs doing?",
+        "maintenanceCostLabel": "Estimated cost",
+        "maintenanceCostPlaceholder": "0",
+        "maintenanceDateLabel": "Date",
+        "maintenanceDatePlaceholder": "Date (optional)",
+        "addItem": "Add item",
+        "skip": "Skip — no upcoming maintenance"
+      },
+      "publicTransport": {
+        "title": "Public transport",
+        "helper": "Enter your regular public transport costs — skip if you don't use public transport.",
+        "amountLabel": "Monthly / annual pass cost",
+        "amountPlaceholder": "0",
+        "frequencyLabel": "Frequency",
+        "frequencyMonthly": "Monthly",
+        "frequencyAnnual": "Annual",
+        "passLabel": "Pass type (optional)",
+        "passPlaceholder": "e.g. Prague annual pass",
+        "validUntilLabel": "Pass valid until (optional)",
+        "skip": "Skip — I don't use public transport",
+        "validation": "Please enter the public transport cost"
+      },
+      "vehicleOwnership": {
         "title": "Do you have a car or other vehicle?",
         "helper": "Motorcycle, scooter, van — anything with an engine that you use regularly.",
+        "illustrationA11y": "Illustration of a person presenting a car at a dealership",
         "yes": "Yes",
         "no": "No",
         "validation": "Please select yes or no"
       },
-      "q7Count": {
+      "vehicleCounts": {
         "title": "How many vehicles do you have?",
         "helper": "Tell us how many vehicles you own across each category.",
         "passenger": "Passenger vehicles",
@@ -379,7 +685,7 @@
         "bicycle": "Bicycles",
         "validation": "Please add at least one vehicle"
       },
-      "q7a": {
+      "vehicleFuel": {
         "title": "Fuel and running costs",
         "helper": "What type of fuel does your vehicle use, and roughly how much do you spend per month?",
         "vehicleLabel": "Vehicle {{n}} of {{total}} — {{category}}",
@@ -395,21 +701,31 @@
         "costPlaceholder": "0",
         "validation": "Please enter your monthly fuel cost"
       },
-      "q7b": {
+      "vehicleInsurance": {
         "title": "Vehicle insurance",
         "helper": "Enter your insurance details — skip if you don't have separate vehicle insurance.",
+        "helperMandatory": "Enter your insurance details — liability insurance is mandatory for passenger vehicles.",
         "vehicleLabel": "Vehicle {{n}} of {{total}} — {{category}}",
+        "coverageTypeLabel": "Coverage type",
+        "coverageTpl": "Third-Party Liability insurance",
+        "coverageComprehensive": "Comprehensive",
+        "liabilityAmountLabel": "Liability amount",
+        "liabilityAmountPlaceholder": "0",
+        "liabilityAmountHelper": "This coverage limit is tracked as a financial risk, not included in your monthly budget.",
         "premiumLabel": "Insurance premium",
         "premiumPlaceholder": "0",
         "frequencyLabel": "Frequency",
         "frequencyMonthly": "Monthly",
         "frequencyAnnual": "Annual",
-        "renewalLabel": "Next renewal date (optional)",
+        "renewalLabel": "Start date",
+        "startDateLabel": "Start date",
         "renewalPlaceholder": "MM/YYYY",
         "skip": "Skip — no separate insurance",
-        "validation": "Please enter the insurance premium"
+        "validation": "Please enter the insurance premium",
+        "validationCoverageType": "Please select a coverage type",
+        "validationLiabilityAmount": "Please enter the liability amount"
       },
-      "q7c": {
+      "vehicleMaintenance": {
         "title": "Zone parking or resident permits",
         "helper": "If you pay for zone parking or a resident permit in your city, enter the cost here.",
         "vehicleLabel": "Vehicle {{n}} of {{total}} — {{category}}",
@@ -421,12 +737,16 @@
         "skip": "Skip — no parking costs",
         "validation": "Please enter the parking cost"
       },
-      "q7d": {
+      "vehicleService": {
         "title": "MOT / STK and maintenance",
         "helper": "When does your MOT/STK expire? Add any planned maintenance items you're saving for.",
         "vehicleLabel": "Vehicle {{n}} of {{total}} — {{category}}",
         "motLabel": "MOT / STK expiry date (optional)",
         "motPlaceholder": "MM/YYYY",
+        "inspectionCostLabel": "Inspection cost (optional)",
+        "inspectionCostPlaceholder": "0",
+        "nextMotLabel": "Next planned STK date (optional)",
+        "nextMotHelper": "Auto-filled to {{years}} years after the expiry date above — adjust if needed.",
         "maintenanceLabel": "Planned maintenance items",
         "maintenanceDescPlaceholder": "What needs doing?",
         "maintenanceCostLabel": "Estimated cost",
@@ -435,41 +755,16 @@
         "maintenanceDatePlaceholder": "Date (optional)",
         "addItem": "Add item",
         "skip": "Skip — no upcoming maintenance"
-      },
-      "q7bicycle": {
-        "title": "Bicycle maintenance",
-        "helper": "Add any planned bicycle maintenance or repairs you're saving for — like a new chain, brake pads, or a flat tyre fix.",
-        "maintenanceLabel": "Planned maintenance items",
-        "maintenanceDescPlaceholder": "What needs doing?",
-        "maintenanceCostLabel": "Estimated cost",
-        "maintenanceCostPlaceholder": "0",
-        "maintenanceDateLabel": "Date",
-        "maintenanceDatePlaceholder": "Date (optional)",
-        "addItem": "Add item",
-        "skip": "Skip — no upcoming maintenance"
-      },
-      "q7e": {
-        "title": "Public transport",
-        "helper": "Enter your regular public transport costs — skip if you don't use public transport.",
-        "amountLabel": "Monthly / annual pass cost",
-        "amountPlaceholder": "0",
-        "frequencyLabel": "Frequency",
-        "frequencyMonthly": "Monthly",
-        "frequencyAnnual": "Annual",
-        "passLabel": "Pass type (optional)",
-        "passPlaceholder": "e.g. Prague annual pass",
-        "validUntilLabel": "Pass valid until (optional)",
-        "skip": "Skip — I don't use public transport",
-        "validation": "Please enter the public transport cost"
       }
     },
     "s6": {
       "eyebrow": "Section 6 — Health Insurance",
       "heading": "Health Insurance",
-      "body": "Health insurance varies by situation. Let's make sure everyone in your household is covered."
+      "body": "We'll ask how health coverage is arranged for you, your partner, and each child, along with monthly premiums. This keeps insurance alongside your other fixed costs in one place."
     },
     "health": {
       "chapter": "Health Insurance",
+      "illustrationA11y": "Illustration of a person with health insurance documents and a shield",
       "title": "Health insurance for {{name}}",
       "helper": "Confirm how {{name}}'s health insurance is handled.",
       "you": "You",
@@ -519,7 +814,7 @@
       "switchPremiumHelper": "Total amount you expect to pay when the new policy starts (for the period shown below).",
       "switchPremiumFrequencyHelper": "How you expect to pay after the new policy starts. We spread the amount above over the months until your current contract ends.",
       "validation": "Please confirm this member's insurance details",
-      "q8": {
+      "healthCoverage": {
         "title": "Health insurance for {{name}}",
         "helper": "Confirm how {{name}}'s health insurance is handled.",
         "coveredByEmployer": "Covered by employer",
@@ -542,19 +837,79 @@
       }
     },
     "s7": {
-      "eyebrow": "Section 7 — Children's Costs",
-      "heading": "Children's Costs",
-      "body": "Let's track the regular costs for each child — from nursery to school supplies."
+      "eyebrow": "Section 7 — Children's Expenses",
+      "heading": "Children's Expenses",
+      "body": "For each child we'll capture regular expenses — childcare, school, activities, clothing, and anything else that repeats each month. You can add costs per child so the totals stay accurate."
     },
     "childrenCosts": {
-      "chapter": "Children's Costs",
-      "q9": {
+      "chapter": "Children's Expenses",
+      "illustrationA11y": "Illustration of children preparing their backpacks for school",
+      "child": "Child",
+      "childrenCosts": {
         "title": "Costs for {{name}}",
-        "helper": "These fields are based on {{name}}'s age group ({{ageGroup}}).",
+        "helper": "Browse categories for {{name}}'s age group ({{ageGroup}}). Tap costs to add — you will enter amounts on the next step.",
+        "fillTitle": "Costs for {{name}}",
+        "fillHelper": "Enter the amount and frequency for each cost you selected for {{name}}.",
+        "fillChildProgress": "{{name}} — child {{current}} of {{total}}",
+        "validation": "Please enter the amount for each cost",
+        "ageGroupLabel": "Age group",
+        "ageChip0_2": "Under 3",
+        "ageChip3_5": "3–5 years",
+        "ageChip6_15": "6–15 years",
+        "ageChip16_18": "16–18 years",
+        "ageChip18plus": "18+ years",
         "age0_2": "Under 3",
         "age3_5": "3–5 years",
         "age6_15": "6–15 years",
         "age16_18": "16–18 years",
+        "age18plus": "18+ years",
+        "browseCategories": "Browse by category",
+        "suggestionCount": "{{count}} suggestions",
+        "selectedInCategory": "{{count}} selected",
+        "addedSoFar": "Added so far ({{count}})",
+        "customCostPlaceholder": "e.g. Music lessons",
+        "categories": {
+          "childcare": "Childcare",
+          "babyNeeds": "Baby needs",
+          "earlyEducation": "Early education",
+          "school": "School",
+          "activities": "Activities & clubs",
+          "independence": "Independence",
+          "universityEducation": "University & education",
+          "livingCosts": "Living costs",
+          "allowancePersonal": "Allowance & personal",
+          "health": "Health"
+        },
+        "sources": {
+          "daycare": "Nursery / daycare",
+          "nanny": "Nanny",
+          "diapers": "Diapers & wipes",
+          "formula": "Formula & baby food",
+          "clothing": "Clothing & shoes",
+          "kindergarten": "Kindergarten",
+          "afterSchoolClub": "After-school club",
+          "extracurricular": "Extracurricular activities",
+          "toys": "Toys & activities",
+          "schoolFees": "School fees",
+          "schoolSupplies": "School supplies",
+          "tutoring": "Tutoring",
+          "transport": "School transport",
+          "drivingLessons": "Driving lessons",
+          "allowance": "Pocket money / allowance",
+          "phone": "Phone & data",
+          "uniFees": "University fees",
+          "uniAccommodation": "Student accommodation",
+          "uniBooks": "Books & materials",
+          "uniTransport": "Student transport",
+          "rentSupport": "Rent support",
+          "foodSupport": "Food support",
+          "utilitiesSupport": "Utilities support",
+          "transportSupport": "Transport support",
+          "personalCare": "Personal care",
+          "healthInsurance": "Health insurance",
+          "dental": "Dental care",
+          "sportsFitness": "Sports & fitness"
+        },
         "field": {
           "nursery": "Nursery / daycare",
           "nurseryHelper": "Monthly nursery or daycare fees",
@@ -597,17 +952,19 @@
     "s8": {
       "eyebrow": "Section 8 — Pets",
       "heading": "Pets",
-      "body": "Our furry (and not-so-furry) friends come with costs. Let's track them."
+      "body": "If you have pets, we'll record each one's type plus food, vet care, insurance, and any local pet taxes. Even occasional vet visits can be averaged into your monthly plan."
     },
     "pets": {
       "chapter": "Pets",
-      "q10": {
+      "illustrationA11y": "Illustration of a person with their happy dog",
+      "formIllustrationA11y": "Illustration of pets dressed in Halloween costumes",
+      "hasPets": {
         "title": "Do you have any pets?",
         "helper": "Dogs, cats, birds, fish, rabbits — any animal you care for regularly.",
         "yes": "Yes",
         "no": "No"
       },
-      "q10a": {
+      "petDetails": {
         "heading": "Your pets",
         "petLabel": "Pet {{n}}",
         "title": "Pet {{n}}",
@@ -630,6 +987,7 @@
         "insurancePremiumPlaceholder": "0",
         "insuranceFrequencyLabel": "Frequency",
         "insuranceRenewalLabel": "Renewal date",
+        "insuranceEndDateLabel": "End date",
         "groomingLabel": "Grooming cost",
         "groomingPlaceholder": "0",
         "otherCostLabel": "Other cost",
@@ -643,13 +1001,27 @@
     "s9": {
       "eyebrow": "Section 9 — Subscriptions",
       "heading": "Subscriptions",
-      "body": "Streaming, cloud storage, fitness apps — the small monthly costs that add up."
+      "body": "We'll list streaming, apps, cloud storage, and other digital subscriptions you pay for regularly. Small recurring charges add up — capturing them here keeps your fixed costs honest."
     },
     "subscriptions": {
       "chapter": "Subscriptions",
-      "q11": {
+      "illustrationA11y": "Illustration of a person holding a credit card",
+      "formIllustrationA11y": "Illustration of a person entering payment details on a phone",
+      "serviceSelection": {
         "title": "What subscriptions do you have?",
-        "helper": "Tap to add common subscriptions, or enter custom ones below.",
+        "helper": "Browse categories and tap the services you pay for. You will enter amounts on the next step.",
+        "fillTitle": "Subscription details",
+        "fillHelper": "Enter the cost and payment schedule for each service in this category.",
+        "browseCategories": "Browse by category",
+        "searchPlaceholder": "Search subscriptions…",
+        "selectedInCategory": "{{count}} selected",
+        "noSearchResults": "No subscriptions match your search.",
+        "suggestionCount": "{{count}} suggestions",
+        "addCustomInCategory": "+ Other",
+        "addedSoFar": "Added so far ({{count}})",
+        "fillCategoryProgress": "{{category}} — section {{current}} of {{total}}",
+        "uncategorizedTitle": "Pick a category",
+        "pickCategoryLabel": "Which category is this?",
         "quickAdd": "Quick add",
         "customAdd": "Add custom subscription",
         "customLabel": "Service name",
@@ -661,10 +1033,36 @@
         "frequencyQuarterly": "Quarterly",
         "frequencyAnnual": "Annual",
         "autoRenewLabel": "Auto-renew",
-        "renewalLabel": "Next renewal date (optional)",
-        "renewalPlaceholder": "MM/YYYY",
+        "chargeDayLabel": "Payment day of the month",
+        "chargeDayPlaceholder": "e.g. 15",
+        "chargeDayRequired": "Please select a payment day for each subscription",
+        "endDateLabel": "End date",
+        "endDateOptionalLabel": "End date (optional)",
+        "endDateRequired": "End date is required when auto-renew is off",
+        "categoryRequired": "Please choose a category for each item",
+        "customNameRequired": "Please enter a name for custom subscriptions",
+        "renewalLabel": "End date (optional)",
+        "renewalPlaceholder": "DD/MM/YYYY",
         "validation": "Please enter the cost for each subscription",
-        "streamingFlag": "You have {{count}} streaming subscriptions costing {{total}}/month total.",
+        "osvcNote": "As a self-employed person (OSVČ), include your social and health insurance under Legal items.",
+        "streamingFlag": "You have {{count}} streaming subscriptions costing {{amount}}/month total.",
+        "categories": {
+          "onlineShopping": "Online shopping",
+          "education": "Education",
+          "itTech": "IT & Tech",
+          "entertainmentStreaming": "Entertainment & video streaming",
+          "productivity": "Productivity",
+          "banking": "Banking services",
+          "healthWellbeing": "Health & wellbeing",
+          "newsReading": "News & reading",
+          "foodDelivery": "Food & delivery",
+          "travelTransport": "Travel & transport",
+          "familyKids": "Family & kids",
+          "personalCare": "Personal care",
+          "telecomsUtilities": "Telecoms & utilities",
+          "homeGarden": "Home & gardening",
+          "legalItems": "Legal items"
+        },
         "services": {
           "netflix": "Netflix",
           "primeVideo": "Prime Video",
@@ -683,29 +1081,52 @@
           "adobeCC": "Adobe Creative Cloud",
           "playstationPlus": "PlayStation Plus",
           "xboxGamePass": "Xbox Game Pass",
+          "amazonPrime": "Amazon Prime",
+          "alzaPlus": "Alza Plus",
+          "coursera": "Coursera",
+          "udemy": "Udemy",
+          "languageApp": "Language learning app",
+          "dropbox": "Dropbox",
+          "github": "GitHub",
+          "chatgpt": "ChatGPT Plus",
+          "notion": "Notion",
+          "gym": "Gym / fitness",
+          "lifeInsurance": "Life insurance",
+          "meditationApp": "Meditation app",
+          "nytimes": "NY Times",
+          "theEconomist": "The Economist",
+          "medium": "Medium",
+          "groceries": "Groceries",
+          "mealKit": "Meal kit",
+          "foodDeliveryApp": "Food delivery app",
+          "transitPass": "Transit pass",
+          "parkingPass": "Parking pass",
+          "kidsStreaming": "Kids streaming",
+          "hairSalon": "Hair salon",
+          "mobilePhone": "Mobile phone",
+          "homeSecurity": "Home security",
+          "osvcSocial": "OSVČ — Social insurance",
+          "osvcHealth": "OSVČ — Health insurance",
+          "homeInsurance": "Home insurance",
+          "pension": "Pension contribution",
+          "tradeLicense": "Trade license",
+          "accountant": "Accountant / tax advisor",
           "other": "Other",
           "hulu": "Hulu",
           "twitch": "Twitch",
-          "dropbox": "Dropbox",
           "googleDrive": "Google Drive",
-          "icloud": "iCloud",
-          "notion": "Notion",
-          "chatgpt": "ChatGPT Plus",
-          "github": "GitHub",
-          "medium": "Medium",
-          "nytimes": "NY Times",
-          "theEconomist": "The Economist"
+          "icloud": "iCloud"
         }
       }
     },
     "s10": {
       "eyebrow": "Section 10 — Other Costs",
       "heading": "Other Regular Costs",
-      "body": "The rest of your regular outgoings — groceries, mobile, insurance, and more."
+      "body": "Groceries, mobile phone bills, personal insurance, and other regular spending that doesn't fit earlier sections belong here. Use this catch-all so your household ledger covers everything you pay each month."
     },
     "otherCosts": {
       "chapter": "Other Regular Costs",
-      "q12": {
+      "costSelection": {
         "title": "What other regular costs do you have?",
         "helper": "Tap to add common costs, or enter custom ones below.",
         "quickAdd": "Quick add",
@@ -742,17 +1163,19 @@
     "s11": {
       "eyebrow": "Section 11 — Debts & Loans",
       "heading": "Debts & Loans",
-      "body": "Understanding your debts is the first step to managing them. Let's get a clear picture."
+      "body": "We'll capture loans and credit balances with monthly repayments and interest rates. Knowing what goes out toward debt each month is essential before we calculate your flexible spending allowance."
     },
     "debts": {
       "chapter": "Debts & Loans",
-      "q13": {
+      "illustrationA11y": "Illustration of a person stressed about money and debt",
+      "formIllustrationA11y": "Illustration of a person managing money stress with bills and a piggy bank",
+      "hasDebts": {
         "title": "Do you have any debts or loans?",
         "helper": "Credit cards, personal loans, student loans, BNPL — anything you're currently paying off.",
         "yes": "Yes",
         "no": "No"
       },
-      "q13a": {
+      "debtDetails": {
         "title": "Your debts",
         "debtLabel": "Debt {{n}}",
         "helper": "Enter the details of this debt.",
@@ -789,14 +1212,18 @@
     "s12": {
       "eyebrow": "Section 12 — Budget",
       "heading": "Set your flexible spending budget",
-      "body": "Now let's set your flexible spending budget and decide how unspent money rolls over."
+      "body": "Here you'll set your flexible monthly spending allowance — what's left after fixed costs and debt — and choose how unspent budget carries forward. This is the number you'll check day to day."
     },
     "budget": {
-      "chapter": "Budget & Strategy",
-      "q14": {
+      "chapter": "Setup Budget",
+      "illustrationA11y": "Illustration of a person using a finance app on their phone",
+      "formIllustrationA11y": "Illustration of a person managing their budget with a finance app",
+      "familyContribution": "Family contribution {{n}}",
+      "budgetSplit": {
         "title": "Your flexible spending budget",
+        "tableTitle": "Expenses summary",
         "summaryTitle": "Description",
-        "helper": "This is what's left after fixed costs, debt payments, and savings. You can adjust it if needed.",
+        "helper": "This is what's left after fixed costs, debt payments, and savings. You can adjust it if needed — on the next step you'll choose how unspent money rolls over.",
         "income": "Total monthly income",
         "fixedCosts": "Fixed monthly costs",
         "debtPayments": "Debt payments",
@@ -858,15 +1285,16 @@
           "previewNote": "{{deduction}} reserved for your goal · {{amount}} to spend"
         }
       },
-      "q14a": {
-        "title": "What happens to unspent budget?",
-        "helper": "Choose how unspent money from your flexible budget carries over to the next month.",
+      "rollover": {
+        "title": "What happens at month end?",
+        "helperMonthly": "When the calendar month closes, any flexible budget you have not spent can roll over or reset.",
+        "helper": "When the calendar month closes, any flexible budget you have not spent can roll over or reset.",
         "free": "Free rollover",
-        "freeDesc": "Any money you don't spend is added to next month's flexible budget — your daily allowance goes up until you use it.",
+        "freeDesc": "Any money you do not spend is added to next month's flexible budget — your daily allowance goes up until you use it.",
         "capped": "Capped rollover",
-        "cappedDesc": "Unspent budget carries over, but only up to a limit you set — so savings don't pile up without bound.",
+        "cappedDesc": "Unspent budget carries over, but only up to a limit you set — overflow goes to loose cash.",
         "reset": "Reset each month",
-        "resetDesc": "Each month starts fresh. Unspent budget does not roll into next month's spending allowance.",
+        "resetDesc": "Each month starts fresh. Unspent budget does not roll into next month's spending allowance — it goes to the destination you choose below.",
         "capTypeLabel": "How should we cap rollover?",
         "capTypeMultiplier": "Multiple of monthly budget",
         "capTypeMultiplierHelper": "e.g. ×2 means rollover can reach twice your monthly flexible budget.",
@@ -880,8 +1308,8 @@
         "multiplier4": "×4 (four months)",
         "resetDestinationLabel": "Where should unspent money go?",
         "resetDestinationHelper": "At month end, leftover flexible budget is routed to a tracked balance — so your numbers still add up.",
-        "resetLooseMoney": "Track as loose cash",
-        "resetLooseMoneyHelper": "Leftover is recorded as loose cash — not added to next month's spending allowance or formal savings.",
+        "resetPiggyBank": "Track as piggy bank",
+        "resetPiggyBankHelper": "Leftover is recorded in your piggy bank — not added to next month's spending allowance or formal savings.",
         "resetForfeit": "Track as loose cash",
         "resetForfeitHelper": "Leftover is recorded as loose cash — not added to next month's spending allowance or formal savings.",
         "resetToSavings": "Add to savings",
@@ -895,30 +1323,83 @@
         "validationCapAmount": "Please enter a custom rollover cap amount",
         "validationOtherGoal": "Please name the goal you are setting money aside for"
       },
-      "familyContribution": "Family contribution {{n}}"
+      "spendingStrategy": {
+        "title": "What happens to unspent daily allowance?",
+        "helper": "When a day ends, any allowance you did not use can stay in your spending pool, go to your piggy bank, or move to savings. This applies within each month or pay cycle.",
+        "spendingBoost": "Keep in spending pool",
+        "spendingBoostDesc": "Leftover stays available for later days in this month or cycle — your daily allowance can rise as you underspend.",
+        "looseMoney": "Piggy bank",
+        "looseMoneyDesc": "Move unspent allowance to your piggy bank — spend anytime, not added to tomorrow's allowance.",
+        "savings": "Savings",
+        "savingsDesc": "Add unspent allowance to your savings balance at the end of each completed day.",
+        "validation": "Please choose what happens to unspent daily allowance"
+      }
     },
     "s13": {
       "eyebrow": "Almost done",
       "heading": "Check everything looks right",
-      "body": "Let's review everything before we start. You can always come back and edit later."
+      "body": "You'll see a full summary of everything you entered, organized by section. Take a moment to check each part before we build your household budget."
     },
     "review": {
       "chapter": "Review & Confirm",
-      "q15": {
+      "illustrationA11y": "Illustration of a person confirming their information with a checkmark",
+      "formIllustrationA11y": "Illustration of a person reviewing and confirming their household budget details",
+      "review": {
         "title": "Review your information",
-        "helper": "Expand a section if you need to check details.",
+        "helper": "Expand any section to check or edit details before continuing.",
+        "editSection": "Edit",
+        "editRowA11y": "Edit {{label}}",
+        "cancelEditMode": "Cancel",
+        "editSubsectionHelper": "Update line items below — changes save when you tap Save on each row.",
+        "editSubsectionEmpty": "Nothing to edit in this section yet.",
+        "warningA11y": "Needs attention",
+        "summary": {
+          "totalIncome": "Total monthly income",
+          "totalExpenses": "Total monthly costs",
+          "monthlyBalance": "Monthly balance"
+        },
+        "alerts": {
+          "zeroIncome": "Income appears to be 0 — make sure you've completed the Income & Savings section.",
+          "zeroIncomeHint": "No income recorded yet — add your income sources so your balance is accurate.",
+          "healthUnconfirmed": "Health insurance details missing for {{names}}",
+          "reviewLink": "review"
+        },
+        "subtitles": {
+          "householdWithChildren": "{{type}} · {{childCount}} children",
+          "incomeNeedsReview": "{{amount}} — needs review",
+          "healthUnconfirmed": "{{count}} members not confirmed",
+          "healthSkipped": "{{count}} members skipped insurance",
+          "healthIncomplete": "{{count}} members without insurance details",
+          "healthConfirmed": "All members confirmed",
+          "noVehicle": "No vehicle",
+          "unspentToSavings": "Unspent → savings",
+          "unspentRollsOver": "Unspent rolls over",
+          "unspentCapped": "Capped rollover",
+          "unspentLooseCash": "Unspent → piggy bank",
+          "debtMinPayment": "{{amount}}/month minimum payment"
+        },
+        "format": {
+          "perMonth": "/month",
+          "perWeek": "/week",
+          "perDay": "/day",
+          "perFortnight": "/fortnight",
+          "perQuarter": "/quarter",
+          "perYear": "/year",
+          "everyNMonths": "{{amount}} every {{count}} months",
+          "listSeparator": " · "
+        },
         "sections": {
           "household": "Household",
-          "location": "Location & Occupation",
+          "location": "Location & Work",
           "income": "Income & Savings",
           "transport": "Transport",
           "health": "Health Insurance",
-          "childrenCosts": "Children's Costs",
+          "childrenCosts": "Children's Expenses",
           "pets": "Pets",
           "subscriptions": "Subscriptions",
           "otherCosts": "Other Regular Costs",
           "debts": "Debts & Loans",
-          "budget": "Budget & Strategy"
+          "budget": "Setup Budget"
         },
         "labels": {
           "type": "Household type",
@@ -927,6 +1408,16 @@
           "country": "Country",
           "city": "City / Region",
           "currency": "Currency",
+          "czCitizen": "Czech citizen",
+          "partnerCzCitizen": "Partner — Czech citizen",
+          "childCzCitizen": "Child {{n}} — Czech citizen",
+          "childCzCitizenNamed": "{{name}} — Czech citizen",
+          "residencePermit": "Residence permit",
+          "partnerResidencePermit": "Partner — residence permit",
+          "childResidencePermit": "Child {{n}} — residence permit",
+          "permitStart": "Permit valid from",
+          "permitEnd": "Permit valid until",
+          "permitRenewalCost": "Permit renewal cost",
           "occupation": "Occupation",
           "partnerOccupation": "Partner's occupation",
           "yourIncome": "Your income",
@@ -935,6 +1426,7 @@
           "totalIncome": "Total income",
           "savingsBalance": "Savings balance",
           "savingsTarget": "Savings target",
+          "goalIntent": "What do you want Beaverr to help with?",
           "goal": "Goal",
           "by": "by",
           "fuel": "Fuel",
@@ -952,11 +1444,14 @@
           "apr": "APR",
           "monthlyBudget": "Monthly flexible budget",
           "rollover": "Rollover strategy",
+          "dailySpending": "Daily spending strategy",
           "multiplier": "Rollover multiplier",
           "rolloverCap": "Rollover cap",
-          "resetDestination": "Unspent budget goes to"
+          "resetDestination": "Unspent budget goes to",
+          "childFallback": "Child {{n}}",
+          "childSubtotal": "{{name}} subtotal"
         },
-        "cta": "Looks good — take me to my dashboard",
+        "cta": "Go to dashboard",
         "skip": "I'll finish this later"
       }
     },
@@ -967,6 +1462,10 @@
       "export": "Export",
       "exportTable": "Export table"
     },
+    "frequencyDropdown": {
+      "triggerA11y": "Frequency, {{period}}",
+      "menuA11y": "Choose frequency"
+    },
     "title": "Dashboard",
     "income": "Income",
     "costs": "Costs",
@@ -975,14 +1474,71 @@
     "tracker": "Tracker",
     "goals": "Goals",
     "savings": "Savings",
-    "alerts": "Alerts",
+    "profile": "Profile",
+    "alerts": "Reminders",
+    "subscriptions": "Subscription",
+    "accountSettings": "Account settings",
+    "helpFeedback": "Help & Feedback",
     "summary": "Summary",
     "tabRoles": {
-      "dashboard": "Your spending budget today and what needs attention.",
+      "dashboard": "Your monthly plan and what needs attention.",
       "income": "Household income and savings goals — edit amounts inline.",
       "expenses": "Fixed costs and debt payments already committed each month.",
       "budget": "How much is left for everyday spending after commitments.",
+      "profile": "Your account, preferences, and sign-out.",
+      "subscriptions": "Your plan, billing, and PRO features.",
+      "accountSettings": "Privacy, data, and account controls.",
+      "helpFeedback": "Help articles and feedback for the Beaverr team.",
       "summary": "Full ledger with health metrics and section-by-section analysis."
+    },
+    "subscriptionsScreen": {
+      "helper": "Subscription and billing management is coming soon. You are on the free plan for now."
+    },
+    "accountSettingsScreen": {
+      "helper": "Manage your account preferences and data.",
+      "privacyTitle": "Privacy & data",
+      "revokeHelper": "Withdraw consent and delete all local data. You will need to set up Beaverr again."
+    },
+    "appearance": {
+      "title": "Appearance",
+      "helper": "Choose how Beaverr looks on this device. Your choice is saved automatically.",
+      "light": "Light",
+      "lightDescription": "Cool paper background with navy text — best in bright rooms.",
+      "dark": "Dark",
+      "darkDescription": "Deep navy canvas with softened blues — easier on the eyes at night."
+    },
+    "helpFeedbackScreen": {
+      "helper": "Help articles and in-app feedback are coming soon. For now, contact support through your app store listing."
+    },
+    "profileScreen": {
+      "accountTitle": "Account",
+      "helper": "Manage your Beaverr profile and preferences here.",
+      "preferencesTitle": "Preferences"
+    },
+    "headerToolbar": {
+      "profileA11y": "Open profile menu",
+      "profileMenuA11y": "Profile menu",
+      "alertsA11y": "Open alerts",
+      "alertsCountA11y": "{{count}} active alerts",
+      "profileLabel": "Profile",
+      "defaultDisplayName": "Jan Smile",
+      "accountSettings": "Account settings",
+      "appearance": "Appearance",
+      "subscription": "Subscription",
+      "proBadge": "PRO",
+      "proBadgeA11y": "Pro subscription",
+      "helpFeedback": "Help & Feedback",
+      "logOut": "Log out",
+      "logOutConfirmTitle": "Log out?",
+      "logOutConfirmMessage": "This will delete all your data and progress. You will need to set up Beaverr again.",
+      "logOutConfirmButton": "Log out",
+      "comingSoon": "This section is coming soon.",
+      "openProfileA11y": "Open {{name}} profile"
+    },
+    "breakdown": {
+      "openSection": "View {{label}}",
+      "openSectionA11y": "Open {{label}} details",
+      "selectSectionA11y": "Select {{label}}"
     },
     "ledgerStrip": {
       "income": "Income",
@@ -1014,6 +1570,29 @@
       "openExpenses": "Open expenses tab",
       "openBudget": "Open budget tab",
       "openGoals": "Open goals tab"
+    },
+    "toast": {
+      "saved": "Saved",
+      "deleted": "Deleted",
+      "reminderActivated": "Reminder on",
+      "reminderDisabled": "Reminder off",
+      "reminderUpdated": "Reminder updated",
+      "cycleCalendarLocked": "Day logging unlocks during an active pay cycle",
+      "cycleStartUpdated": "Cycle start updated",
+      "spendingSaved": "Spending saved",
+      "adjustmentSaved": "Adjustment added",
+      "stashCreated": "Stash created",
+      "stashDeleted": "Stash deleted",
+      "stashTransferred": "Money moved",
+      "stashTransferEmpty": "Nothing to move — balance is zero",
+      "stashRenamed": "Tab renamed"
+    },
+    "ledgerTable": {
+      "selectRowA11y": "Select {{label}}",
+      "editRowA11y": "Edit {{label}}",
+      "deleteRowA11y": "Delete {{label}}",
+      "deleteConfirmTitle": "Delete this item?",
+      "deleteConfirmMessage": "{{label}} will be removed from your budget."
     },
     "saveFeedback": {
       "updated": "Spending budget is now {{amount}} per month ({{delta}})",
@@ -1072,7 +1651,7 @@
         "meaning": "The sum of all household income converted to a monthly amount — salaries, benefits, and any other regular sources you entered during setup.",
         "formula": "Each income source converted to monthly, then added together",
         "rows": {
-          "total": "Total monthly income"
+          "total": "Total income"
         }
       },
       "totalExpenses": {
@@ -1081,6 +1660,14 @@
         "formula": "Fixed costs + debt payments",
         "rows": {
           "total": "Total committed per month"
+        }
+      },
+      "cashAfterBills": {
+        "title": "Left after bills",
+        "meaning": "What remains from your income after fixed costs and debt payments — before you plan everyday spending or savings.",
+        "formula": "Income − fixed costs − debt payments",
+        "rows": {
+          "left": "Left after bills"
         }
       },
       "savingsGoalPlan": {
@@ -1113,9 +1700,142 @@
       },
       "infoA11y": "How this is calculated"
     },
+    "frequencyHelper": {
+      "modalTitle": "Display frequency",
+      "income": {
+        "summary": "Page amounts per day, week, or month.",
+        "detail": "Your income is stored as monthly figures. Daily and weekly views divide those totals for display only — they do not change what you entered during setup.",
+        "infoA11y": "Learn how display frequency affects Income"
+      },
+      "expenses": {
+        "summary": "Page amounts per day, week, or month.",
+        "detail": "Costs are stored as monthly commitments. Daily and weekly views recalculate display only. Fixed load and recurring percentages stay the same.",
+        "infoA11y": "Learn how display frequency affects Expenses"
+      },
+      "budget": {
+        "summary": "Budget total per day, week, or month.",
+        "detail": "Your budget is planned monthly. Daily and weekly views show an equivalent allowance. Sliders and settings below stay in monthly terms.",
+        "infoA11y": "Learn how display frequency affects Budget"
+      },
+      "home": {
+        "summary": "To spend and saved-so-far amounts per day, week, or month.",
+        "detail": "Your plan is stored monthly. Daily and weekly views divide totals for display only — they do not change your underlying budget.",
+        "infoA11y": "Learn how display frequency affects the dashboard"
+      }
+    },
+    "spendingPace": {
+      "good": "On plan — spending matches the time left in this period.",
+      "alert": "Slightly ahead of plan — worth watching discretionary spend.",
+      "important": "Ahead of plan — ease spending to stay within budget.",
+      "critical": "Budget nearly depleted — pause discretionary spending.",
+      "backfillPending": "Finish logging past days for an accurate spending pace.",
+      "backfillPendingNote": "Finish logging past days for a fully accurate pace.",
+      "backfillPendingA11y": "Finish logging past days for an accurate spending pace.",
+      "detail": "{{spentPct}} of cycle budget spent · {{timePct}} of period elapsed",
+      "scope": {
+        "cycle": "Pay cycle",
+        "month": "Month",
+        "week": "Week"
+      }
+    },
     "home": {
+      "infoA11y": "How this is calculated",
       "hero": {
         "setGoalPrompt": "Set a goal to track your monthly savings plan"
+      },
+      "monthlyPlan": {
+        "title": "Your monthly plan",
+        "helper": "Income, fixed costs, and what's left to spend or save this month."
+      },
+      "burnRate": {
+        "title": "Where your income goes",
+        "incomeBase": "Total income split across committed costs, savings, and spending.",
+        "incomeTotal": "Income {{amount}}",
+        "incomeLabel": "Income",
+        "overcommitted": "Over income",
+        "incomeShare": "{{pct}}% of income",
+        "bills": "Bills & utilities",
+        "subscriptions": "Subscriptions",
+        "debt": "Debt payments",
+        "table": {
+          "category": "Category",
+          "shareOfIncome": "% of income"
+        }
+      },
+      "toSpendToday": {
+        "title": "To spend",
+        "dailyRate": "{{amount}} / day",
+        "perPeriod": "Shown per {{period}}",
+        "footer": "Based on {{days}} days · rollover balance: {{rollover}}"
+      },
+      "savedSoFar": {
+        "title": "Saved so far",
+        "perPeriod": "Shown per {{period}}",
+        "dailyNote": "Today's unspent allowance stays in your spending pool or routes at day end based on your policy.",
+        "infoA11y": "How saved so far is calculated",
+        "explain": {
+          "meaningTitle": "What this shows",
+          "meaningBody": "Money you have effectively set aside this month — from completed days' underspend plus your savings plan for elapsed time.",
+          "calculationTitle": "How we calculate it",
+          "piggyBank": "Piggy bank (completed days)",
+          "plannedSavings": "Planned savings (elapsed this month)",
+          "total": "Total this month",
+          "formula": "Planned savings uses {{days}} of {{totalDays}} days elapsed. Today's allowance is not included until the day ends."
+        }
+      },
+      "jars": {
+        "sectionTitle": "Jars",
+        "openBudgetA11y": "Open Budget tab — {{jar}}",
+        "cadenceDaily": "Filled at day end",
+        "cadenceMonthly": "Filled at month end",
+        "strategy": {
+          "daily": {
+            "spendingBoost": "Daily underspend stays in your spending pool.",
+            "looseMoney": "Daily underspend goes to your piggy bank.",
+            "savings": "Daily underspend is added to savings."
+          },
+          "monthly": {
+            "free": "Month-end leftovers boost next month's spending.",
+            "capped": "Month-end leftovers fill the rollover jar up to your limit.",
+            "resetSavings": "Month-end leftovers are added to savings.",
+            "resetLoose": "Month-end leftovers go to your piggy bank.",
+            "resetOther": "Month-end leftovers go to {{name}}."
+          },
+          "free": "Daily underspend goes to your daily jar. Month-end leftovers boost next month's spending.",
+          "capped": "Daily underspend fills your daily jar (with cap). Month-end leftovers fill the rollover jar up to your limit.",
+          "resetSavings": "Daily underspend goes to your daily jar. Month-end leftovers are added to savings.",
+          "resetLoose": "Daily underspend goes to your daily jar. Month-end leftovers go to loose cash.",
+          "resetOther": "Daily underspend goes to your daily jar. Month-end leftovers go to {{name}}."
+        },
+        "activity": {
+          "title": "Daily jar",
+          "helper": "Unspent daily allowance from completed days — for outings, treats, and small plans.",
+          "helperLegacy": "Balance from when daily underspend went to this jar — change policy in Budget settings.",
+          "helperCapped": "Fills from completed days up to {{cap}}. Overflow goes to loose cash.",
+          "helperFull": "Jar is full at {{cap}}. Further daily underspend goes to loose cash."
+        },
+        "rollover": {
+          "title": "Rollover jar",
+          "helperFree": "Month-end unspent budget — increases next month's flexible allowance.",
+          "helperCapped": "Month-end unspent budget, up to {{cap}}.",
+          "helperCappedFull": "Full at {{cap}}. Extra month-end unspent goes to loose cash."
+        },
+        "looseCash": {
+          "title": "Piggy bank",
+          "helper": "Set-aside from day-end underspend and month-end reset — use anytime, not added to next month's allowance."
+        },
+        "bigPlans": {
+          "title": "{{name}}",
+          "titleFallback": "Big plans jar",
+          "helper": "Month-end unspent budget set aside for larger plans like travel or one-off purchases."
+        },
+        "customStash": {
+          "title": "{{name}}"
+        },
+        "savings": {
+          "title": "Savings",
+          "helper": "Month-end unspent flexible budget is moved here at month end."
+        }
       },
       "headlineLabel": "Your flexible budget",
       "spendingBudget": "Your spending budget",
@@ -1177,7 +1897,32 @@
         "title": "Spending pace",
         "openTracker": "Open tracker",
         "noLogs": "No spending logged yet — your full allowance is available.",
-        "a11y": "Spending pace today and this week, open tracker"
+        "noLogsDaily": "No spending logged today — your full daily allowance is available.",
+        "noLogsWeekly": "No spending logged this week — your full weekly allowance is available.",
+        "a11y": "Spending pace today and this week, open tracker",
+        "a11yDaily": "Daily spending pace, open tracker",
+        "a11yWeekly": "Weekly spending pace, open tracker"
+      },
+      "dailySpend": {
+        "title": "Log today's spending",
+        "helper": "Enter the total you spent today on groceries, dining out, and other flexible costs.",
+        "openForm": "Log your spending",
+        "openFormEdit": "Update today's spending",
+        "openFormA11y": "Open form to log today's flexible spending",
+        "cancel": "Cancel",
+        "inputLabel": "Spent today",
+        "placeholder": "0",
+        "save": "Save",
+        "saving": "Saving…",
+        "saved": "Saved",
+        "clear": "Clear today's entry",
+        "validation": "Enter a valid amount (0 or more).",
+        "saveError": "Could not save — try again.",
+        "quickAdd": "Quick add",
+        "quickAddA11y": "Add {{amount}} to today's total",
+        "remaining": "{{amount}} left today",
+        "over": "{{amount}} over today's allowance",
+        "a11y": "Today's flexible spending total"
       },
       "monthEndStatus": {
         "title": "Month-end routing",
@@ -1213,7 +1958,7 @@
         "savingsBalance": "Current savings",
         "totalSavings": "Total savings",
         "savingsInflow": "+{{amount}}/month planned",
-        "looseMoneyHint": "{{amount}} loose cash",
+        "looseMoneyHint": "{{amount}} piggy bank",
         "a11y": {
           "dailyBudget": "Daily budget, {{amount}}, open budget"
         }
@@ -1231,16 +1976,19 @@
       }
     },
     "insights": {
-      "cardTitle": "Household insight",
+      "cardTitle": "AI insight",
       "viewAnalysis": "View full analysis",
       "actions": {
         "reviewBudget": "Review budget",
         "reviewExpenses": "Review expenses",
         "reviewDebts": "Review debts",
-        "reviewSubscriptions": "Review subscriptions"
+        "reviewSubscriptions": "Review subscriptions",
+        "seeSuggestions": "See suggestions ↗"
       },
       "sectionTitle": "AI insight",
       "slotLabel": "Insight",
+      "learnMore": "Learn more",
+      "showLess": "Show less",
       "headline": {
         "balanced": "Your fixed costs and flexible budget look balanced.",
         "tight": "Fixed costs use {{pct}}% of income — review your largest categories.",
@@ -1284,12 +2032,37 @@
         },
         "budget": {
           "summary": "Flexible spending is {{pct}}% of income after fixed costs.",
-          "negativeSurplus": "Your flexible budget is higher than what's left after fixed costs."
+          "summaryLead": "Your flexible spending is {{pct}}% of income — within a healthy range for everyday costs.",
+          "summaryLow": "Your flexible spending is {{pct}}% of income — below the recommended 20–30% for a household your size.",
+          "detailTopCategory": "Consider reviewing fixed costs — {{category}} alone is {{amount}}/mo and could be optimised.",
+          "detailGeneric": "Review your largest cost categories if you want more room for everyday spending.",
+          "negativeSurplus": "Your flexible budget is higher than what's left after fixed costs.",
+          "negativeSurplusLead": "Your flexible budget exceeds what's left after fixed costs.",
+          "negativeSurplusDetail": "Lower spending or review fixed costs so the numbers add up."
         },
         "goals": {
           "empty": "No financial goal set yet.",
           "onTrack": "Your goal looks achievable with your current flexible budget.",
-          "atRisk": "You may need to save more each month or adjust your goal date."
+          "atRisk": "You may need to save more each month or adjust your goal date.",
+          "portfolioOnTrack": "{{count}} active goal(s) are on track.",
+          "portfolioBehind": "{{count}} goal(s) need attention — check pace on the Goals tab."
+        },
+        "savings": {
+          "empty": "No savings recorded yet — money you set aside will show up here.",
+          "summary": "You have {{amount}} saved across your stash tabs.",
+          "withInflow": "You have {{amount}} saved. About {{inflow}}/mo is planned to flow in from your budget."
+        },
+        "tracker": {
+          "empty": "Log daily spending to see how you are tracking against your budget.",
+          "needsLogging": "{{count}} days still need logging — finish them for an accurate spending pace.",
+          "onTrack": "Your spending is logged and tracking looks up to date."
+        },
+        "alerts": {
+          "empty": "No active reminders or alerts right now.",
+          "summary": "{{count}} active reminder(s) — highest priority: {{urgency}}.",
+          "urgencyHigh": "high",
+          "urgencyMedium": "medium",
+          "urgencyLow": "low"
         },
         "generic": {
           "summary": "This category is {{pct}}% of your monthly income."
@@ -1298,14 +2071,40 @@
     },
     "summaryScreen": {
       "intro": "Full household ledger with insights on each section. Tap Edit to update any area.",
-      "healthSection": "Cost commitments",
+      "healthSection": "Your commitments",
       "edit": "Edit",
-      "tableNote": "Monthly amounts in {{currency}}"
+      "tableNote": "Monthly amounts in {{currency}}",
+      "risksTitle": "Financial risks",
+      "risksNote": "Exposure amounts — not included in monthly budget"
+    },
+    "risks": {
+      "vehicleTplLiability": "{{category}} — third-party liability limit",
+      "vehicleTplLiabilityN": "Vehicle {{n}} ({{category}}) — third-party liability limit"
     },
     "expensesScreen": {
       "totalMonthly": "Total monthly expenses",
       "totalExpenses": "Total expenses",
       "committedCosts": "Committed costs",
+      "costCommitments": "Your commitments",
+      "costCommitmentsCards": {
+        "committedTotal": {
+          "label": "Total committed",
+          "footer": "Fixed costs + debt payments"
+        },
+        "cashAfterBills": {
+          "label": "Left after bills",
+          "footer": "After fixed costs and debt payments",
+          "overByFooter": "Your commitments exceed your income"
+        },
+        "fixedLoad": {
+          "label": "Bills vs income",
+          "footer": "Share of income for bills and debt"
+        },
+        "recurring": {
+          "label": "Regular bills",
+          "footer": "Share of income for subscriptions and similar"
+        }
+      },
       "committedBreakdown": "{{fixed}} fixed · {{debt}} debt",
       "committedAnnual": "{{amount}} per year",
       "addExpense": "Add {{type}}",
@@ -1314,11 +2113,13 @@
       "tableTitle": "Expenses breakdown",
       "insightContextTitle": "Category insight",
       "emptyPanel": "No expenses recorded in this group yet.",
-      "emptyHint": "Tap Add below to record it here — no need to leave this screen.",
+      "emptyHint": "Use Add expense above to record it here.",
       "tabs": {
         "fixed": "Fixed expenses",
         "recurring": "Recurring expenses",
         "overview": "Overview",
+        "add": "Add expense",
+        "addA11y": "Add a new expense — choose category first",
         "primaryA11y": "Expense type",
         "secondaryA11y": "Expense category",
         "helper": {
@@ -1326,6 +2127,13 @@
           "fixed": "Costs that stay roughly the same each month — rent, utilities, insurance, taxes.",
           "recurring": "Regular but variable bills — subscriptions, transport, pets, and minimum debt payments."
         }
+      },
+      "addPicker": {
+        "title": "What are you adding?",
+        "helper": "Pick a category — we'll open the right form for that expense type.",
+        "groupFixed": "Fixed expenses",
+        "groupRecurring": "Recurring expenses",
+        "categoryA11y": "Add {{type}} expense"
       },
       "subtabs": {
         "rent": "Rent",
@@ -1347,6 +2155,14 @@
         "custom_taxes": "Other government charges"
       },
       "subtabEmpty": "You don't have any {{type}} expenses yet.",
+      "obligations": {
+        "title": "Cycle payback obligations",
+        "helper": "Shortfalls covered from outside your budget when a pay cycle closed. These are separate from your regular debt list.",
+        "fromCycle": "From cycle · {{date}}",
+        "markPaid": "Mark paid",
+        "paying": "Saving…",
+        "markPaidA11y": "Mark payback obligation paid — {{amount}}"
+      },
       "edit": {
         "amount": "Amount",
         "renewalDate": "Renewal date",
@@ -1354,6 +2170,13 @@
         "endDate": "Coverage end date",
         "monthlyOnly": "Billed monthly",
         "annualOnly": "Billed annually"
+      },
+      "dates": {
+        "endDate": "End date",
+        "paymentDay": "Payment day of month",
+        "paymentDayPlaceholder": "1–31",
+        "nextPaymentDate": "Next payment date",
+        "optionalHint": "Optional — helps show end dates and upcoming payments in your expense tables."
       },
       "recurringTableTitle": "Recurring expenses",
       "fixedTableTitle": "Fixed expenses",
@@ -1373,7 +2196,9 @@
         "amount": "Amount",
         "monthly": "Monthly",
         "share": "Share",
-        "date": "Date"
+        "date": "Date",
+        "endDate": "End date",
+        "nextPayment": "Next payment"
       },
       "fixedRecurring": {
         "title": "Fixed and recurring expenses",
@@ -1398,22 +2223,254 @@
     },
     "goalsScreen": {
       "empty": "You have not set a financial goal yet.",
+      "emptyActive": "No active goals yet. Add a goal or complete onboarding to see auto-created ones.",
+      "emptyArchived": "No archived goals.",
       "setGoal": "Set a goal",
+      "addGoal": "Add goal",
+      "addGoalA11y": "Add a new goal",
+      "gridCardA11y": "{{name}}, {{amount}}",
+      "gridCardA11yOnHold": "{{name}}, on hold",
+      "gridCardA11yWithTarget": "{{name}}, {{current}} of {{target}}",
+      "gridCardA11yWithDebt": "{{name}}, {{paid}} paid toward {{total}} total debt",
+      "editA11y": "Edit {{name}}",
+      "sections": {
+        "goals": "Goals",
+        "savings": "Saving goals",
+        "debt": "Debt payoff goals",
+        "reduceCosts": "Reduce costs"
+      },
+      "archive": "Archive",
+      "archiveA11y": "Archive {{name}}",
+      "reset": {
+        "a11y": "Reset progress for {{name}}",
+        "disabledA11y": "Reset unavailable — {{name}} has no progress yet",
+        "confirmTitle": "Reset goal progress?",
+        "confirmBody": "This sets {{name}} back to zero saved. Linked tabs and funding rules stay in place.",
+        "confirmBodyDebt": "This sets {{name}} back to the starting balance. Linked tabs and funding rules stay in place.",
+        "confirmAction": "Reset progress",
+        "errorTitle": "Could not reset",
+        "error": "Progress could not be reset. Try again."
+      },
+      "emergencyDefaultName": "Emergency",
+      "clarityFocus": "Get clarity",
+      "clarityHelper": "You are building a clear picture of where your money goes. Explore your dashboard and budget breakdown anytime.",
       "goalType": "Your goal",
       "reduceCosts": "Reduce costs",
-      "reduceCostsHelper": "Bida will focus on finding savings and trimming spending.",
+      "reduceCostsHelper": "Beaverr will focus on finding savings and trimming spending.",
+      "reduceCostsTap": "Tap to open your cost reduction tracker.",
+      "reduceCostsPending": "Baseline pending",
       "ongoingTarget": "Monthly saving",
       "ongoingHelper": "A fixed amount you plan to set aside each month.",
       "target": "Target amount",
+      "totalDebt": "Total debt",
+      "deadline": "Deadline: {{date}}",
+      "deadlineLabel": "Deadline",
+      "noDeadline": "No deadline",
+      "deadlineMode": {
+        "none": "No deadline",
+        "set": "Set deadline",
+        "helper": "Without a deadline, only current and target amounts are shown — no progress bar."
+      },
       "byDate": "Target date: {{date}}",
+      "completedDate": "Completed: {{date}}",
       "currentSavings": "Current savings",
       "monthlyNeeded": "Monthly savings needed",
       "onTrack": "On track — you have {{amount}} flexible each month.",
-      "gap": "You need {{needed}} per month but only have {{available}} flexible."
+      "gap": "You need {{needed}} per month but only have {{available}} flexible.",
+      "filter": {
+        "active": "Active",
+        "archived": "Archived"
+      },
+      "pace": {
+        "on_track": "On track",
+        "behind": "Behind",
+        "ahead": "Ahead",
+        "regressed": "Regressed"
+      },
+      "lifecycle": {
+        "on_hold": "On hold",
+        "paused": "Paused",
+        "completed": "Completed",
+        "archived": "Archived"
+      },
+      "celebration": {
+        "title": "Goal complete",
+        "body": "{{name}} is fully funded. Great work.",
+        "dismiss": "Continue"
+      },
+      "create": {
+        "title": "New goal",
+        "kindPrompt": "What are you working toward?",
+        "savingsHelper": "Set a target amount and optional deadline.",
+        "debtHelper": "Pick a debt from your plan or add a new one to track.",
+        "changeKind": "Change goal type",
+        "backToKindA11y": "Back to goal type selection",
+        "validationKind": "Choose saving or debt payoff to continue.",
+        "kind": {
+          "savings": "Saving for something",
+          "savingsHelper": "Build a fund for a purchase, trip, or milestone.",
+          "debt": "Paying off debt",
+          "debtHelper": "Track progress toward clearing a balance."
+        },
+        "existingDebts": "Existing debts",
+        "addNewDebt": "Or add a new debt",
+        "debtDetails": "Debt details",
+        "debtName": "Name",
+        "debtNamePlaceholder": "e.g. Credit card",
+        "debtBalance": "Current balance",
+        "debtMinPayment": "Minimum monthly payment",
+        "debtMinPaymentHelper": "Optional — used for payoff planning.",
+        "validationDebtName": "Enter a name for this debt.",
+        "validationDebtBalance": "Enter a balance greater than zero.",
+        "debtSelect": "Debt to pay off",
+        "noDebtsAvailable": "All debts in your plan already have payoff goals, or none are set up yet.",
+        "validationDebt": "Choose a debt to pay off.",
+        "name": "Name",
+        "namePlaceholder": "e.g. Vacation fund",
+        "description": "Description",
+        "descriptionPlaceholder": "Optional note",
+        "endDate": "Target date",
+        "endDatePlaceholder": "DD/MM/YYYY",
+        "target": "Target amount",
+        "validationName": "Enter a goal name.",
+        "validationTarget": "Enter a target amount greater than zero.",
+        "saveError": "Could not save goal. Try again."
+      },
+      "edit": {
+        "title": "Edit goal",
+        "helper": "Change the name, deadline, or target amount.",
+        "autoNameHelper": "We suggested this name when the goal was created — change anything here.",
+        "saveError": "Could not save changes. Try again."
+      },
+      "setDeadline": {
+        "title": "Goal deadline",
+        "subtitle": "Choose whether {{name}} has a target date.",
+        "helper": "Pick when you want to reach this goal.",
+        "validationDate": "Choose a deadline date.",
+        "save": "Save",
+        "saveError": "Could not save deadline. Try again."
+      },
+      "detail": {
+        "back": "Back to goals",
+        "notFound": "Goal not found.",
+        "overviewTitle": "Progress",
+        "fundingTitle": "Linked money tabs",
+        "noFunding": "No tabs linked yet — open the goal card and add a funding link.",
+        "openStashA11y": "Open {{name}} tab",
+        "linkRowA11y": "Split from {{tab}} — {{amount}} {{frequency}}",
+        "historyTitle": "Contributions",
+        "noMovements": "No contributions recorded yet — they appear when linked tabs transfer money to this goal."
+      },
+      "alerts": {
+        "onHold": "{{name}} is on hold because the linked debt was removed.",
+        "paused": "{{name}} is paused — check funding sources.",
+        "behindPace": "{{name}} is behind its target pace.",
+        "emptySource": "Funding source for {{name}} is empty."
+      },
+      "funding": {
+        "title": "Linking goal",
+        "subtitle": "Link {{name}} to a money stash tab.",
+        "activeRules": "Linked tabs",
+        "addRule": "Link a tab",
+        "addRuleForm": "New link",
+        "addNewLink": "Add new link",
+        "addNewLinkA11y": "Add another stash link for this goal",
+        "fromTab": "From tab",
+        "amount": "Amount",
+        "startDate": "First move date",
+        "startDateHelper": "Money moves on this date and then repeats. Earliest is tomorrow.",
+        "frequencyLabel": "How often",
+        "frequency": {
+          "daily": "daily",
+          "weekly": "weekly",
+          "monthly": "monthly",
+          "annual": "yearly",
+          "once": "one-time"
+        },
+        "linkKindPrompt": "Is this a one-time move or a regular link?",
+        "changeLinkKind": "Change link type",
+        "linkKind": {
+          "once": "One-time",
+          "onceHelper": "Move money once — now or on a chosen date.",
+          "recurring": "Regular",
+          "recurringHelper": "Repeat daily, weekly, monthly, or yearly from a start date."
+        },
+        "oneTimeWhenLabel": "When",
+        "oneTimeWhen": {
+          "immediate": "Immediately",
+          "scheduled": "On date"
+        },
+        "oneTimeDate": "Move date",
+        "oneTimeDateHelper": "Money moves once on this date.",
+        "oneTimeImmediateHelper": "Money moves from the tab as soon as you save.",
+        "saveOneTimeNow": "Move now",
+        "linkAmountOnce": "{{amount}} one-time",
+        "linkAmountFrequency": "{{amount}} {{frequency}}",
+        "linkNextMove": "Next move: {{date}}",
+        "ruleSummary": "{{amount}} {{frequency}} from {{tab}}",
+        "ruleSummaryWithDate": "{{amount}} {{frequency}} from {{tab}}, from {{date}}",
+        "ruleSummaryOnce": "{{amount}} one-time from {{tab}}",
+        "ruleSummaryOnceDate": "{{amount}} one-time from {{tab}} on {{date}}",
+        "multipleRules": "{{count}} linked tabs",
+        "save": "Save link",
+        "saveError": "Could not save link. Try again.",
+        "closeA11y": "Close goal linking",
+        "setupA11y": "Link {{name}} to a money stash",
+        "editA11y": "Manage stash links for {{name}}",
+        "linkDisabledA11y": "Stash links disabled — {{name}} is complete",
+        "deleteRuleA11y": "Remove link",
+        "validationLinkKind": "Choose one-time or regular.",
+        "validationTab": "Choose a money tab to link.",
+        "validationAmount": "Enter an amount greater than zero.",
+        "validationDate": "Choose the first move date.",
+        "validationDateFuture": "First move must be tomorrow or later.",
+        "validationDateToday": "Move date cannot be in the past.",
+        "validationEmptySource": "That tab has no money to move.",
+        "validationInsufficient": "Could not move that amount from the tab.",
+        "validationGoalAtTarget": "This goal has already reached its target amount.",
+        "validationExceedsTarget": "Enter {{remaining}} or less — that's what's left to reach your goal.",
+        "amountRemainingHelper": "{{remaining}} left to reach your goal.",
+        "validationDuplicate": "You already have a link from this tab at this frequency."
+      }
+    },
+    "reduceCostsScreen": {
+      "title": "Cost reduction",
+      "baselineTitle": "Baseline commitments",
+      "baselineHelper": "Monthly committed costs when you started tracking reductions.",
+      "noBaseline": "Not set yet",
+      "currentTitle": "Current commitments",
+      "savedTitle": "Estimated savings",
+      "placeholder": "Detailed charts and comparisons coming soon.",
+      "back": "Back to goals"
     },
     "savingsScreen": {
-      "totalBalance": "Total savings",
-      "balanceHelper": "Your current savings balance from onboarding.",
+      "totalBalance": "Total money saved",
+      "balanceHelper": "Sum of all {{count}} tabs in Your money stash",
+      "detail": {
+        "back": "Back to savings",
+        "notFound": "Tab not found.",
+        "overviewTitle": "Balance",
+        "reservedBalance": "Reserved",
+        "availableBalance": "Available balance",
+        "linkedGoalsTitle": "Linked goals",
+        "noLinkedGoals": "No goals pull money from this tab yet.",
+        "openGoalA11y": "Open goal {{name}}",
+        "linkRowA11y": "Split to {{goal}} — {{amount}} {{frequency}}",
+        "plannedOutflow": "Planned monthly outflow",
+        "uncommitted": "Uncommitted balance",
+        "uncommittedHelper": "Nothing in this tab is reserved until a scheduled transfer runs or you move money manually.",
+        "noMovements": "No movements yet — transfers, goal links, and budget routing will appear here.",
+        "burnRate": {
+          "title": "Where this money goes",
+          "helper": "Split of what moved out of this tab and what is still here.",
+          "totalLabel": "Tab total",
+          "remaining": "Still in this tab",
+          "transfersOut": "Moved to other tabs",
+          "empty": "Add a balance or record a movement to see where money goes.",
+          "plannedNote": "Planned monthly outflow to linked goals: {{amount}} — nothing has left this tab yet.",
+          "openGoal": "Open goal {{name}}"
+        }
+      },
       "monthlyPlan": "Planned monthly savings",
       "monthlyPlanHelper": "From your budget split, savings goal, and rollover settings.",
       "noInflows": "No monthly savings planned yet — adjust your budget or set a savings goal.",
@@ -1421,9 +2478,9 @@
       "resetPolicy": "Unspent budget policy",
       "resetToSavings": "Leftover flexible budget is added to savings at month end.",
       "resetToOther": "Leftover budget is set aside for: {{name}}",
-      "resetLooseMoney": "Leftover flexible budget is tracked as loose cash at month end.",
-      "looseMoney": "Loose cash",
-      "looseMoneyHelper": "Unallocated money from months when you underspent your flexible budget.",
+      "resetLooseMoney": "Leftover flexible budget is tracked in your piggy bank at month end.",
+      "looseMoney": "Piggy bank",
+      "looseMoneyHelper": "Set-aside money from months when you underspent your flexible budget.",
       "otherGoalHelper": "Money set aside at month end for this goal.",
       "otherGoalFallback": "Another goal",
       "projectionTitle": "Anticipated savings",
@@ -1434,7 +2491,7 @@
         "goalReserve": "Savings goal reservation",
         "ongoingGoal": "Monthly savings target",
         "resetPolicy": "Unspent budget → savings (month end)",
-        "resetLoose": "Unspent budget → loose cash (month end)"
+        "resetLoose": "Unspent budget → piggy bank (month end)"
       },
       "chart": {
         "empty": "Add a savings balance or monthly savings plan to see a projection.",
@@ -1489,22 +2546,398 @@
           "rolloverCapped": "Rollover balance (within your cap)",
           "rolloverCappedSplit": "{{rollover}} to rollover · {{loose}} to loose cash (over cap)",
           "savings": "Savings balance",
-          "looseMoney": "Loose cash balance",
+          "looseMoney": "Piggy bank balance",
           "otherGoal": "Set aside for: {{name}}"
         }
       }
+    },
+    "stashMovements": {
+      "title": "Movement history",
+      "empty": "No movements recorded yet.",
+      "columnDate": "Date",
+      "columnDescription": "Description",
+      "columnAmount": "Amount",
+      "rowA11y": "{{date}} — {{description}} — {{amount}}",
+      "transferIn": "From {{name}}",
+      "transferOut": "To {{name}}",
+      "goalFunding": "To goal {{name}}",
+      "dayEnd": "Daily unspent allowance",
+      "monthEnd": "Month-end leftover",
+      "stashDelete": "Tab closed — moved to {{name}}"
+    },
+    "tablePagination": {
+      "previous": "Previous",
+      "next": "Next",
+      "previousA11y": "Previous page",
+      "nextA11y": "Next page",
+      "rowsPerPage": "Rows per page",
+      "rowsPerPageA11y": "{{count}} rows per page",
+      "rowsPerPageOptionA11y": "Show {{count}} rows per page",
+      "pageRange": "{{start}}–{{end}} of {{total}}",
+      "pageRangeA11y": "Showing {{start}} to {{end}} of {{total}}, page {{page}} of {{pageCount}}",
+      "dismissMenuA11y": "Close rows per page menu"
     },
     "monthEndHistory": {
       "title": "Past month-end routing",
       "helper": "How leftover flexible budget was routed when each month closed.",
       "rollover": "Added to rollover",
       "savings": "Added to savings",
-      "looseMoney": "Added to loose cash",
+      "looseMoney": "Added to piggy bank",
       "otherGoal": "Set aside for another goal",
       "excessLoose": "+{{amount}} over cap → loose cash"
     },
+    "cycles": {
+      "segment": {
+        "current": "Current cycle",
+        "past": "Past cycles"
+      },
+      "noActive": {
+        "title": "Start your first pay cycle",
+        "helper": "Choose when money landed and how much you can spend until your next income. You can backfill days if the cycle started in the past.",
+        "cta": "Start cycle",
+        "ctaA11y": "Start a new pay cycle"
+      },
+      "endCycle": {
+        "cta": "End cycle",
+        "ctaA11y": "End the current pay cycle"
+      },
+      "backfill": {
+        "bannerTitle": "Catching up on past days",
+        "bannerBody": "Piggy bank: one past day at a time removes that day's allowance from your pool; unspent goes to your piggy bank. Keep in pool: logged spend reduces what's left. Bulk logging is spend-only. Daily allowance = remaining ÷ unlogged days.",
+        "bannerA11y": "Catching up on past days. Piggy bank jars unspent allowance per day; keep in pool counts logged spend against what's left. Bulk logging is spend-only."
+      },
+      "closeCycle": "Close this cycle",
+      "pace": {
+        "title": "Cycle budget",
+        "spent": "Spent in cycle",
+        "dailyAllowance": "Daily allowance",
+        "remaining": "Remaining in cycle",
+        "status": {
+          "ok": "On track — plenty of budget left.",
+          "warning": "Budget mostly used — pace carefully.",
+          "exhausted": "Cycle budget used up.",
+          "deficit": "Over cycle budget — funding only at close.",
+          "idle": "No active cycle — start one when money lands."
+        },
+        "breakdown": {
+          "title": "Your budget break down",
+          "entered": "Cycle budget entered",
+          "spendingPool": "Spending pool",
+          "dailyAllowance": "Daily allowance",
+          "spent": "Spent",
+          "remaining": "Remaining",
+          "unspentDailyAllowance": "Unspent daily allowance",
+          "rollover": "Rollover from previous month",
+          "oneOffExpense": "One-off deductions",
+          "oneOffIncome": "One-off additions",
+          "banner": "Budget reduced by {{amount}}",
+          "bannerA11y": "Budget reduced by {{amount}}. {{reason}}. Open destination.",
+          "bannerPiggyBank": "Unspent daily allowance from completed days was moved to your piggy bank.",
+          "bannerSavings": "Unspent daily allowance from completed days was added to savings.",
+          "bannerGeneric": "Adjustments and completed-day routing reduced your active cycle pool."
+        }
+      },
+      "calendar": {
+        "title": "Cycle calendar",
+        "helper": "Tap a cycle day to log or edit spending.",
+        "backfillHelper": "Log each day from your cycle start through yesterday. See the note above for how spending pool and daily allowance are calculated.",
+        "lockedHelper": "Day logging unlocks during an active pay cycle. Start a cycle below or from Budget.",
+        "lockedDay": "Locked",
+        "outside": "Outside cycle",
+        "unset": "Not logged",
+        "confirmed": "Logged",
+        "dayA11y": "Day {{date}} — {{status}}",
+        "prevMonthA11y": "Previous month",
+        "nextMonthA11y": "Next month",
+        "weekdays": {
+          "mon": "Mon",
+          "tue": "Tue",
+          "wed": "Wed",
+          "thu": "Thu",
+          "fri": "Fri",
+          "sat": "Sat",
+          "sun": "Sun"
+        },
+        "legend": {
+          "unset": "Needs logging",
+          "confirmed": "Logged",
+          "today": "Today"
+        },
+        "cycleStartLabel": "Cycle started {{date}}",
+        "editStart": "Change",
+        "editStartA11y": "Change cycle start date",
+        "jumpToUnset": "Show days",
+        "jumpToUnsetA11y": "Jump to first unlogged day in the cycle",
+        "status": {
+          "allLogged": "Up to date",
+          "needsLogging": "{{count}} days need logging"
+        },
+        "entryTable": {
+          "summary": "{{logged}} of {{total}} days logged · {{spent}} spent",
+          "columnDay": "Day",
+          "columnSpent": "Spent",
+          "emptyAmount": "—",
+          "showAll": "Show all {{count}} days",
+          "showLess": "Show less",
+          "showAllA11y": "Show all {{count}} days in the cycle",
+          "showLessA11y": "Show fewer days",
+          "needsLogging": "Needs logging ({{count}})",
+          "needsLoggingA11y": "Expand list — {{count}} days need logging",
+          "openA11y": "Log spending for {{date}}",
+          "prevWeek": "Previous week",
+          "nextWeek": "Next week",
+          "prevWeekA11y": "Show previous week",
+          "nextWeekA11y": "Show next week",
+          "weekPageA11y": "Week {{range}}, page {{current}} of {{total}}"
+        }
+      },
+      "editStart": {
+        "title": "Change cycle start date",
+        "helper": "When did this payment arrive? Moving the start adds or removes days you need to log on the calendar.",
+        "validationDate": "Pick a valid start date.",
+        "validationFuture": "The start date cannot be in the future.",
+        "saveError": "Could not update start date. Try again.",
+        "closeA11y": "Close edit start date",
+        "saving": "Saving…"
+      },
+      "spendLog": {
+        "title": "Log spending",
+        "inputLabel": "Amount spent",
+        "placeholder": "0",
+        "save": "Save",
+        "saving": "Saving…",
+        "confirmZero": "Nothing spent this day",
+        "confirmZeroA11y": "Confirm zero spending for this day",
+        "validation": "Enter a valid amount.",
+        "saveError": "Could not save. Try again.",
+        "closeA11y": "Close log sheet",
+        "a11y": "Spending amount"
+      },
+      "start": {
+        "title": "Start a pay cycle",
+        "dateHelper": "When did this payment arrive?",
+        "paymentHelper": "How much did you receive? We calculate your cycle budget from your Budget tab settings.",
+        "paymentLabel": "Payment received",
+        "paymentA11y": "Payment received amount",
+        "computedBudget": "Cycle budget",
+        "computedSavings": "Planned savings this cycle: {{amount}}",
+        "validationPayment": "Enter a payment amount greater than zero.",
+        "backfillNotice": "Your cycle starts before today — log each day from your start date through yesterday. Past days record spend only; unspent daily allowance is not moved to your piggy bank until days end naturally.",
+        "beginBackfill": "Start and backfill",
+        "validationDate": "Pick a valid start date.",
+        "validationBudget": "Enter a budget greater than zero.",
+        "saveError": "Could not start cycle. Try again.",
+        "closeA11y": "Close start cycle wizard",
+        "saving": "Starting…",
+        "carryOverAdjustments": "Carried over from last cycle",
+        "budgetAfterAdjustments": "Budget after carry-overs: {{amount}}"
+      },
+      "close": {
+        "title": "Close pay cycle",
+        "spent": "Total spent",
+        "budget": "Spendable budget",
+        "surplus": "Surplus",
+        "deficit": "Deficit to cover",
+        "unsetWarning": "{{count}} days were never confirmed. Closing without logging treats them as unknown — confirm only if you accept that.",
+        "unsetConfirmYes": "Close anyway",
+        "unsetConfirmNo": "Go back and log",
+        "unsetRequired": "Confirm how to handle unset days before closing.",
+        "coverageHelper": "Default coverage for the deficit (you can adjust later):",
+        "coverageEditHelper": "Choose how to cover the deficit. Amounts must add up to the full deficit.",
+        "coverageAllocated": "Allocated",
+        "coverageMax": "Available up to {{amount}}",
+        "coverageAmountLabel": "Amount",
+        "externalTypeLabel": "External source type",
+        "coverageNoteLabel": "Note (optional)",
+        "coverageNotePlaceholder": "e.g. borrowed from partner",
+        "coverageReset": "Reset to suggested split",
+        "coverageResetA11y": "Reset coverage to suggested split",
+        "coverageSumError": "Coverage amounts must add up to the full deficit.",
+        "coverageLimitError": "One or more amounts exceed what's available in that bucket.",
+        "coverageEmptyError": "Enter how you will cover the deficit.",
+        "trackObligationHelper": "Track external coverage as a payback obligation?",
+        "nextHelper": "When does the next cycle start and what is the budget?",
+        "nextBudgetLabel": "Next cycle budget",
+        "nextBudgetA11y": "Next cycle budget amount",
+        "nextCycleAdjustments": "Deferred to next cycle",
+        "nextBudgetAfterAdjustments": "Budget after deferrals: {{amount}}",
+        "validationNext": "Enter the next start date and budget.",
+        "finish": "Close cycle",
+        "finishHelper": "Start your next cycle manually when you are ready.",
+        "saveError": "Could not close cycle. Try again.",
+        "closeA11y": "Close cycle wizard",
+        "saving": "Closing…"
+      },
+      "coverage": {
+        "cycleSavings": "Cycle savings plan",
+        "rollover": "Rollover balance",
+        "looseMoney": "Piggy bank",
+        "generalSavings": "General savings",
+        "external": "External (loan, card, etc.)",
+        "externalTypes": {
+          "creditCard": "Credit card",
+          "friendLoan": "Friend loan",
+          "familyLoan": "Family loan",
+          "bankLoan": "Bank loan",
+          "overdraft": "Overdraft",
+          "other": "Other external"
+        }
+      },
+      "history": {
+        "title": "Past cycles",
+        "helper": "Closed pay cycles and how they ended.",
+        "spent": "Spent",
+        "surplus": "Surplus",
+        "deficit": "Deficit",
+        "empty": "No closed cycles yet. When you end a pay cycle, it will appear here."
+      },
+      "budgetCard": {
+        "title": "Spending period",
+        "helper": "From one payday to the next — start and close here."
+      },
+      "control": {
+        "title": "Manage this period",
+        "helper": "Start or end your payday window, log spending, or add one-offs.",
+        "logTile": {
+          "title": "Daily spending",
+          "helper": "Actual spend today; feeds your pace for the period.",
+          "cta": "Log spending",
+          "ctaEdit": "Update"
+        },
+        "logSpend": "Log money spent today",
+        "logSpendEdit": "Update today's spending",
+        "logSpendA11y": "Log flexible spending for today",
+        "logSpendDisabledA11y": "Start a pay cycle to log spending",
+        "actions": {
+          "logSpend": {
+            "title": "Log spending",
+            "subtitle": "Record what you spent today"
+          },
+          "addIncome": {
+            "title": "Add income",
+            "subtitle": "One-off, this period only"
+          },
+          "addExpense": {
+            "title": "Add expense",
+            "subtitle": "One-off, outside daily log"
+          },
+          "endCycle": {
+            "title": "End cycle",
+            "subtitle": "Close this spending period"
+          },
+          "startCycle": {
+            "title": "Start cycle",
+            "subtitle": "From one payday to the next"
+          }
+        }
+      },
+      "quickLinks": {
+        "title": "Recurring items",
+        "helper": "Recurring income and bills live on their own tabs."
+      },
+      "oneOffs": {
+        "title": "One-offs this cycle",
+        "helperShort": "One-time changes to this pay period.",
+        "lockedHint": "Start a pay cycle first",
+        "lockedA11y": "Locked — start a pay cycle to add ad-hoc items",
+        "helper": "Bonuses, repairs, and other one-time changes to this pay period. Recurring income or bills belong on Income and Expenses.",
+        "tiles": {
+          "income": {
+            "title": "One-off income",
+            "helper": "Outside your regular pay — counted in this period only.",
+            "empty": "None yet",
+            "add": "+ Add income",
+            "addA11y": "Add ad-hoc income for this cycle"
+          },
+          "expense": {
+            "title": "One-off expense",
+            "helper": "Held from this period's pool; separate from daily logging.",
+            "empty": "None yet",
+            "add": "+ Add expense",
+            "addA11y": "Add ad-hoc expense for this cycle"
+          },
+          "recurring": {
+            "title": "Recurring",
+            "incomeTitle": "Recurring income",
+            "incomeHelper": "Salary and other regular pay.",
+            "incomeHint": "Open Income →",
+            "expenseTitle": "Recurring expense",
+            "expenseHelper": "Subscriptions and fixed bills.",
+            "expenseHint": "Open Expenses →"
+          },
+          "notInBudgetYet": "Not in budget yet"
+        },
+        "empty": "No one-offs yet.",
+        "add": "Add one-off",
+        "addA11y": "Add one-off for this cycle",
+        "poolNet": "In budget now: +{{income}} income, −{{expense}} expenses",
+        "kind": {
+          "income": "Income",
+          "expense": "Expense"
+        },
+        "timing": {
+          "immediate": "Today",
+          "scheduled": "On date",
+          "next_cycle": "Next cycle"
+        },
+        "funding": {
+          "cycleBudget": "From cycle budget",
+          "elsewhere": "Paid elsewhere",
+          "elsewhereShort": "Paid elsewhere"
+        },
+        "status": {
+          "upcoming": "Upcoming"
+        },
+        "dueToday": {
+          "title": "{{count}} due today",
+          "badge": "{{count}} due",
+          "logSpend": "Log spending"
+        },
+        "recurringHint": "Need something recurring?",
+        "linkIncome": "Add income source → Income",
+        "linkIncomeA11y": "Open Income tab to add a recurring income source",
+        "linkExpense": "Add recurring expense → Expenses",
+        "linkExpenseA11y": "Open Expenses tab to add a subscription or recurring bill",
+        "cancelA11y": "Remove {{label}}",
+        "cancelConfirmTitle": "Remove one-off?",
+        "cancelConfirmMessage": "{{label}} will no longer affect this cycle.",
+        "cancelConfirmYes": "Remove",
+        "sheet": {
+          "titleIncome": "Add ad-hoc income",
+          "titleExpense": "Add ad-hoc expense",
+          "helperIncome": "Bonus, gift, or other one-time income this cycle.",
+          "helperExpense": "Repair, bill, or other one-time cost this cycle.",
+          "title": "Add one-off",
+          "helper": "One-time income or expense for this pay period only.",
+          "incomeSource": "Income source",
+          "expenseLabel": "What is it for?",
+          "incomePlaceholder": "e.g. bonus, gift",
+          "expensePlaceholder": "e.g. car repair",
+          "amountLabel": "Amount",
+          "amountPlaceholder": "0",
+          "amountA11y": "One-off amount",
+          "timingLabel": "When does it apply?",
+          "paymentDate": "Payment date",
+          "fundingLabel": "How is it paid?",
+          "save": "Add",
+          "saving": "Adding…",
+          "validationAmount": "Enter an amount greater than zero.",
+          "validationLabel": "Add a short description.",
+          "validationDate": "Pick a valid payment date.",
+          "saveError": "Could not save. Try again.",
+          "closeA11y": "Close one-off sheet"
+        }
+      }
+    },
     "budgetScreen": {
       "flexible": "Flexible budget",
+      "summaryMetrics": {
+        "income": "Total income",
+        "fixedCosts": "Fixed costs",
+        "remaining": "Remaining",
+        "pctOfIncome": "{{pct}}% of income",
+        "overcommitted": "Over income"
+      },
       "detailsTitle": "Budget details",
       "annualEquivalent": "{{monthly}} per month · {{amount}} per year",
       "monthlyEquivalent": "{{amount}} per month",
@@ -1512,11 +2945,96 @@
       "savingsShift": "{{amount}} per month redirected to savings from your flexible budget",
       "available": "Calculated available: {{amount}}",
       "unallocatedSlider": {
-        "title": "Shift unallocated cash to savings",
-        "helper": "{{amount}} available after commitments. Slide to split between spending and savings.",
+        "title": "Split unallocated cash",
+        "helper": "{{amount}} available after commitments",
+        "toSavings": "To savings",
+        "toSpend": "To spend",
         "moreSavings": "More to savings",
         "moreSpending": "More to spending",
+        "savingsAmountA11y": "Amount to move to savings",
+        "spendingAmountA11y": "Amount to keep for spending",
+        "amountInvalid": "Enter an amount from 0 to {{amount}}",
         "a11y": "Adjust how unallocated cash is split between spending and savings"
+      },
+      "jars": {
+        "sectionTitle": "Your money stash",
+        "sectionSubtitle": "Filled at period end",
+        "footerNote": "Jars fill at the end of each period once your budget is tracked.",
+        "addNewTab": "Add new tab",
+        "addNewTabA11y": "Add a new money stash tab",
+        "addNew": "Add new jar",
+        "addNewA11y": "Add a new jar",
+        "createSheet": {
+          "title": "New money stash",
+          "nameLabel": "Tab name",
+          "namePlaceholder": "e.g. Holiday fund",
+          "descriptionLabel": "Description",
+          "descriptionPlaceholder": "What is this stash for? (optional)",
+          "validationName": "Enter a name for this stash",
+          "validationTooLong": "Name must be 40 characters or fewer",
+          "validationDuplicate": "You already have a stash with this name",
+          "validationDescriptionTooLong": "Description must be 120 characters or fewer",
+          "create": "Create",
+          "cancel": "Cancel",
+          "closeA11y": "Close",
+          "saveError": "Could not create stash. Try again."
+        },
+        "editSheet": {
+          "title": "Edit tab",
+          "nameLabel": "Tab name",
+          "namePlaceholder": "e.g. Holiday fund",
+          "descriptionLabel": "Description",
+          "descriptionPlaceholder": "What is this stash for? (optional)",
+          "validationName": "Enter a name for this stash",
+          "validationTooLong": "Name must be 40 characters or fewer",
+          "validationDuplicate": "You already have a stash with this name",
+          "validationDescriptionTooLong": "Description must be 120 characters or fewer",
+          "save": "Save",
+          "cancel": "Cancel",
+          "closeA11y": "Close",
+          "saveError": "Could not update this tab. Try again."
+        },
+        "deleteSheet": {
+          "title": "Delete this tab?",
+          "body": "{{name}} will be removed.",
+          "bodyWithBalance": "{{name}} has {{amount}}. Where should it go?",
+          "toLabel": "Send to",
+          "validationDestination": "Choose where to send the balance",
+          "saveError": "Could not delete this tab. Try again.",
+          "closeA11y": "Close"
+        },
+        "transferSheet": {
+          "title": "Move money",
+          "fromLabel": "From {{name}}",
+          "toLabel": "Move to",
+          "amountLabel": "Amount",
+          "amountPlaceholder": "0",
+          "moveAll": "Move all",
+          "moveAllA11y": "Move the full balance",
+          "selectTab": "Select a tab",
+          "selectTabA11y": "Choose destination tab",
+          "destinationSelectedA11y": "Destination {{name}}, change tab",
+          "balanceLabel": "Balance: {{amount}}",
+          "tabOptionA11y": "{{name}}, balance {{amount}}",
+          "transfer": "Move money",
+          "closeA11y": "Close",
+          "validationDestination": "Choose a destination tab",
+          "validationAmount": "Enter an amount greater than zero",
+          "validationInsufficient": "Amount exceeds the available balance",
+          "validationSame": "Choose a different tab",
+          "saveError": "Could not move money. Try again."
+        },
+        "deleteTabA11y": "Delete {{name}} tab",
+        "editTabA11y": "Rename {{name}} tab",
+        "moveTabA11y": "Move money from {{name}}",
+        "moveTabEmptyA11y": "Why move money is unavailable for {{name}}",
+        "transferEmptyInfo": {
+          "title": "Nothing to move",
+          "body": "This tab has a zero balance, so there is no money to move elsewhere."
+        },
+        "cardA11y": "{{jar}}, {{amount}}",
+        "explainTitle": "About this jar",
+        "footerWithCap": "{{cadence}} · {{pct}}% of {{cap}}"
       },
       "deductSavingsGoal": {
         "label": "Reserve savings goal from spending budget",
@@ -1531,10 +3049,122 @@
       },
       "rollover": {
         "title": "Rollover strategy",
+        "sectionLabel": "Monthly rollover strategy",
+        "helper": "What happens to unspent flexible budget when the calendar month ends.",
+        "flow": {
+          "monthEnds": "Month ends",
+          "rolloverJar": "Rollover",
+          "boostDailyAllowance": "Daily allowance",
+          "resetChoice": "Your choice",
+          "piggyJar": "Piggy bank",
+          "toSavings": "Savings",
+          "toNamedJar": "{{name}}"
+        },
+        "activeBadge": "Your plan",
         "free": "Free rollover",
         "capped": "Capped rollover",
         "reset": "Reset each month",
+        "freeBody": "All unspent flexible budget carries over — there is no limit on how much can roll into next month.",
+        "freeWhere": "Month-end leftovers → rollover jar → boosts next month's daily allowance.",
+        "cappedBody": "Unspent budget carries over, but only up to a limit you set.",
+        "cappedWhere": "Month-end leftovers → rollover jar (within cap). Anything over the cap → loose cash jar.",
+        "resetBody": "Each month starts fresh — unspent flexible budget does not increase next month's spending allowance.",
+        "resetWhereOptions": "Month-end leftovers → piggy bank, savings, or a named goal — you choose in budget settings.",
+        "resetWherePiggyBank": "Your choice: month-end leftovers → piggy bank (spend anytime, not added to next month's allowance).",
+        "resetWhereSavings": "Your choice: month-end leftovers → savings balance.",
+        "resetWhereOther": "Your choice: month-end leftovers → {{name}} jar.",
+        "selectA11y": "Select {{strategy}} rollover strategy",
+        "multiplierDetail": "Your cap: {{value}}× monthly flexible budget",
+        "capAmountDetail": "Your cap: {{amount}}",
         "multiplier": "Cap at {{value}}× daily budget"
+      },
+      "dailySpending": {
+        "title": "Daily spending strategy",
+        "sectionLabel": "Daily spending strategy",
+        "helper": "What happens when a day ends and you have unspent allowance — within each month or pay cycle.",
+        "flow": {
+          "dayEnds": "Day ends",
+          "staysInPool": "Spending pool",
+          "piggyJar": "Piggy bank",
+          "lockedUntilMonthEnd": "Locked until month end",
+          "toSavings": "Savings"
+        },
+        "spendingBoost": "Keep in spending pool",
+        "spendingBoostBody": "Underspend stays in your flexible budget for later days.",
+        "spendingBoostWhere": "Completed days → leftover stays in your active pool.",
+        "looseMoney": "Piggy bank",
+        "looseMoneyBody": "Underspend moves to your piggy bank.",
+        "looseMoneyWhere": "Completed days → piggy bank.",
+        "savings": "Savings",
+        "savingsBody": "Underspend is added to your savings balance.",
+        "savingsWhere": "Completed days → savings balance.",
+        "selectA11y": "Select {{strategy}} daily spending strategy",
+        "policyNote": "Applies to completed days from tomorrow. Money already routed stays where it is."
+      }
+    },
+    "remindersScreen": {
+      "subtitle": "End dates and next payments for every household expense — same view as your expense tables.",
+      "tableTitle": "Expense reminders",
+      "empty": "No expenses recorded yet.",
+      "activeTitle": "Active reminders",
+      "mot": "MOT",
+      "motVehicle": "Vehicle {{n}} MOT",
+      "motNext": "Next STK",
+      "motNextVehicle": "Vehicle {{n}} next STK",
+      "residencePermit": "Residence permit expiry",
+      "residencePermitPartner": "Partner residence permit expiry",
+      "residencePermitChild": "Child {{n}} residence permit expiry",
+      "noDateSet": "No date",
+      "today": "Today",
+      "inDays": "In {{days}} days",
+      "overdue": "{{days}} days overdue",
+      "addDateFirst": "Add date first",
+      "alertOff": "Off",
+      "alertOn": "{{days}}d before",
+      "alertSettingsTitle": "Reminder alert",
+      "addDateHint": "Add a date on the Expenses tab before you can turn on a reminder.",
+      "addDatesHint": "Add a next payment date on Expenses to enable reminders.",
+      "missingDatesBanner": "{{count}} expenses need a next payment date before reminders can be turned on.",
+      "goToExpenses": "Fix",
+      "goToExpensesA11y": "Fix missing payment dates",
+      "needsDateLabel": "Needs date",
+      "needsDateDialogTitle": "Next payment date required",
+      "needsDateDialogMessage": "Add a next payment date for this expense on the Expenses tab before you can turn on a reminder.",
+      "missingDatesButtonA11y": "Payment dates missing for {{name}} — show help",
+      "missingDatesA11y": "Payment dates missing",
+      "enableAlert": "Remind me before this date",
+      "leadDaysLabel": "How many days before?",
+      "leadDaysOption": "{{days}} days",
+      "remindOnDateLabel": "When would you like to be reminded?",
+      "reminderTypeLabel": "Reminder type",
+      "reminderTypePleaseSelect": "Please select",
+      "validationRemindDate": "Choose a reminder date.",
+      "validationRemindDateFuture": "Reminder date can't be today or in the past, please enter a future date.",
+      "validationReminderType": "Select at least one reminder type.",
+      "reminderTypes": {
+        "push": "Push notifications",
+        "email": "Email"
+      },
+      "reminderTypesShort": {
+        "push": "Push",
+        "email": "Email"
+      },
+      "table": {
+        "name": "Expense",
+        "dateType": "Type",
+        "daysUntil": "Countdown",
+        "alert": "Alert",
+        "reminder": "Reminder",
+        "reminderDate": "Reminder date",
+        "reminderType": "Reminder type"
+      },
+      "reminderOn": "On",
+      "reminderOff": "Off",
+      "editReminderA11y": "Edit reminder for {{name}}",
+      "dateTypes": {
+        "renewal": "Renewal",
+        "due": "Due",
+        "end": "Ends"
       }
     },
     "alertsScreen": {
@@ -1567,7 +3197,7 @@
       }
     },
     "incomeScreen": {
-      "total": "Total monthly income",
+      "total": "Total income",
       "annualTotal": "{{amount}} per year",
       "streamsTitle": "Income streams",
       "chartTitle": "Income by source",
@@ -1607,7 +3237,7 @@
       "debtPayment": "Debt payment"
     },
     "placeholder": {
-      "title": "Welcome to Bida",
+      "title": "Welcome to Beaverr",
       "subtitle": "Your financial clarity starts here"
     }
   },
@@ -1623,7 +3253,7 @@
       "partnerIncome": "Partner's income",
       "savingsBalance": "Current savings balance",
       "savingsMonthly": "Monthly savings target",
-      "goalType": "What is your financial goal?",
+      "goalType": "What do you want Beaverr to help with?",
       "saveMode": "How do you want to save?",
       "goalDescription": "Goal description",
       "goalAmount": "Target amount",
@@ -1706,7 +3336,23 @@
       "childLabel": "Child {{n}}",
       "otherCost": "Other cost"
     },
+    "household": {
+      "helper": "Update who is in your household. Changes apply across your budget."
+    },
+    "location": {
+      "helper": "Update where you live, citizenship, and occupation without leaving review.",
+      "citizenshipSection": "Citizenship",
+      "occupationSection": "Occupation",
+      "permitSection": "Residence permit",
+      "validation": {
+        "partnerCitizenship": "Please confirm your partner's Czech citizenship status",
+        "partnerOccupation": "Please select your partner's occupation",
+        "permit": "Please complete your residence permit details"
+      }
+    },
     "sections": {
+      "household": "Edit household",
+      "location": "Edit location & occupation",
       "income": "Edit income",
       "housing": "Edit housing",
       "transport": "Edit transport",

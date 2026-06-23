@@ -1,19 +1,33 @@
+import { useCallback, useRef } from 'react';
 import { View } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { navigateToSavingsStashDetail } from '../../lib/screenTransition';
 import { useI18n } from '../../lib/i18n';
 import { formatCurrency } from '../../lib/finance';
-import { computeGoalGap } from '../../lib/insights';
+import { getData, setData } from '../../lib/storage';
+import { notifyDashboardRefresh } from '../../lib/dashboardRefresh';
+import { addCustomStash, updateCustomStash } from '../../lib/customStashes';
+import { removeCustomStashWithDestination, transferBetweenStashes } from '../../lib/stashTransfers';
+import { emitDashboardToast } from '../../lib/dashboardToast';
+import { computeGoalGap, getTabInsight } from '../../lib/insights';
+import { loadGoals, saveGoals, pauseGoalsUsingStash } from '../../lib/goals';
 import {
   buildSavingsProjection,
   getSavingsInflowBreakdown,
   getTotalSavingsBalance,
 } from '../../lib/savingsProjection';
 import { hasTargetSavingsGoal } from '../../lib/incomeGoals';
+import { buildSavingsStashLines, getSavingsStashAnimationKey } from '../../lib/jarRouting';
 import { C, T, tabularNums } from '../../constants/onboarding-theme';
 import SurfaceCard from '../ui/SurfaceCard';
-import DashboardSectionHeader from './DashboardSectionHeader';
+import InCardSectionHeader from './InCardSectionHeader';
+import TabSectionStack from './TabSectionStack';
+import AIInsightSection from './AIInsightSection';
 import SavingsProjectionChart from './SavingsProjectionChart';
-import { normalizeResetDestination } from '../../lib/monthEndRouting';
+import JarsBudgetGrid from './JarsBudgetGrid';
+import { useJarFocusHighlight } from './useJarFocusHighlight';
+import JarFocusGlowOutline from './JarFocusGlowOutline';
 
 const INFLOW_KEYS = {
   budgetShift: 'dashboard.savingsScreen.inflow.budgetShift',
@@ -23,41 +37,135 @@ const INFLOW_KEYS = {
   resetLoose: 'dashboard.savingsScreen.inflow.resetLoose',
 };
 
-function getLooseMoneyBalance(budget) {
-  return Number(budget?.looseMoneyBalance) || 0;
-}
-
-function getOtherGoalBalance(budget) {
-  return Number(budget?.otherGoalBalance) || 0;
-}
-
 export default function SavingsContent({ bundle, currency }) {
   const { t } = useI18n();
+  const router = useRouter();
+  const params = useLocalSearchParams();
+  const focusJarId = Array.isArray(params.focusJar) ? params.focusJar[0] : params.focusJar;
+  const totalBalanceRef = useRef(null);
+  const { glowToken, onGlowComplete } = useJarFocusHighlight(
+    focusJarId,
+    'savings',
+    totalBalanceRef,
+  );
   const goalGap = computeGoalGap(bundle.financials);
   const projection = buildSavingsProjection({
     financials: bundle.financials,
     goalGap,
   });
   const balance = getTotalSavingsBalance(bundle.financials, goalGap);
+  const tabInsight = getTabInsight('savings', bundle.insights, t, {
+    financials: bundle.financials,
+    savingsBalance: balance,
+    formatAmount: (monthly) => formatCurrency(monthly, currency),
+  });
   const inflows = getSavingsInflowBreakdown(bundle.financials, goalGap);
   const inc = bundle.financials.income || {};
   const budget = bundle.financials.budget || {};
+  const { primary: primaryJarLines, custom: customJarLines } = buildSavingsStashLines({
+    budget,
+    income: inc,
+  });
+  const stashTabCount = primaryJarLines.length + customJarLines.length;
+  const jarsAnimationKey = getSavingsStashAnimationKey(budget);
+
+  const handleAddStash = useCallback(async (name, description = '') => {
+    const saved = (await getData('beaverr_budget')) || {};
+    const { budget: nextBudget, error } = addCustomStash(saved, name, description);
+    if (error) return error;
+    await setData('beaverr_budget', nextBudget);
+    notifyDashboardRefresh();
+    emitDashboardToast('stashCreated');
+    return null;
+  }, []);
+
+  const handleUpdateStash = useCallback(async (stashId, { name, description }) => {
+    const saved = (await getData('beaverr_budget')) || {};
+    const { budget: nextBudget, error } = updateCustomStash(saved, stashId, { name, description });
+    if (error) return error;
+    await setData('beaverr_budget', nextBudget);
+    notifyDashboardRefresh();
+    emitDashboardToast('stashRenamed');
+    return null;
+  }, []);
+
+  const handleDeleteStash = useCallback(async (stashId, destination = 'looseCash') => {
+    const savedBudget = (await getData('beaverr_budget')) || {};
+    const savedIncome = (await getData('beaverr_income')) || {};
+    const { budget: nextBudget, income: nextIncome, error } = removeCustomStashWithDestination(
+      savedBudget,
+      stashId,
+      { income: savedIncome, destination },
+    );
+    if (error) return;
+    const goals = await loadGoals();
+    const paused = pauseGoalsUsingStash(goals, stashId);
+    await saveGoals(paused);
+    await setData('beaverr_budget', nextBudget);
+    if (nextIncome) await setData('beaverr_income', nextIncome);
+    notifyDashboardRefresh();
+    emitDashboardToast('stashDeleted');
+  }, []);
+
+  const handleStashPress = useCallback((line) => {
+    navigateToSavingsStashDetail(router, line.id);
+  }, [router]);
+
+  const handleTransferStash = useCallback(async (fromRef, toRef, amount) => {
+    const savedBudget = (await getData('beaverr_budget')) || {};
+    const savedIncome = (await getData('beaverr_income')) || {};
+    const { budget: nextBudget, income: nextIncome, error } = transferBetweenStashes(
+      savedBudget,
+      savedIncome,
+      fromRef,
+      toRef,
+      amount,
+    );
+    if (error) return error;
+    await setData('beaverr_budget', nextBudget);
+    await setData('beaverr_income', nextIncome);
+    notifyDashboardRefresh();
+    emitDashboardToast('stashTransferred');
+    return null;
+  }, []);
 
   return (
-    <View style={{ gap: 16 }}>
-      <SurfaceCard>
-        <Text style={{ ...T.fieldLabel }}>{t('dashboard.savingsScreen.totalBalance')}</Text>
-        <Text style={{ fontSize: 32, fontWeight: '700', color: C.primary, marginTop: 4, ...tabularNums }}>
-          {formatCurrency(balance, currency)}
-        </Text>
-        <Text style={{ ...T.helper, color: C.muted, marginTop: 8 }}>
-          {t('dashboard.savingsScreen.balanceHelper')}
-        </Text>
-      </SurfaceCard>
+    <TabSectionStack>
+      <View ref={totalBalanceRef} collapsable={false}>
+        <JarFocusGlowOutline glowToken={glowToken} onComplete={onGlowComplete} variant="surface">
+          <SurfaceCard>
+            <InCardSectionHeader title={t('dashboard.savingsScreen.totalBalance')} />
+            <Text style={{ fontSize: 32, fontWeight: '700', color: C.primary, ...tabularNums }}>
+              {formatCurrency(balance, currency)}
+            </Text>
+            <Text style={{ ...T.helper, color: C.muted, marginTop: 8 }}>
+              {t('dashboard.savingsScreen.balanceHelper', { count: stashTabCount })}
+            </Text>
+          </SurfaceCard>
+        </JarFocusGlowOutline>
+      </View>
+
+      {tabInsight ? <AIInsightSection paragraphs={tabInsight.paragraphs} /> : null}
+
+      <JarsBudgetGrid
+        layout="savings"
+        primaryJarLines={primaryJarLines}
+        customJarLines={customJarLines}
+        budget={budget}
+        income={inc}
+        currency={currency}
+        animationKey={jarsAnimationKey}
+        onTransferStash={handleTransferStash}
+        onStashPress={handleStashPress}
+        onAddStash={handleAddStash}
+        onUpdateStash={handleUpdateStash}
+        onDeleteStash={handleDeleteStash}
+        focusJarId={focusJarId}
+      />
 
       <SurfaceCard>
-        <Text style={{ ...T.fieldLabel }}>{t('dashboard.savingsScreen.monthlyPlan')}</Text>
-        <Text style={{ fontSize: 22, fontWeight: '700', color: C.primary, marginTop: 4, ...tabularNums }}>
+        <InCardSectionHeader title={t('dashboard.savingsScreen.monthlyPlan')} />
+        <Text style={{ fontSize: 22, fontWeight: '700', color: C.primary, ...tabularNums }}>
           {formatCurrency(projection.monthlyInflow, currency)}
         </Text>
         <Text style={{ ...T.caption, color: C.muted, marginTop: 4 }}>
@@ -90,50 +198,8 @@ export default function SavingsContent({ bundle, currency }) {
         )}
       </SurfaceCard>
 
-      {getLooseMoneyBalance(budget) > 0 ? (
-        <SurfaceCard>
-          <Text style={{ ...T.fieldLabel }}>{t('dashboard.savingsScreen.looseMoney')}</Text>
-          <Text style={{ fontSize: 28, fontWeight: '700', color: C.primary, marginTop: 4, ...tabularNums }}>
-            {formatCurrency(getLooseMoneyBalance(budget), currency)}
-          </Text>
-          <Text style={{ ...T.helper, color: C.muted, marginTop: 8 }}>
-            {t('dashboard.savingsScreen.looseMoneyHelper')}
-          </Text>
-        </SurfaceCard>
-      ) : null}
-
-      {getOtherGoalBalance(budget) > 0 ? (
-        <SurfaceCard>
-          <Text style={{ ...T.fieldLabel }}>
-            {budget.resetOtherGoalNote || t('dashboard.savingsScreen.otherGoalFallback')}
-          </Text>
-          <Text style={{ fontSize: 28, fontWeight: '700', color: C.primary, marginTop: 4, ...tabularNums }}>
-            {formatCurrency(getOtherGoalBalance(budget), currency)}
-          </Text>
-          <Text style={{ ...T.helper, color: C.muted, marginTop: 8 }}>
-            {t('dashboard.savingsScreen.otherGoalHelper')}
-          </Text>
-        </SurfaceCard>
-      ) : null}
-
-      {budget.rolloverStrategy === 'reset' && budget.resetUnspentDestination ? (
-        <SurfaceCard>
-          <Text style={{ ...T.fieldLabel }}>{t('dashboard.savingsScreen.resetPolicy')}</Text>
-          <Text style={{ ...T.helper, marginTop: 6 }}>
-            {normalizeResetDestination(budget.resetUnspentDestination) === 'savings'
-              ? t('dashboard.savingsScreen.resetToSavings')
-              : normalizeResetDestination(budget.resetUnspentDestination) === 'otherGoal'
-                ? t('dashboard.savingsScreen.resetToOther', {
-                  name: budget.resetOtherGoalNote || t('dashboard.savingsScreen.otherGoalFallback'),
-                })
-                : t('dashboard.savingsScreen.resetLooseMoney')}
-          </Text>
-        </SurfaceCard>
-      ) : null}
-
-
-      <DashboardSectionHeader title={t('dashboard.savingsScreen.projectionTitle')} />
       <SurfaceCard>
+        <InCardSectionHeader title={t('dashboard.savingsScreen.projectionTitle')} />
         <Text style={{ ...T.caption, color: C.muted, marginBottom: 16 }}>
           {hasTargetSavingsGoal(inc) && inc.goalDate
             ? t('dashboard.savingsScreen.projectionGoalHelper', {
@@ -144,6 +210,6 @@ export default function SavingsContent({ bundle, currency }) {
         </Text>
         <SavingsProjectionChart projection={projection} currency={currency} />
       </SurfaceCard>
-    </View>
+    </TabSectionStack>
   );
 }

@@ -26,7 +26,7 @@ describe('routeLeftover', () => {
     expect(route.newRolloverBalance).toBe(4000);
   });
 
-  it('splits capped overflow to loose money', () => {
+  it('treats legacy capped strategy like free rollover after migration', () => {
     const route = routeLeftover({
       leftover: 5000,
       budget: {
@@ -37,9 +37,9 @@ describe('routeLeftover', () => {
       monthlyFlexible: 15000,
       rolloverBalance: 4000,
     });
-    expect(route.amount).toBe(2000);
-    expect(route.excessToLoose).toBe(3000);
-    expect(route.newRolloverBalance).toBe(6000);
+    expect(route.destination).toBe('rollover');
+    expect(route.amount).toBe(5000);
+    expect(route.newRolloverBalance).toBe(9000);
   });
 
   it('routes reset strategy to loose money', () => {
@@ -72,7 +72,7 @@ describe('buildMonthEndPreview', () => {
 });
 
 describe('applyMonthEndRoute', () => {
-  it('increments loose money balance on looseMoney destination', () => {
+  it('increments piggy bank balance on looseMoney destination', () => {
     const budget = { looseMoneyBalance: 1000 };
     applyMonthEndRoute(budget, null, {
       destination: 'looseMoney',
@@ -83,16 +83,15 @@ describe('applyMonthEndRoute', () => {
     expect(budget.rolloverBalance).toBe(0);
   });
 
-  it('adds capped excess to loose money', () => {
-    const budget = { looseMoneyBalance: 0, rolloverBalance: 4000 };
+  it('no longer routes capped excess to piggy bank', () => {
+    const budget = { looseMoneyBalance: 100, rolloverBalance: 4000 };
     applyMonthEndRoute(budget, null, {
       destination: 'rollover',
       amount: 2000,
-      excessToLoose: 3000,
       newRolloverBalance: 6000,
     });
     expect(budget.rolloverBalance).toBe(6000);
-    expect(budget.looseMoneyBalance).toBe(3000);
+    expect(budget.looseMoneyBalance).toBe(100);
   });
 });
 

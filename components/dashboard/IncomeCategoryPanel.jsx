@@ -3,14 +3,15 @@ import { View } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
 import { formatCurrency } from '../../lib/finance';
 import { buildIncomeChartSections, getOtherIncomeAddTemplate } from '../../lib/incomePanels';
-import { C, R, T } from '../../constants/onboarding-theme';
-import DashboardSectionHeader from './DashboardSectionHeader';
-import DashboardFrequencyToggle from './DashboardFrequencyToggle';
+import { C, T } from '../../constants/onboarding-theme';
+import SurfaceCard from '../ui/SurfaceCard';
+import InCardSectionHeader from './InCardSectionHeader';
 import ExpensesDonutChart from './ExpensesDonutChart';
 import IncomeStreamsBreakdown from './IncomeStreamsBreakdown';
-import LedgerDataTable from './LedgerDataTable';
+import LedgerPillDataTable from './LedgerPillDataTable';
 import IncomeItemEditPanel from './IncomeItemEditPanel';
 import BreakdownEmptyState from './BreakdownEmptyState';
+import { canDeleteIncomeRow, deleteIncomeRow } from '../../lib/inlineIncomeSave';
 
 function frequencyLabel(freq, t) {
   if (!freq) return t('common.monthly');
@@ -28,12 +29,13 @@ export default function IncomeCategoryPanel({
   currencyCode,
   t,
   frequency = 'monthly',
-  setFrequency,
   daysInMonth = 30,
   emptyLabel,
   emptyHint,
   emptyActionLabel,
   showEmptyAdd = false,
+  onSectionPress,
+  initialEditingRowId,
 }) {
   const isOverview = variant === 'overview';
   const [adding, setAdding] = useState(false);
@@ -74,6 +76,8 @@ export default function IncomeCategoryPanel({
     { key: 'frequency', label: t('common.frequency'), flex: 1, align: 'center' },
   ];
 
+  const incomeIconKey = lineItems.some((item) => item.editKind === 'other') ? 'other' : 'primary';
+
   if (!isOverview && lineItems.length === 0 && !adding) {
     return (
       <BreakdownEmptyState
@@ -87,17 +91,8 @@ export default function IncomeCategoryPanel({
 
   if (!isOverview && lineItems.length === 0 && adding && showEmptyAdd) {
     return (
-      <View style={{
-        marginTop: 24,
-        padding: 20,
-        borderRadius: R.card,
-        borderWidth: 1,
-        borderColor: C.border,
-        backgroundColor: C.surface,
-      }}>
-        <Text style={{ ...T.fieldLabel, marginBottom: 16 }}>
-          {emptyActionLabel || t('dashboard.incomeScreen.addOtherSource')}
-        </Text>
+      <SurfaceCard style={{ marginTop: 24 }}>
+        <InCardSectionHeader title={emptyActionLabel || t('dashboard.incomeScreen.addOtherSource')} />
         <IncomeItemEditPanel
           row={getOtherIncomeAddTemplate()}
           currency={currency}
@@ -105,7 +100,7 @@ export default function IncomeCategoryPanel({
           onDone={() => setAdding(false)}
           onCancel={() => setAdding(false)}
         />
-      </View>
+      </SurfaceCard>
     );
   }
 
@@ -113,59 +108,46 @@ export default function IncomeCategoryPanel({
     <View style={{ marginTop: 16 }}>
       {isOverview ? (
         <>
-          <DashboardSectionHeader title={t('dashboard.incomeScreen.chartTitle')} />
-          <View style={{
-            marginBottom: 16,
-            borderRadius: R.card,
-            borderWidth: 1,
-            borderColor: C.border,
-            backgroundColor: C.surface,
-            overflow: 'hidden',
-          }}>
-            {setFrequency ? (
-              <View style={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 0 }}>
-                <DashboardFrequencyToggle
-                  value={frequency}
-                  onChange={setFrequency}
-                  style={{ marginTop: 0, marginBottom: 0 }}
-                />
-              </View>
-            ) : null}
+          <SurfaceCard style={{ marginBottom: 16 }}>
+            <InCardSectionHeader title={t('dashboard.incomeScreen.chartTitle')} />
             <ExpensesDonutChart
               segments={chartSegments}
               total={panelTotal}
               currency={currency}
               frequency={frequency}
               daysInMonth={daysInMonth}
+              chartKey={`income-${frequency}-${panelTotal}`}
               emptyLabel={t('dashboard.incomeScreen.empty')}
               nameLabel={t('dashboard.incomeScreen.table.source')}
               amountLabel={frequencyColumnLabel}
               shareLabel={t('dashboard.incomeScreen.table.share')}
             />
-          </View>
-        </>
-      ) : null}
+          </SurfaceCard>
 
-      {isOverview ? (
-        <IncomeStreamsBreakdown
-          title={t('dashboard.incomeScreen.tableTitle')}
-          streams={panels}
-          panelTotal={panelTotal}
-          currency={currency}
-          t={t}
-          frequency={frequency}
-          setFrequency={setFrequency}
-          daysInMonth={daysInMonth}
-          frequencyColumnLabel={frequencyColumnLabel}
-          emptyLabel={t('dashboard.incomeScreen.empty')}
-        />
+          <IncomeStreamsBreakdown
+            title={t('dashboard.incomeScreen.tableTitle')}
+            streams={panels}
+            panelTotal={panelTotal}
+            currency={currency}
+            t={t}
+            frequency={frequency}
+            daysInMonth={daysInMonth}
+            frequencyColumnLabel={frequencyColumnLabel}
+            emptyLabel={t('dashboard.incomeScreen.empty')}
+            onSectionPress={onSectionPress}
+          />
+        </>
       ) : (
-        <LedgerDataTable
+        <LedgerPillDataTable
           title={categoryLabel}
           columns={detailColumns}
           rows={detailRows}
           emptyLabel={emptyLabel || t('dashboard.incomeScreen.empty')}
-          editLabel={t('common.edit')}
+          iconSectionKey={incomeIconKey}
+          iconScope="income"
+          currencyCode={currencyCode}
+          canDeleteRow={canDeleteIncomeRow}
+          onDeleteRow={deleteIncomeRow}
           renderEditPanel={(row, { onDone, onCancel }) => (
             <IncomeItemEditPanel
               row={row}
@@ -175,6 +157,7 @@ export default function IncomeCategoryPanel({
               onCancel={onCancel}
             />
           )}
+          initialEditingRowId={initialEditingRowId}
         />
       )}
     </View>

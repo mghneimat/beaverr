@@ -7,9 +7,10 @@ import { categoryMonthlyTotal } from '../../lib/householdBudget';
 import { useDashboardFrequency } from '../../lib/useDashboardFrequency';
 import { C, R, T, tabularNums } from '../../constants/onboarding-theme';
 import SurfaceCard from '../ui/SurfaceCard';
-import DashboardSectionHeader from './DashboardSectionHeader';
-import DashboardFrequencyToggle from './DashboardFrequencyToggle';
+import InCardSectionHeader from './InCardSectionHeader';
+import DashboardFrequencyDropdown from './DashboardFrequencyDropdown';
 import { formatDashboardAmount } from './formatDashboardAmount';
+import ExpandCollapseIcon from '../onboarding/ExpandCollapseIcon';
 
 export default function TopCostsTable({ categories, currency, daysInMonth, limit = 5 }) {
   const { t } = useI18n();
@@ -27,16 +28,19 @@ export default function TopCostsTable({ categories, currency, daysInMonth, limit
   const toggle = (key) => setExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
 
   return (
-    <View style={{ marginBottom: 16 }}>
-      <DashboardSectionHeader title={t('dashboard.home.topCosts')} />
-      <SurfaceCard>
-      <DashboardFrequencyToggle value={frequency} onChange={setFrequency} style={{ marginTop: 0, marginBottom: 14 }} />
+    <SurfaceCard style={{ marginBottom: 16 }}>
+      <InCardSectionHeader
+        title={t('dashboard.home.topCosts')}
+        trailing={(
+          <DashboardFrequencyDropdown value={frequency} onChange={setFrequency} compact />
+        )}
+        style={{ marginBottom: 14 }}
+      />
 
       <View style={{
-        borderWidth: 1,
-        borderColor: C.border,
         borderRadius: R.input,
         overflow: 'hidden',
+        backgroundColor: C.bg,
       }}>
         <View style={{
           flexDirection: 'row',
@@ -73,15 +77,17 @@ export default function TopCostsTable({ categories, currency, daysInMonth, limit
                   ...(Platform.OS === 'web' ? { cursor: 'pointer' } : {}),
                 })}
               >
-                <Text style={{ flex: 1, fontSize: 15, fontWeight: '600', color: C.primary }} numberOfLines={2}>
-                  {cat.label}
-                </Text>
-                <Text style={{ fontSize: 15, fontWeight: '600', color: C.primary, marginRight: 8, ...tabularNums }}>
-                  {amount}
-                </Text>
-                <Text style={{ fontSize: 11, color: C.muted, width: 14, textAlign: 'center' }}>
-                  {isOpen ? '▲' : '▼'}
-                </Text>
+                {({ pressed, hovered }) => (
+                  <>
+                    <Text style={{ flex: 1, fontSize: 15, fontWeight: '600', color: C.primary }} numberOfLines={2}>
+                      {cat.label}
+                    </Text>
+                    <Text style={{ fontSize: 15, fontWeight: '600', color: C.primary, marginRight: 8, ...tabularNums }}>
+                      {amount}
+                    </Text>
+                    <ExpandCollapseIcon expanded={isOpen} color={C.muted} compact size={14} hovered={hovered} pressed={pressed} />
+                  </>
+                )}
               </Pressable>
 
               {isOpen ? (
@@ -112,7 +118,6 @@ export default function TopCostsTable({ categories, currency, daysInMonth, limit
           );
         })}
       </View>
-      </SurfaceCard>
-    </View>
+    </SurfaceCard>
   );
 }

@@ -1,49 +1,206 @@
-import { View } from 'react-native';
-import PillToggle from './PillToggle';
+import { useState, useEffect } from 'react';
+import { View, Pressable } from 'react-native';
+import { Text } from '@gluestack-ui/themed';
 import { useI18n } from '../../lib/i18n';
-import { C } from '../../constants/onboarding-theme';
+import { C, R, T, SHADOW } from '../../constants/onboarding-theme';
+import { useClearOnboardingValidation } from '../../lib/onboardingValidationClear';
+import PillToggle from './PillToggle';
 
-/**
- * Standardised Yes / No binary toggle.
- * Wraps two PillToggle instances in a rounded container — the single canonical
- * pattern for all binary yes/no questions across onboarding.
- *
- * @param {Object} props
- * @param {boolean|null} props.value - Current selection: true=yes, false=no, null=unset
- * @param {Function} props.onChange - Called with true or false
- * @param {string} [props.yesLabel] - Override "Yes" label (defaults to common.yes)
- * @param {string} [props.noLabel] - Override "No" label (defaults to common.no)
- * @param {object} [props.containerStyle] - Additional styles on the outer View
- */
-export default function YesNoToggle({ value, onChange, yesLabel, noLabel, containerStyle }) {
-  const { t } = useI18n();
+function InlineChoicePill({ label, selected, onPress }) {
+  const [hovered, setHovered] = useState(false);
+  const [pressed, setPressed] = useState(false);
 
   return (
-    <View style={[{
-      flexDirection: 'row',
-      borderRadius: 10,
-      overflow: 'hidden',
-      marginBottom: 20,
-      borderWidth: 1,
-      borderColor: C.border,
-    }, containerStyle]}>
-      <PillToggle
-        label={noLabel ?? t('common.no')}
-        selected={value === false}
-        onPress={() => onChange(false)}
-        paddingVertical={14}
-        fontSize={15}
-        fontWeight="500"
-        darker
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ selected }}
+      onPressIn={() => setPressed(true)}
+      onPressOut={() => setPressed(false)}
+      onHoverIn={() => setHovered(true)}
+      onHoverOut={() => setHovered(false)}
+      style={{
+        minWidth: 52,
+        minHeight: 36,
+        paddingVertical: 8,
+        paddingHorizontal: 14,
+        borderRadius: R.button,
+        backgroundColor: selected
+          ? (pressed ? C.pillSelectedPressed : C.pillSelectedBg)
+          : (pressed ? C.overlayPressed : hovered ? C.surfaceTint : 'transparent'),
+        borderWidth: selected ? 0 : 1.5,
+        borderColor: C.border,
+        alignItems: 'center',
+        justifyContent: 'center',
+        ...(selected ? SHADOW.button : {}),
+      }}
+    >
+      <Text style={{
+        ...T.pillLabel,
+        fontSize: 14,
+        color: selected ? C.pillSelectedText : C.muted,
+        fontWeight: selected ? '600' : '500',
+      }}
+      >
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
+
+function ChoicePill({ label, selected, onPress }) {
+  const [hovered, setHovered] = useState(false);
+  const [pressed, setPressed] = useState(false);
+
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ selected }}
+      onPressIn={() => setPressed(true)}
+      onPressOut={() => setPressed(false)}
+      onHoverIn={() => setHovered(true)}
+      onHoverOut={() => setHovered(false)}
+      style={{
+        flex: 1,
+        minHeight: 44,
+        paddingVertical: 12,
+        paddingHorizontal: 20,
+        borderRadius: R.button,
+        backgroundColor: selected
+          ? (pressed ? C.pillSelectedPressed : C.pillSelectedBg)
+          : (pressed ? C.pillUnselectedBg : hovered ? C.surfaceTint : C.pillUnselectedBg),
+        borderWidth: selected ? 0 : 1.5,
+        borderColor: C.pillUnselectedBorder,
+        alignItems: 'center',
+        justifyContent: 'center',
+        ...(selected ? SHADOW.button : {}),
+      }}
+    >
+      <Text style={{
+        ...T.btnPrimary,
+        fontSize: 15,
+        color: selected ? C.pillSelectedText : C.pillUnselectedText,
+      }}
+      >
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
+
+/**
+ * Yes / No choice.
+ * @param {boolean|null|undefined} value — when allowUnset, null means neither selected
+ * @param {boolean} [allowUnset=false] — keep pills empty until the user taps
+ * @param {'default'|'segment'|'inline'} [variant='default'] — inline = compact row toggles (Yes first)
+ */
+export default function YesNoToggle({
+  value,
+  onChange,
+  yesLabel,
+  noLabel,
+  containerStyle,
+  allowUnset = false,
+  variant = 'default',
+}) {
+  const { t } = useI18n();
+  const clearValidation = useClearOnboardingValidation();
+
+  useEffect(() => {
+    if (!allowUnset && value == null) {
+      onChange(false);
+    }
+  }, [value, onChange, allowUnset]);
+
+  const handleChange = (next) => {
+    clearValidation?.();
+    onChange(next);
+  };
+
+  const noSelected = allowUnset ? value === false : (value ?? false) === false;
+  const yesSelected = allowUnset ? value === true : (value ?? false) === true;
+  const resolvedNoLabel = noLabel ?? t('common.no');
+  const resolvedYesLabel = yesLabel ?? t('common.yes');
+
+  if (variant === 'inline') {
+    return (
+      <View
+        accessibilityRole="radiogroup"
+        style={[{ flexDirection: 'row', gap: 8, flexShrink: 0 }, containerStyle]}
+      >
+        <InlineChoicePill
+          label={resolvedYesLabel}
+          selected={yesSelected}
+          onPress={() => handleChange(true)}
+        />
+        <InlineChoicePill
+          label={resolvedNoLabel}
+          selected={noSelected}
+          onPress={() => handleChange(false)}
+        />
+      </View>
+    );
+  }
+
+  if (variant === 'segment') {
+    return (
+      <View
+        accessibilityRole="radiogroup"
+        style={[
+          {
+            flexDirection: 'row',
+            gap: 4,
+            backgroundColor: C.bg,
+            borderRadius: R.pill,
+            padding: 4,
+            borderWidth: 1,
+            borderColor: C.border,
+          },
+          containerStyle,
+        ]}
+      >
+        <PillToggle
+          label={resolvedNoLabel}
+          selected={noSelected}
+          onPress={() => handleChange(false)}
+          variant="segment"
+          borderRadius={R.button}
+          minHeight={40}
+          paddingVertical={10}
+          paddingHorizontal={16}
+          fontSize={14}
+          fontWeight="500"
+        />
+        <PillToggle
+          label={resolvedYesLabel}
+          selected={yesSelected}
+          onPress={() => handleChange(true)}
+          variant="segment"
+          borderRadius={R.button}
+          minHeight={40}
+          paddingVertical={10}
+          paddingHorizontal={16}
+          fontSize={14}
+          fontWeight="500"
+        />
+      </View>
+    );
+  }
+
+  return (
+    <View style={[{ flexDirection: 'row', gap: 10, marginBottom: 0 }, containerStyle]}>
+      <ChoicePill
+        label={resolvedNoLabel}
+        selected={noSelected}
+        onPress={() => handleChange(false)}
       />
-      <PillToggle
-        label={yesLabel ?? t('common.yes')}
-        selected={value === true}
-        onPress={() => onChange(true)}
-        paddingVertical={14}
-        fontSize={15}
-        fontWeight="500"
-        darker
+      <ChoicePill
+        label={resolvedYesLabel}
+        selected={yesSelected}
+        onPress={() => handleChange(true)}
       />
     </View>
   );

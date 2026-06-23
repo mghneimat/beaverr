@@ -4,7 +4,10 @@ import { useI18n } from '../../../lib/i18n';
 import { SECTION_STORAGE_KEYS, parseAmount, amountToString } from '../../../lib/sectionEditStorage';
 import { C, T } from '../../../constants/onboarding-theme';
 import SectionEditForm from '../SectionEditForm';
+import FocusGate from '../FocusGate';
+import { useSectionEditFocus } from '../../../lib/SectionEditFocusContext';
 import AmountFrequencyFields from '../AmountFrequencyFields';
+import OptionalPaymentDatesFields from '../../onboarding/OptionalPaymentDatesFields';
 import LabeledInput from '../../onboarding/LabeledInput';
 
 function toEditState(saved) {
@@ -14,8 +17,14 @@ function toEditState(saved) {
     name: p.name || '',
     foodAmount: amountToString(p.foodAmount),
     foodFrequency: p.foodFrequency || 'monthly',
+    foodEndDate: p.foodEndDate || '',
+    foodDueDate: p.foodDueDate || '',
+    foodChargeDay: p.foodChargeDay != null ? String(p.foodChargeDay) : '',
     vetAmount: amountToString(p.vetAmount),
     vetFrequency: p.vetFrequency || 'monthly',
+    vetEndDate: p.vetEndDate || '',
+    vetDueDate: p.vetDueDate || '',
+    vetChargeDay: p.vetChargeDay != null ? String(p.vetChargeDay) : '',
   }));
 }
 
@@ -25,13 +34,20 @@ function toPayload(rows) {
     name: p.name,
     foodAmount: parseAmount(p.foodAmount),
     foodFrequency: p.foodFrequency,
+    foodEndDate: p.foodEndDate || null,
+    foodDueDate: p.foodDueDate || null,
+    foodChargeDay: p.foodChargeDay ? parseInt(p.foodChargeDay, 10) || null : null,
     vetAmount: parseAmount(p.vetAmount),
     vetFrequency: p.vetFrequency,
+    vetEndDate: p.vetEndDate || null,
+    vetDueDate: p.vetDueDate || null,
+    vetChargeDay: p.vetChargeDay ? parseInt(p.vetChargeDay, 10) || null : null,
   }));
 }
 
 export default function PetsEdit() {
   const { t } = useI18n();
+  const { focusKey } = useSectionEditFocus();
 
   return (
     <SectionEditForm
@@ -52,17 +68,19 @@ export default function PetsEdit() {
 
         return (
           <View>
-            <Text style={{ ...T.helper, color: C.muted, marginBottom: 16 }}>
-              {t('sectionEdit.pets.helper')}
-            </Text>
+            {!focusKey ? (
+              <Text style={{ ...T.helper, color: C.muted, marginBottom: 16 }}>
+                {t('sectionEdit.pets.helper')}
+              </Text>
+            ) : null}
 
-            {rows.length === 0 ? (
+            {!focusKey && rows.length === 0 ? (
               <Text style={{ ...T.helper }}>{t('sectionEdit.pets.empty')}</Text>
             ) : null}
 
             {rows.map((pet, idx) => (
+              <FocusGate key={pet.id || idx} focusKey={`pet-${idx}`}>
               <View
-                key={pet.id || idx}
                 style={{
                   marginBottom: 16,
                   padding: 16,
@@ -88,6 +106,12 @@ export default function PetsEdit() {
                   onFrequencyChange={(v) => updateRow(idx, { foodFrequency: v })}
                   currency={currency}
                 />
+                <OptionalPaymentDatesFields
+                  prefix="food"
+                  values={pet}
+                  onChange={(patch) => updateRow(idx, patch)}
+                  compact
+                />
                 <AmountFrequencyFields
                   label={t('sectionEdit.pets.vet')}
                   amount={pet.vetAmount}
@@ -96,7 +120,14 @@ export default function PetsEdit() {
                   onFrequencyChange={(v) => updateRow(idx, { vetFrequency: v })}
                   currency={currency}
                 />
+                <OptionalPaymentDatesFields
+                  prefix="vet"
+                  values={pet}
+                  onChange={(patch) => updateRow(idx, patch)}
+                  compact
+                />
               </View>
+              </FocusGate>
             ))}
           </View>
         );

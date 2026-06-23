@@ -18,14 +18,24 @@ import Animated, {
 } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 import { useRouter, useSegments } from 'expo-router';
-import { navigateAppTab } from '../../lib/screenTransition';
+import { navigateAppTab, resolveActiveAppTab } from '../../lib/screenTransition';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useI18n } from '../../lib/i18n';
-import { isConsentAccepted, revokeConsent } from '../../lib/consent';
-import ConfirmDialog from '../ui/ConfirmDialog';
 import { getUiPreferences, setUiPreferences } from '../../lib/uiPreferences';
+import { snapshotQuestionnaireForRetake } from '../../lib/onboardingExit';
+import {
+  getOnboardingState,
+  isTabLockedForQuickSetup,
+  getResumeRoute,
+  getQuestionnaireStartRoute,
+  shouldShowContinueQuestionnaire,
+  shouldShowStartQuestionnaire,
+  shouldShowRetakeQuestionnaire,
+  patchOnboardingState,
+} from '../../lib/onboardingProgress';
+import { subscribeDashboardRefresh } from '../../lib/dashboardRefresh';
 import { useReducedMotion } from '../../lib/useReducedMotion';
-import { C, R, T } from '../../constants/onboarding-theme';
+import { C, R, S, T } from '../../constants/onboarding-theme';
 import {
   DashboardIcon,
   IncomeIcon,
@@ -35,19 +45,23 @@ import {
   SavingsIcon,
   TrackerIcon,
   SummaryIcon,
-  AlertsIcon,
+  RemindersIcon,
   SidebarToggleIcon,
   SidebarCollapseIcon,
   SidebarExpandIcon,
-  RevokeConsentIcon,
   QuestionnaireIcon,
+  LockIcon,
 } from './AppNavIcons';
 import LanguageSelector from './LanguageSelector';
+import SidebarBrandMark from './SidebarBrandMark';
+import ConfirmDialog from '../ui/ConfirmDialog';
 
 const SIDEBAR_EXPANDED = 260;
 const SIDEBAR_COLLAPSED = 68;
 const WIDE_BREAKPOINT = 768;
 const EASE = Easing.bezier(0.16, 1, 0.3, 1);
+const SECTION_LABEL_COLOR = '#64748B';
+const NAV_INACTIVE_COLOR = C.text;
 const NAV_ICON_SIZE = 16;
 
 /** Fixed icon column — never changes during collapse animation */
@@ -55,30 +69,33 @@ const ICON_SLOT = 36;
 const ROW_HEIGHT = 44;
 const ROW_MARGIN_H = 8;
 const ROW_MARGIN_V = 2;
-/** Expanded row inset; collapsed inset centers the icon slot in the 68px rail */
 const ROW_PAD_LEFT = 6;
-const ROW_PAD_LEFT_COLLAPSED = (SIDEBAR_COLLAPSED - ICON_SLOT) / 2 - ROW_MARGIN_H;
 const SECTION_LABEL_PAD_LEFT = ROW_PAD_LEFT + (ICON_SLOT - NAV_ICON_SIZE) / 2;
 /** Label inset — absolute so expand/collapse never reflows the icon column */
 const LABEL_LEFT = ROW_PAD_LEFT + ICON_SLOT + 4;
+const ROW_WIDTH_EXPANDED = SIDEBAR_EXPANDED - ROW_MARGIN_H * 2;
+/** Center icon-only row in collapsed rail */
+const ROW_MARGIN_LEFT_COLLAPSED = (SIDEBAR_COLLAPSED - ICON_SLOT) / 2;
 const TOGGLE_SIZE = 36;
-const HEADER_HEIGHT = 56;
+const HEADER_HEIGHT = S.navHeight;
 const HEADER_TOGGLE_INSET = 8;
-const LANG_PANEL_MAX_H = 130;
 const TOGGLE_RIGHT_OFFSET = 16;
 /** Fixed slots — section labels fade out but never shrink (prevents icon vertical jump) */
 const NAV_SECTION_LABEL_H = 44;
 const TOOLS_SECTION_LABEL_H = 44;
+const LOCK_ICON_SIZE = 14;
+const LOCK_SLOT_RIGHT = 10;
 
 const NAV_ITEMS = [
   { name: 'dashboard', labelKey: 'dashboard.title', Icon: DashboardIcon },
   { name: 'income', labelKey: 'dashboard.income', Icon: IncomeIcon },
   { name: 'costs', labelKey: 'dashboard.expenses', Icon: CostsIcon },
   { name: 'budget', labelKey: 'dashboard.budget', Icon: BudgetIcon },
+  { name: 'savings', labelKey: 'dashboard.savings', Icon: SavingsIcon },
   { name: 'tracker', labelKey: 'dashboard.tracker', Icon: TrackerIcon },
   { name: 'goals', labelKey: 'dashboard.goals', Icon: GoalsIcon },
-  { name: 'savings', labelKey: 'dashboard.savings', Icon: SavingsIcon },
   { name: 'summary', labelKey: 'dashboard.summary', Icon: SummaryIcon },
+  { name: 'alerts', labelKey: 'dashboard.alerts', Icon: RemindersIcon },
 ];
 
 const iconSlotStyle = {
@@ -102,8 +119,9 @@ const SidebarNavRow = memo(function SidebarNavRow({
   iconColor,
   label,
   labelAnimatedStyle,
-  rowPadAnimatedStyle,
+  rowCollapseAnimatedStyle,
   danger = false,
+  locked = false,
   accessibilityLabel,
   showTooltip = false,
   trailing = null,
@@ -111,17 +129,27 @@ const SidebarNavRow = memo(function SidebarNavRow({
   const [hovered, setHovered] = useState(false);
   const [pressed, setPressed] = useState(false);
 
-  const backgroundColor = isActive
-    ? C.chipSelectedBg
-    : danger && pressed
-      ? C.dangerBg
-      : pressed
-        ? C.overlayPressed
-        : hovered
-          ? C.overlayHover
-          : 'transparent';
+  const chipBackgroundColor = locked
+    ? 'transparent'
+    : isActive
+      ? C.navSelectedBg
+      : danger && pressed
+        ? C.dangerBg
+        : pressed
+          ? C.overlayPressed
+          : hovered
+            ? C.overlayHover
+            : 'transparent';
 
+  const labelColor = locked
+    ? C.muted
+    : danger
+      ? C.danger
+      : isActive
+        ? C.primary
+        : NAV_INACTIVE_COLOR;
   const a11yLabel = accessibilityLabel ?? label;
+  const collapsedIconRail = showTooltip;
 
   return (
     <AnimatedPressable
@@ -140,18 +168,30 @@ const SidebarNavRow = memo(function SidebarNavRow({
           flexDirection: 'row',
           alignItems: 'center',
           minHeight: ROW_HEIGHT,
-          marginHorizontal: ROW_MARGIN_H,
           marginVertical: ROW_MARGIN_V,
-          paddingLeft: ROW_PAD_LEFT,
-          paddingRight: 8,
-          borderRadius: R.input,
-          backgroundColor,
-          ...(Platform.OS === 'web' ? { cursor: 'pointer', transition: 'background-color 0.15s ease' } : {}),
+          borderRadius: collapsedIconRail ? ICON_SLOT / 2 : R.input,
+          backgroundColor: collapsedIconRail ? 'transparent' : chipBackgroundColor,
+          ...(Platform.OS === 'web' ? { cursor: locked ? 'default' : 'pointer', transition: 'background-color 0.15s ease' } : {}),
         },
-        rowPadAnimatedStyle,
+        rowCollapseAnimatedStyle,
       ]}
     >
-      <View style={iconSlotStyle} collapsable={false}>
+      {collapsedIconRail && chipBackgroundColor !== 'transparent' ? (
+        <View
+          pointerEvents="none"
+          style={{
+            position: 'absolute',
+            top: (ROW_HEIGHT - ICON_SLOT) / 2,
+            left: 0,
+            width: ICON_SLOT,
+            height: ICON_SLOT,
+            borderRadius: ICON_SLOT / 2,
+            backgroundColor: chipBackgroundColor,
+            ...(Platform.OS === 'web' ? { transition: 'background-color 0.15s ease' } : {}),
+          }}
+        />
+      ) : null}
+      <View style={[iconSlotStyle, locked ? { opacity: 0.72 } : null]} collapsable={false}>
         <Icon color={iconColor} size={NAV_ICON_SIZE} />
       </View>
       {labelAnimatedStyle ? (
@@ -160,7 +200,7 @@ const SidebarNavRow = memo(function SidebarNavRow({
             {
               position: 'absolute',
               left: LABEL_LEFT,
-              right: 8,
+              right: locked && !collapsedIconRail ? LOCK_SLOT_RIGHT + LOCK_ICON_SIZE + 8 : 8,
               top: 0,
               bottom: 0,
               justifyContent: 'center',
@@ -173,27 +213,47 @@ const SidebarNavRow = memo(function SidebarNavRow({
             numberOfLines={1}
             style={{
               fontSize: 14,
-              fontWeight: isActive ? '600' : '500',
-              color: danger ? C.danger : isActive ? C.primary : C.muted,
+              fontWeight: isActive && !locked ? '600' : '500',
+              color: labelColor,
+              opacity: locked ? 0.72 : 1,
             }}
           >
             {label}
           </Text>
         </Animated.View>
       ) : (
-        <View style={{ flex: 1, marginLeft: 4 }}>
+        <View style={{ flex: 1, marginLeft: 4, marginRight: locked ? LOCK_SLOT_RIGHT + LOCK_ICON_SIZE + 4 : 0 }}>
           <Text
             numberOfLines={1}
             style={{
               fontSize: 14,
-              fontWeight: isActive ? '600' : '500',
-              color: danger ? C.danger : isActive ? C.primary : C.muted,
+              fontWeight: isActive && !locked ? '600' : '500',
+              color: labelColor,
+              opacity: locked ? 0.72 : 1,
             }}
           >
             {label}
           </Text>
         </View>
       )}
+      {locked && !collapsedIconRail ? (
+        <View
+          pointerEvents="none"
+          accessibilityElementsHidden
+          importantForAccessibility="no"
+          style={{
+            position: 'absolute',
+            right: LOCK_SLOT_RIGHT,
+            top: 0,
+            bottom: 0,
+            justifyContent: 'center',
+            alignItems: 'center',
+            width: LOCK_ICON_SIZE + 4,
+          }}
+        >
+          <LockIcon color={C.primary} size={LOCK_ICON_SIZE} />
+        </View>
+      ) : null}
       {trailing}
     </AnimatedPressable>
   );
@@ -282,19 +342,19 @@ export function AppSidebarMobileTrigger({ onMobileOpen }) {
       onHoverIn={() => setHovered(true)}
       onHoverOut={() => setHovered(false)}
       style={{
-        width: 44,
-        height: 44,
-        minWidth: 44,
-        minHeight: 44,
+        width: 48,
+        height: 48,
+        minWidth: 48,
+        minHeight: 48,
         alignItems: 'center',
         justifyContent: 'center',
         borderRadius: R.input,
         backgroundColor: pressed ? C.overlayPressed : hovered ? C.overlayHover : 'transparent',
         ...(Platform.OS === 'web' ? { cursor: 'pointer' } : {}),
       }}
-      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+      hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
     >
-      <SidebarToggleIcon color={C.primary} size={20} />
+      <SidebarToggleIcon color={C.primary} size={22} />
     </Pressable>
   );
 }
@@ -315,8 +375,8 @@ export default function AppSidebar({ mobileOpen = false, onMobileClose }) {
   const [prefsReady, setPrefsReady] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
   const [mobileMounted, setMobileMounted] = useState(false);
-  const [showRevokeConsent, setShowRevokeConsent] = useState(false);
-  const [revokeDialogOpen, setRevokeDialogOpen] = useState(false);
+  const [onboardingState, setOnboardingState] = useState(null);
+  const [lockedTabDialogOpen, setLockedTabDialogOpen] = useState(false);
 
   const slideX = useSharedValue(-SIDEBAR_EXPANDED);
   const backdropOpacity = useSharedValue(0);
@@ -324,23 +384,26 @@ export default function AppSidebar({ mobileOpen = false, onMobileClose }) {
   const collapseProgress = useSharedValue(0);
   const langHeight = useSharedValue(0);
 
-  const currentRoute = segments[segments.length - 1];
+  const currentRoute = resolveActiveAppTab(segments);
 
   useEffect(() => {
     (async () => {
-      const [prefs, consentOk] = await Promise.all([
-        getUiPreferences(),
-        isConsentAccepted(),
-      ]);
-      setShowRevokeConsent(consentOk);
+      const prefs = await getUiPreferences();
       if (!prefs.sidebarVisited) {
         setCollapsed(false);
         await setUiPreferences({ sidebarVisited: true, sidebarCollapsed: false });
       } else {
         setCollapsed(prefs.sidebarCollapsed);
       }
+      setOnboardingState(await getOnboardingState());
       setPrefsReady(true);
     })();
+  }, []);
+
+  useEffect(() => {
+    return subscribeDashboardRefresh(async () => {
+      setOnboardingState(await getOnboardingState());
+    });
   }, []);
 
   useEffect(() => {
@@ -380,18 +443,44 @@ export default function AppSidebar({ mobileOpen = false, onMobileClose }) {
     opacity: interpolate(collapseProgress.value, [0, 0.2, 1], [1, 0, 0], Extrapolation.CLAMP),
   }));
 
-  const logoStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(collapseProgress.value, [0, 0.25, 1], [1, 0, 0], Extrapolation.CLAMP),
-  }));
-
-  const rowPadStyle = useAnimatedStyle(() => ({
-    paddingLeft: interpolate(
-      collapseProgress.value,
-      [0, 1],
-      [ROW_PAD_LEFT, ROW_PAD_LEFT_COLLAPSED],
-      Extrapolation.CLAMP,
-    ),
-  }));
+  const rowCollapseStyle = useAnimatedStyle(() => {
+    if (!isWide) {
+      return {
+        width: ROW_WIDTH_EXPANDED,
+        marginLeft: ROW_MARGIN_H,
+        marginRight: ROW_MARGIN_H,
+        paddingLeft: ROW_PAD_LEFT,
+        paddingRight: 8,
+      };
+    }
+    return {
+      width: interpolate(
+        collapseProgress.value,
+        [0, 1],
+        [ROW_WIDTH_EXPANDED, ICON_SLOT],
+        Extrapolation.CLAMP,
+      ),
+      marginLeft: interpolate(
+        collapseProgress.value,
+        [0, 1],
+        [ROW_MARGIN_H, ROW_MARGIN_LEFT_COLLAPSED],
+        Extrapolation.CLAMP,
+      ),
+      marginRight: ROW_MARGIN_H,
+      paddingLeft: interpolate(
+        collapseProgress.value,
+        [0, 1],
+        [ROW_PAD_LEFT, 0],
+        Extrapolation.CLAMP,
+      ),
+      paddingRight: interpolate(
+        collapseProgress.value,
+        [0, 1],
+        [8, 0],
+        Extrapolation.CLAMP,
+      ),
+    };
+  });
 
   const animatedDrawer = useAnimatedStyle(() => ({
     transform: [{ translateX: slideX.value }],
@@ -402,32 +491,17 @@ export default function AppSidebar({ mobileOpen = false, onMobileClose }) {
   }));
 
   const animatedLangPanel = useAnimatedStyle(() => ({
-    opacity: langHeight.value,
-    maxHeight: langHeight.value * LANG_PANEL_MAX_H,
-  }));
-
-  const langDropdownInsetStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(langHeight.value, [0, 0.4, 1], [0, 0.6, 1], Extrapolation.CLAMP),
+    opacity: interpolate(langHeight.value, [0, 0.15, 1], [0, 0.85, 1], Extrapolation.CLAMP),
     transform: [{
-      translateY: interpolate(langHeight.value, [0, 1], [-6, 0], Extrapolation.CLAMP),
+      translateY: interpolate(langHeight.value, [0, 1], [6, 0], Extrapolation.CLAMP),
     }],
   }));
+
+  const langDropdownInsetStyle = animatedLangPanel;
 
   const navigate = (route) => {
     navigateAppTab(router, route, currentRoute);
     if (!isWide && onMobileClose) onMobileClose();
-  };
-
-  const handleRevokeConsent = () => {
-    if (!isWide && onMobileClose) onMobileClose();
-    setTimeout(() => setRevokeDialogOpen(true), isWide ? 0 : 240);
-  };
-
-  const handleConfirmRevokeConsent = async () => {
-    setRevokeDialogOpen(false);
-    await revokeConsent();
-    setShowRevokeConsent(false);
-    router.replace('/(onboarding)/consent');
   };
 
   const handleToggleCollapse = () => {
@@ -443,7 +517,12 @@ export default function AppSidebar({ mobileOpen = false, onMobileClose }) {
     }
   };
 
-  const handleRetakeQuestionnaire = () => {
+  const handleRetakeQuestionnaire = async () => {
+    await snapshotQuestionnaireForRetake();
+    await patchOnboardingState({
+      completed: false,
+      questionnaireComplete: false,
+    });
     if (!isWide && onMobileClose) onMobileClose();
     setTimeout(() => router.push('/(onboarding)/welcome'), isWide ? 0 : 240);
   };
@@ -459,7 +538,8 @@ export default function AppSidebar({ mobileOpen = false, onMobileClose }) {
 
   const renderNavItem = (item) => {
     const isActive = currentRoute === item.name;
-    const color = isActive ? C.primary : C.muted;
+    const locked = isTabLockedForQuickSetup(onboardingState, item.name);
+    const color = locked ? C.muted : isActive ? C.primary : NAV_INACTIVE_COLOR;
     const { Icon } = item;
 
     const showTooltip = isWide && collapsed;
@@ -467,17 +547,50 @@ export default function AppSidebar({ mobileOpen = false, onMobileClose }) {
     return (
       <SidebarNavRow
         key={item.name}
-        isActive={isActive}
-        onPress={() => navigate(item.name)}
+        isActive={isActive && !locked}
+        locked={locked}
+        onPress={() => {
+          if (locked) {
+            setLockedTabDialogOpen(true);
+            return;
+          }
+          navigate(item.name);
+        }}
         Icon={Icon}
         iconColor={color}
         label={t(item.labelKey)}
         labelAnimatedStyle={isWide ? labelClipStyle : undefined}
-        rowPadAnimatedStyle={isWide ? rowPadStyle : undefined}
+        rowCollapseAnimatedStyle={rowCollapseStyle}
         showTooltip={showTooltip}
+        accessibilityLabel={locked ? t('app.sidebar.lockedTabA11y', { tab: t(item.labelKey) }) : undefined}
       />
     );
   };
+
+  const handleContinueQuestionnaire = () => {
+    router.push(getResumeRoute(onboardingState));
+    if (!isWide && onMobileClose) onMobileClose();
+  };
+
+  const handleStartQuestionnaire = () => {
+    router.push(getQuestionnaireStartRoute(onboardingState));
+    if (!isWide && onMobileClose) onMobileClose();
+  };
+
+  const lockedTabDialog = (
+    <ConfirmDialog
+      visible={lockedTabDialogOpen}
+      title={t('app.sidebar.lockedTabTitle')}
+      message={t('app.sidebar.lockedTabMessage')}
+      confirmLabel={t('app.sidebar.continueQuestionnaire')}
+      cancelLabel={t('common.cancel')}
+      onConfirm={() => {
+        setLockedTabDialogOpen(false);
+        handleContinueQuestionnaire();
+      }}
+      onCancel={() => setLockedTabDialogOpen(false)}
+    />
+  );
 
   /** Inner panel is always SIDEBAR_EXPANDED — outer wrapper clips width */
   const sidebarContent = (
@@ -486,7 +599,7 @@ export default function AppSidebar({ mobileOpen = false, onMobileClose }) {
         width: SIDEBAR_EXPANDED,
         flex: 1,
         backgroundColor: C.surface,
-        paddingTop: insets.top + (Platform.OS === 'web' ? 8 : 4),
+        paddingTop: insets.top,
         paddingBottom: insets.bottom + 8,
         ...(Platform.OS === 'web' ? { transform: [{ translateZ: 0 }] } : {}),
       }}
@@ -496,17 +609,16 @@ export default function AppSidebar({ mobileOpen = false, onMobileClose }) {
         flexShrink: 0,
         height: HEADER_HEIGHT,
         position: 'relative',
-        borderBottomWidth: 1,
-        borderBottomColor: C.border,
         marginBottom: 8,
-        paddingLeft: ROW_PAD_LEFT + 14,
         justifyContent: 'center',
+        overflow: 'hidden',
       }}>
-        <Animated.View style={[{ overflow: 'hidden' }, isWide ? logoStyle : {}]}>
-          <Text style={{ fontSize: 23, fontWeight: '700', color: C.primary, letterSpacing: -0.4 }}>
-            {t('app.name')}
-          </Text>
-        </Animated.View>
+        <SidebarBrandMark
+          collapseProgress={collapseProgress}
+          animateCollapse={isWide}
+          alphaLabel={t('app.sidebar.alphaLabel')}
+          accessibilityLabel={`${t('app.name')} ${t('app.sidebar.alphaLabel')}`}
+        />
         <CollapseToggleButton
           isWide={isWide}
           onPress={handleToggleCollapse}
@@ -525,6 +637,8 @@ export default function AppSidebar({ mobileOpen = false, onMobileClose }) {
         <View style={{ height: NAV_SECTION_LABEL_H, justifyContent: 'center', overflow: 'hidden' }}>
           <Animated.Text style={[{
             ...T.sectionLabel,
+            color: SECTION_LABEL_COLOR,
+            fontWeight: '600',
             paddingLeft: SECTION_LABEL_PAD_LEFT,
             paddingTop: 14,
             paddingBottom: 14,
@@ -537,6 +651,8 @@ export default function AppSidebar({ mobileOpen = false, onMobileClose }) {
         <View style={{ height: TOOLS_SECTION_LABEL_H, justifyContent: 'center', overflow: 'hidden' }}>
           <Animated.Text style={[{
             ...T.sectionLabel,
+            color: SECTION_LABEL_COLOR,
+            fontWeight: '600',
             paddingLeft: SECTION_LABEL_PAD_LEFT,
             paddingTop: 14,
             paddingBottom: 14,
@@ -545,27 +661,45 @@ export default function AppSidebar({ mobileOpen = false, onMobileClose }) {
           </Animated.Text>
         </View>
 
-        <SidebarNavRow
-          isActive={false}
-          onPress={handleRetakeQuestionnaire}
-          Icon={QuestionnaireIcon}
-          iconColor={C.muted}
-          label={t('app.sidebar.retakeQuestionnaire')}
-          labelAnimatedStyle={isWide ? labelClipStyle : undefined}
-          rowPadAnimatedStyle={isWide ? rowPadStyle : undefined}
-          showTooltip={isWide && collapsed}
-        />
+        {shouldShowContinueQuestionnaire(onboardingState) ? (
+          <SidebarNavRow
+            isActive={false}
+            onPress={handleContinueQuestionnaire}
+            Icon={QuestionnaireIcon}
+            iconColor={C.primary}
+            label={t('app.sidebar.continueQuestionnaire')}
+            labelAnimatedStyle={isWide ? labelClipStyle : undefined}
+            rowCollapseAnimatedStyle={rowCollapseStyle}
+            showTooltip={isWide && collapsed}
+          />
+        ) : null}
 
-        <SidebarNavRow
-          isActive={currentRoute === 'alerts'}
-          onPress={() => navigate('alerts')}
-          Icon={AlertsIcon}
-          iconColor={currentRoute === 'alerts' ? C.primary : C.muted}
-          label={t('dashboard.alerts')}
-          labelAnimatedStyle={isWide ? labelClipStyle : undefined}
-          rowPadAnimatedStyle={isWide ? rowPadStyle : undefined}
-          showTooltip={isWide && collapsed}
-        />
+        {shouldShowStartQuestionnaire(onboardingState) ? (
+          <SidebarNavRow
+            isActive={false}
+            onPress={handleStartQuestionnaire}
+            Icon={QuestionnaireIcon}
+            iconColor={C.primary}
+            label={t('app.sidebar.startNewQuestionnaire')}
+            labelAnimatedStyle={isWide ? labelClipStyle : undefined}
+            rowCollapseAnimatedStyle={rowCollapseStyle}
+            showTooltip={isWide && collapsed}
+          />
+        ) : null}
+
+        {shouldShowRetakeQuestionnaire(onboardingState) ? (
+          <SidebarNavRow
+            isActive={false}
+            onPress={handleRetakeQuestionnaire}
+            Icon={QuestionnaireIcon}
+            iconColor={NAV_INACTIVE_COLOR}
+            label={t('app.sidebar.retakeQuestionnaire')}
+            labelAnimatedStyle={isWide ? labelClipStyle : undefined}
+            rowCollapseAnimatedStyle={rowCollapseStyle}
+            showTooltip={isWide && collapsed}
+          />
+        ) : null}
+
       </ScrollView>
 
       {/* Footer — pinned; never shrinks when viewport is short */}
@@ -574,6 +708,8 @@ export default function AppSidebar({ mobileOpen = false, onMobileClose }) {
         borderTopWidth: 1,
         borderTopColor: C.border,
         paddingTop: 8,
+        overflow: 'visible',
+        zIndex: langOpen ? 30 : 0,
       }}>
         <LanguageSelector
           locale={locale}
@@ -582,96 +718,14 @@ export default function AppSidebar({ mobileOpen = false, onMobileClose }) {
           onSelect={(code) => { setLocale(code); setLangOpen(false); }}
           triggerLabel={t('common.language')}
           labelAnimatedStyle={isWide ? labelClipStyle : undefined}
-          rowPadAnimatedStyle={isWide ? rowPadStyle : undefined}
+          rowCollapseAnimatedStyle={rowCollapseStyle}
           showTooltip={isWide && collapsed}
           panelStyle={animatedLangPanel}
           insetStyle={langDropdownInsetStyle}
         />
 
-        {showRevokeConsent ? (
-          <SidebarNavRow
-            isActive={false}
-            onPress={handleRevokeConsent}
-            Icon={RevokeConsentIcon}
-            iconColor={C.danger}
-            label={t('settings.revokeConsent')}
-            labelAnimatedStyle={isWide ? labelClipStyle : undefined}
-            rowPadAnimatedStyle={isWide ? rowPadStyle : undefined}
-            showTooltip={isWide && collapsed}
-            danger
-          />
-        ) : null}
-
-        <Animated.View style={[
-          {
-            position: 'relative',
-            flexDirection: 'row',
-            alignItems: 'center',
-            marginHorizontal: ROW_MARGIN_H,
-            marginVertical: ROW_MARGIN_V,
-            paddingLeft: ROW_PAD_LEFT,
-            paddingVertical: 12,
-            minHeight: ROW_HEIGHT,
-          },
-          isWide ? rowPadStyle : null,
-        ]}>
-          <View style={{
-            ...iconSlotStyle,
-            borderRadius: ICON_SLOT / 2,
-            backgroundColor: C.chipSelectedBg,
-            borderWidth: 1,
-            borderColor: C.border,
-          }}>
-            <Text style={{ fontSize: 13, fontWeight: '600', color: C.primary }}>B</Text>
-          </View>
-          {isWide ? (
-            <Animated.View
-              style={[
-                {
-                  position: 'absolute',
-                  left: LABEL_LEFT,
-                  right: 8,
-                  top: 0,
-                  bottom: 0,
-                  justifyContent: 'center',
-                  pointerEvents: 'none',
-                },
-                labelClipStyle,
-              ]}
-            >
-              <Text style={{ fontSize: 14, fontWeight: '600', color: C.primary }} numberOfLines={1}>
-                {t('app.name')}
-              </Text>
-              <Text style={{ fontSize: 12, color: C.muted }} numberOfLines={1}>
-                {t('app.sidebar.planLabel')}
-              </Text>
-            </Animated.View>
-          ) : (
-            <View style={{ flex: 1, marginLeft: 10 }}>
-              <Text style={{ fontSize: 14, fontWeight: '600', color: C.primary }} numberOfLines={1}>
-                {t('app.name')}
-              </Text>
-              <Text style={{ fontSize: 12, color: C.muted }} numberOfLines={1}>
-                {t('app.sidebar.planLabel')}
-              </Text>
-            </View>
-          )}
-        </Animated.View>
       </View>
     </View>
-  );
-
-  const revokeConfirmDialog = (
-    <ConfirmDialog
-      visible={revokeDialogOpen}
-      title={t('settings.revokeConsentConfirmTitle')}
-      message={t('settings.revokeConsentConfirmMessage')}
-      confirmLabel={t('settings.revokeConsentConfirmButton')}
-      cancelLabel={t('common.cancel')}
-      destructive
-      onConfirm={handleConfirmRevokeConsent}
-      onCancel={() => setRevokeDialogOpen(false)}
-    />
   );
 
   if (!prefsReady) {
@@ -706,7 +760,7 @@ export default function AppSidebar({ mobileOpen = false, onMobileClose }) {
             </Animated.View>
           </View>
         </Modal>
-        {revokeConfirmDialog}
+        {lockedTabDialog}
       </>
     );
   }
@@ -716,7 +770,7 @@ export default function AppSidebar({ mobileOpen = false, onMobileClose }) {
       <Animated.View style={[{ height: '100%', overflow: 'hidden', borderRightWidth: 1, borderRightColor: C.border }, animatedSidebarWidth]}>
         {sidebarContent}
       </Animated.View>
-      {revokeConfirmDialog}
+      {lockedTabDialog}
     </>
   );
 }

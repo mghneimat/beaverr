@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useSegments } from 'expo-router';
+import { useIsFocused, useSegments } from 'expo-router';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -7,22 +7,25 @@ import Animated, {
 } from 'react-native-reanimated';
 import { consumeScreenTransitionDirection } from '../../lib/screenTransition';
 import {
-  DASHBOARD_MOTION_DURATION,
   DASHBOARD_MOTION_EASE,
   DASHBOARD_ENTER,
+  SETTLE_FADE_IN_MS,
 } from '../../lib/dashboardMotion';
 import { useReducedMotion } from '../../lib/useReducedMotion';
 
 /**
  * Route-focus enter animation for dashboard ↔ tab transitions.
+ * Only the focused screen consumes the pending direction so nested stacks
+ * (e.g. goals list → goal detail) animate correctly.
  * @param {'dashboard' | 'tab'} variant
  */
 export default function ScreenTransitionShell({ children, variant = 'tab' }) {
   const reduceMotion = useReducedMotion();
+  const isFocused = useIsFocused();
   const segments = useSegments();
   const currentRoute = segments[segments.length - 1];
   const inEditModal = segments.includes('edit');
-  const isFocused = variant === 'dashboard'
+  const isTabSurface = variant === 'dashboard'
     ? currentRoute === 'dashboard' && !inEditModal
     : !inEditModal && currentRoute !== 'dashboard';
 
@@ -31,7 +34,7 @@ export default function ScreenTransitionShell({ children, variant = 'tab' }) {
   const translateX = useSharedValue(0);
 
   useEffect(() => {
-    if (!isFocused) return;
+    if (!isFocused || !isTabSurface) return;
 
     if (reduceMotion) {
       opacity.value = 1;
@@ -48,10 +51,10 @@ export default function ScreenTransitionShell({ children, variant = 'tab' }) {
     translateY.value = enter.translateY;
     translateX.value = enter.translateX;
 
-    opacity.value = withTiming(1, { duration: DASHBOARD_MOTION_DURATION, easing: DASHBOARD_MOTION_EASE });
-    translateY.value = withTiming(0, { duration: DASHBOARD_MOTION_DURATION, easing: DASHBOARD_MOTION_EASE });
-    translateX.value = withTiming(0, { duration: DASHBOARD_MOTION_DURATION, easing: DASHBOARD_MOTION_EASE });
-  }, [isFocused, currentRoute, reduceMotion, variant, opacity, translateY, translateX]);
+    opacity.value = withTiming(1, { duration: SETTLE_FADE_IN_MS, easing: DASHBOARD_MOTION_EASE });
+    translateY.value = withTiming(0, { duration: SETTLE_FADE_IN_MS, easing: DASHBOARD_MOTION_EASE });
+    translateX.value = withTiming(0, { duration: SETTLE_FADE_IN_MS, easing: DASHBOARD_MOTION_EASE });
+  }, [isFocused, isTabSurface, currentRoute, reduceMotion, opacity, translateY, translateX]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,

@@ -1,51 +1,53 @@
-import { useEffect, useRef, useState } from 'react';
-import { View, Animated, Easing } from 'react-native';
-import { DASHBOARD_MOTION_DURATION } from '../../lib/dashboardMotion';
+import { useEffect } from 'react';
+import { View } from 'react-native';
+import Animated, {
+  interpolate,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
+import { DASHBOARD_MOTION_DURATION, DASHBOARD_MOTION_EASE } from '../../lib/dashboardMotion';
 import { useReducedMotion } from '../../lib/useReducedMotion';
-
-const COLLAPSE_EASE = Easing.bezier(0.16, 1, 0.3, 1);
 
 /**
  * Height-based expand/collapse — animates open and closed (budget-table pattern).
+ * Content height is stored in a shared value so collapse-out stays smooth across re-renders.
  */
 export default function AnimatedCollapse({ visible, children, style, fallbackHeight = 72 }) {
   const reduceMotion = useReducedMotion();
-  const progress = useRef(new Animated.Value(visible ? 1 : 0)).current;
-  const [measuredHeight, setMeasuredHeight] = useState(0);
-  const targetHeight = measuredHeight > 0 ? measuredHeight : fallbackHeight;
+  const progress = useSharedValue(0);
+  const contentHeight = useSharedValue(fallbackHeight);
 
   useEffect(() => {
-    if (reduceMotion) return;
+    if (reduceMotion) {
+      progress.value = visible ? 1 : 0;
+      return;
+    }
 
-    Animated.timing(progress, {
-      toValue: visible ? 1 : 0,
+    progress.value = withTiming(visible ? 1 : 0, {
       duration: DASHBOARD_MOTION_DURATION,
-      easing: COLLAPSE_EASE,
-      useNativeDriver: false,
-    }).start();
+      easing: DASHBOARD_MOTION_EASE,
+    });
   }, [visible, reduceMotion, progress]);
 
-  const animatedHeight = progress.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, targetHeight],
-  });
-
-  const animatedOpacity = progress.interpolate({
-    inputRange: [0, 0.35, 1],
-    outputRange: [0, 0.85, 1],
-  });
+  const animatedStyle = useAnimatedStyle(() => ({
+    height: interpolate(progress.value, [0, 1], [0, contentHeight.value]),
+    opacity: interpolate(progress.value, [0, 0.35, 1], [0, 0.85, 1]),
+    overflow: 'hidden',
+  }));
 
   if (reduceMotion) {
     return visible ? <View style={style}>{children}</View> : null;
   }
 
   return (
-    <Animated.View style={[{ overflow: 'hidden', height: animatedHeight, opacity: animatedOpacity }, style]}>
+    <Animated.View style={[animatedStyle, style]}>
       <View
         onLayout={(event) => {
           const nextHeight = event.nativeEvent.layout.height;
-          if (nextHeight > 0 && Math.abs(nextHeight - measuredHeight) > 1) {
-            setMeasuredHeight(nextHeight);
+          if (nextHeight > 0 && Math.abs(nextHeight - contentHeight.value) > 1) {
+            // Small buffer so card borders are not clipped by overflow: hidden.
+            contentHeight.value = nextHeight + 4;
           }
         }}
       >

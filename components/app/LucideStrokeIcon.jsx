@@ -1,10 +1,11 @@
-import Svg, { Path, Rect, Circle, Line } from 'react-native-svg';
+import Svg, { Path, Rect, Circle, Line, Polyline } from 'react-native-svg';
 
 const ELEMENTS = {
   path: Path,
   rect: Rect,
   circle: Circle,
   line: Line,
+  polyline: Polyline,
 };
 
 /**
