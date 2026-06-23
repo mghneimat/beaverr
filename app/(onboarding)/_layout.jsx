@@ -53,7 +53,7 @@ export default function OnboardingLayout() {
 
       {/* Section 7 — Children's Costs */}
       <Stack.Screen name="splash-children" />
-      <Stack.Screen name="childrenCosts" />
+      <Stack.Screen name="children-costs" />
 
       {/* Section 8 — Pets */}
       <Stack.Screen name="splash-pets" />

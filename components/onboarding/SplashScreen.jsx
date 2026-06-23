@@ -40,6 +40,7 @@ export default function SplashScreen({
   useOnboardingScreen();
   const computedProgress = useMonotonicOnboardingProgress();
   const progress = progressProp ?? computedProgress;
+
   const fillAnim = useRef(new Animated.Value(progress !== undefined ? progress : 0)).current;
   const hasProgress = progress !== undefined;
   const headingFontSize = layout.isNarrow

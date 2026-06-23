@@ -35,13 +35,17 @@ export function ThemeProvider({ children }) {
   useEffect(() => {
     let mounted = true;
     (async () => {
-      const prefs = await getUiPreferences();
-      if (!mounted) return;
-      const initial = prefs.colorScheme === 'dark' ? 'dark' : 'light';
-      applyActiveTheme(initial);
-      setModeState(initial);
-      setReady(true);
-      hideWebBootLoader();
+      try {
+        const prefs = await getUiPreferences();
+        if (!mounted) return;
+        const initial = prefs.colorScheme === 'dark' ? 'dark' : 'light';
+        applyActiveTheme(initial);
+        setModeState(initial);
+        setReady(true);
+        hideWebBootLoader();
+      } catch (err) {
+        console.error('Error loading UI preferences:', err);
+      }
     })();
     return () => { mounted = false; };
   }, []);

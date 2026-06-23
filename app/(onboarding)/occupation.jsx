@@ -142,6 +142,17 @@ export default function OccupationScreen() {
 
   const resumeRoute = buildOccupationResumeRoute(step);
 
+  const handleBack = async () => {
+    if (step === 'partner') {
+      setStep('user');
+      setValidationError('');
+    } else {
+      await getData('beaverr_location');
+      await getData('beaverr_household');
+      navigateBack();
+    }
+  };
+
   const sharedScreenProps = {
     chapter: t('onboarding.location.chapter'),
     onContinue: handleContinue,
@@ -150,17 +161,6 @@ export default function OccupationScreen() {
     setValidationError,
     progressStep: step,
     resumeRoute,
-  };
-
-  const handleBack = async () => {
-    if (step === 'partner') {
-      setStep('user');
-      setValidationError('');
-    } else {
-      const location = await getData('beaverr_location');
-      const household = await getData('beaverr_household');
-      navigateBack();
-    }
   };
 
   // Q4: User occupation

@@ -31,7 +31,6 @@ export default function Index() {
         }
       } catch (error) {
         console.error('Error checking onboarding:', error);
-        // Default to onboarding if error
         router.replace('/(onboarding)/welcome');
       }
     }
