@@ -47,6 +47,7 @@ import {
   vehicleRequiresInsurance,
   withMaintenanceIds,
 } from '../../lib/transport/transportFlow';
+import { normalizeOnboardingStep } from '../../lib/onboardingStepAliases';
 
 const INSURANCE_CONTRACT_FIELD_MAP = {
   premium: 'insurancePremium',
@@ -371,7 +372,7 @@ export default function TransportScreen() {
           }}
         >
           <Text style={{ flex: 1, fontSize: 15, color: C.text, fontWeight: '500' }}>
-            {t(CATEGORY_LABELS[cat])}
+            {t(getCategoryLabelKey(cat))}
           </Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 0 }}>
             <OnboardingPressable
@@ -604,6 +605,9 @@ export default function TransportScreen() {
   // ─── Render: vehicleService — MOT / STK and maintenance ──────────────
 
   const renderMaintenanceItemsList = (prefix) => {
+    const localePrefix = normalizeOnboardingStep('transport', prefix) || prefix;
+    const descKey = `onboarding.transport.${localePrefix}.maintenanceDescPlaceholder`;
+    const descText = t(descKey);
     const items = withMaintenanceIds(currentVehicle?.maintenanceItems, String(vehicleIndex));
     const activeCount = items.filter((item) => item.visible !== false).length;
 
@@ -626,14 +630,14 @@ export default function TransportScreen() {
               marginBottom: 10,
             }}>
               <LabeledInput
-                label={t(`onboarding.transport.${prefix}.maintenanceDescPlaceholder`)}
+                label={descText}
                 value={item.description}
                 onChangeText={(val) => updateMaintenanceItem(idx, { description: val })}
-                placeholder={t(`onboarding.transport.${prefix}.maintenanceDescPlaceholder`)}
+                placeholder={descText}
                 containerStyle={{ marginBottom: 10 }}
               />
               <Text style={{ ...T.fieldLabel, marginBottom: S.labelGap }}>
-                {t(`onboarding.transport.${prefix}.maintenanceCostLabel`)}
+                {t(`onboarding.transport.${localePrefix}.maintenanceCostLabel`)}
               </Text>
               <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center', marginBottom: 10, width: '100%' }}>
                 <View style={{ flex: 1, minWidth: 0 }}>
@@ -641,8 +645,8 @@ export default function TransportScreen() {
                     value={item.cost}
                     onChangeText={(val) => updateMaintenanceItem(idx, { cost: val })}
                     numeric
-                    placeholder={t(`onboarding.transport.${prefix}.maintenanceCostPlaceholder`)}
-                    accessibilityLabel={t(`onboarding.transport.${prefix}.maintenanceCostLabel`)}
+                    placeholder={t(`onboarding.transport.${localePrefix}.maintenanceCostPlaceholder`)}
+                    accessibilityLabel={t(`onboarding.transport.${localePrefix}.maintenanceCostLabel`)}
                     currency={currency}
                     containerStyle={{ marginBottom: 0, width: '100%' }}
                   />
@@ -654,7 +658,7 @@ export default function TransportScreen() {
                 )}
               </View>
               <Text style={{ ...T.fieldLabel, marginBottom: S.labelGap }}>
-                {t(`onboarding.transport.${prefix}.maintenanceDateLabel`)}
+                {t(`onboarding.transport.${localePrefix}.maintenanceDateLabel`)}
                 <Text style={{ fontWeight: '400', fontSize: 11, color: C.muted }}>
                   {` (${t('common.optional')})`}
                 </Text>
@@ -671,7 +675,7 @@ export default function TransportScreen() {
           <CardHeaderActionButton
             label={t('common.add')}
             onPress={addMaintenanceItem}
-            accessibilityLabel={t(`onboarding.transport.${prefix}.addItem`)}
+            accessibilityLabel={t(`onboarding.transport.${localePrefix}.addItem`)}
             style={{ alignSelf: 'stretch', minWidth: undefined, width: '100%' }}
           />
         </View>

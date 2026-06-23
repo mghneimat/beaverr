@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { View, Text } from 'react-native';
 import OnboardingPressable from '../../components/onboarding/OnboardingPressable';
 import { listRowBg } from '../../components/onboarding/pressableFeedback';

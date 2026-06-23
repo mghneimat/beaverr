@@ -1273,3 +1273,8 @@
 [23-06-2026 12:05] [Composer] Fix splash-household Continue — persist resumeRoute/recordVisit before navigateForward; add household mount logs; fix children-costs stack screen name | files: app/(onboarding)/splash-household.jsx, app/(onboarding)/household.jsx, app/(onboarding)/_layout.jsx, lib/onboardingNavigation.js
 [23-06-2026 12:30] [Composer] Fix household infinite re-render — useOnboardingMultiStep useFocusEffect re-fired every render because inline onFocus/loadStepFromStorage were unstable deps | files: lib/useOnboardingMultiStep.js, app/(onboarding)/household.jsx
 [23-06-2026 12:45] [Composer] Remove debug-session instrumentation after splash-household freeze fix verified | files: app/(onboarding)/household.jsx, app/(onboarding)/splash-household.jsx, lib/onboardingNavigation.js, components/onboarding/SplashScreen.jsx, lib/theme/ThemeProvider.jsx, app/_layout.jsx, app/index.jsx, lib/i18n.js
+[23-06-2026 13:00] [Composer] Fix income screen ReferenceError — add missing useEffect import used by other-income search effect | files: app/(onboarding)/income.jsx
+[23-06-2026 13:15] [Composer] Fix transport vehicleCounts crash — use imported getCategoryLabelKey instead of undefined CATEGORY_LABELS | files: app/(onboarding)/transport.jsx
+[23-06-2026 13:20] [Composer] Remove debug instrumentation from transport vehicleCounts after fix verified | files: app/(onboarding)/transport.jsx
+[23-06-2026 13:30] [Composer] Fix transport maintenance labels showing raw i18n keys — map step id vehicle-summary to locale prefix vehicleService | files: app/(onboarding)/transport.jsx
+[23-06-2026 13:35] [Composer] Remove debug instrumentation from transport maintenance i18n fix after verification | files: app/(onboarding)/transport.jsx
