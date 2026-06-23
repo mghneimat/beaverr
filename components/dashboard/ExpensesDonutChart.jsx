@@ -12,9 +12,10 @@ import Animated, {
 } from 'react-native-reanimated';
 import { C, T, tabularNums } from '../../constants/onboarding-theme';
 import { formatSharePct } from '../../lib/formatSharePct';
-import { donutSegmentPath } from '../../lib/donutSegment';
+import { donutSegmentPath, buildDonutArcMeta } from '../../lib/donutSegment';
 import { useBreakdownTableColumns } from '../../lib/dashboardLayout';
 import { formatDashboardAmount } from './formatDashboardAmount';
+import TableHorizontalScroll, { donutLegendTableMinWidth } from './TableHorizontalScroll';
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 
@@ -123,7 +124,7 @@ function LegendRows({
 }
 
 function AnimatedDonutSegment({
-  cx, cy, outerR, innerR, startAngle, sweep, fill, delay,
+  cx, cy, outerR, innerR, startAngle, drawSweep, fill, delay,
 }) {
   const progress = useSharedValue(0);
 
@@ -135,13 +136,13 @@ function AnimatedDonutSegment({
   }, [delay, progress]);
 
   const animatedProps = useAnimatedProps(() => {
-    const end = startAngle + sweep * progress.value;
+    const end = startAngle + drawSweep * progress.value;
     return {
       d: donutSegmentPath(cx, cy, outerR, innerR, startAngle, end),
     };
   });
 
-  return <AnimatedPath animatedProps={animatedProps} fill={fill} />;
+  return <AnimatedPath animatedProps={animatedProps} fill={fill} stroke={fill} strokeWidth={1} />;
 }
 
 /**
@@ -159,8 +160,11 @@ export default function ExpensesDonutChart({
   shareLabel,
   chartKey,
 }) {
-  const stacked = true;
-  const { amountColW, shareColW } = useBreakdownTableColumns();
+  const { isPhone, amountColW, shareColW } = useBreakdownTableColumns();
+  const legendAmountW = Math.max(amountColW, 108);
+  const legendShareW = Math.max(shareColW, 56);
+  const stacked = !isPhone;
+  const legendMinWidth = donutLegendTableMinWidth(NAME_COL_W, legendAmountW, legendShareW, LEGEND_COL_GAP);
 
   const hasData = total > 0 && segments.length > 0;
   const displayTotal = formatDashboardAmount(total, frequency, currency, daysInMonth);
@@ -187,19 +191,12 @@ export default function ExpensesDonutChart({
   }));
 
   const arcMeta = useMemo(() => {
-    let angle = 0;
-    return segments.map((seg, i) => {
-      const sweep = (seg.value / total) * 360;
-      const start = angle;
-      angle += sweep;
-      return {
-        key: seg.key,
-        start,
-        sweep,
-        fill: CHART_COLORS[i % CHART_COLORS.length],
-        delay: i * SEGMENT_STAGGER_MS,
-      };
-    });
+    const arcs = buildDonutArcMeta(segments, total);
+    return arcs.map((arc, i) => ({
+      ...arc,
+      fill: CHART_COLORS[i % CHART_COLORS.length],
+      delay: i * SEGMENT_STAGGER_MS,
+    }));
   }, [segments, total]);
 
   return (
@@ -232,6 +229,14 @@ export default function ExpensesDonutChart({
               </>
             ) : (
               <G>
+                <Circle
+                  cx={CX}
+                  cy={CY}
+                  r={(OUTER_R + INNER_R) / 2}
+                  fill="none"
+                  stroke={C.border}
+                  strokeWidth={OUTER_R - INNER_R}
+                />
                 {arcMeta.map((arc) => (
                   <AnimatedDonutSegment
                     key={arc.key}
@@ -240,7 +245,7 @@ export default function ExpensesDonutChart({
                     outerR={OUTER_R}
                     innerR={INNER_R}
                     startAngle={arc.start}
-                    sweep={arc.sweep}
+                    drawSweep={arc.drawSweep}
                     fill={arc.fill}
                     delay={arc.delay}
                   />
@@ -261,9 +266,10 @@ export default function ExpensesDonutChart({
         </Animated.View>
 
         {hasData ? (
+          <TableHorizontalScroll minWidth={legendMinWidth}>
           <View style={{
-            width: '100%',
-            maxWidth: LEGEND_MAX_W,
+            width: isPhone ? legendMinWidth : '100%',
+            maxWidth: isPhone ? undefined : LEGEND_MAX_W,
             alignSelf: 'center',
             alignItems: 'center',
           }}>
@@ -272,8 +278,8 @@ export default function ExpensesDonutChart({
               amountLabel={amountLabel}
               shareLabel={shareLabel}
               stacked={stacked}
-              amountColW={amountColW}
-              shareColW={shareColW}
+              amountColW={legendAmountW}
+              shareColW={legendShareW}
             />
             <LegendRows
               segments={segments}
@@ -282,10 +288,11 @@ export default function ExpensesDonutChart({
               currency={currency}
               daysInMonth={daysInMonth}
               stacked={stacked}
-              amountColW={amountColW}
-              shareColW={shareColW}
+              amountColW={legendAmountW}
+              shareColW={legendShareW}
             />
           </View>
+          </TableHorizontalScroll>
         ) : (
           <Text style={{ ...T.helper }}>{emptyLabel}</Text>
         )}

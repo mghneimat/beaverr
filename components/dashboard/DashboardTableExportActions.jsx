@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
 import { useI18n } from '../../lib/i18n';
+import { useDashboardLayout } from '../../lib/dashboardLayout';
 import { C, R } from '../../constants/onboarding-theme';
 import { elevationShadow } from '../../lib/shadow';
 import {
@@ -16,9 +17,10 @@ import {
   cardHeaderActionStyle,
 } from './CardHeaderActionButton';
 
-const MENU_WIDTH = 260;
+const MENU_WIDTH_DESKTOP = 260;
+const MENU_WIDTH_PHONE_MAX = 200;
 
-function ExportOption({ format, onPress }) {
+function ExportOption({ format, onPress, compact = false }) {
   const [hovered, setHovered] = useState(false);
   const [pressed, setPressed] = useState(false);
 
@@ -37,9 +39,9 @@ function ExportOption({ format, onPress }) {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        minHeight: 40,
-        paddingHorizontal: 14,
-        paddingVertical: 10,
+        minHeight: compact ? 36 : 40,
+        paddingHorizontal: compact ? 12 : 14,
+        paddingVertical: compact ? 8 : 10,
         borderRadius: R.pill,
         marginHorizontal: 4,
         backgroundColor: active ? C.overlayHover : 'transparent',
@@ -63,6 +65,7 @@ function ExportOption({ format, onPress }) {
  */
 export default function DashboardTableExportActions({ onExportCsv, onExportXlsx, onExportPdf }) {
   const { t } = useI18n();
+  const { isPhone } = useDashboardLayout();
   const [open, setOpen] = useState(false);
   const [anchor, setAnchor] = useState(null);
   const triggerRef = useRef(null);
@@ -95,14 +98,20 @@ export default function DashboardTableExportActions({ onExportCsv, onExportXlsx,
     onPress();
   };
 
+  const menuWidth = anchor
+    ? (isPhone
+      ? Math.min(MENU_WIDTH_PHONE_MAX, Math.max(anchor.width + 16, 148))
+      : MENU_WIDTH_DESKTOP)
+    : MENU_WIDTH_DESKTOP;
+
   const menuTop = anchor ? anchor.y + anchor.height + 8 : 0;
   const menuLeft = anchor
-    ? Math.max(8, anchor.x + anchor.width - MENU_WIDTH)
+    ? Math.max(8, anchor.x + anchor.width - menuWidth)
     : 0;
 
   return (
     <>
-      <View ref={triggerRef} collapsable={false} style={{ flexShrink: 0 }}>
+      <View ref={triggerRef} collapsable={false} style={{ flexShrink: isPhone ? 1 : 0 }}>
         <Pressable
           onPress={() => (open ? close() : openMenu())}
           accessibilityRole="button"
@@ -112,6 +121,7 @@ export default function DashboardTableExportActions({ onExportCsv, onExportXlsx,
             pressed,
             hovered,
             active: open,
+            compact: isPhone,
           })}
         >
           <Text style={cardHeaderActionLabelStyle(open)}>
@@ -142,7 +152,7 @@ export default function DashboardTableExportActions({ onExportCsv, onExportXlsx,
                 position: 'absolute',
                 top: menuTop,
                 left: menuLeft,
-                width: MENU_WIDTH,
+                width: menuWidth,
                 backgroundColor: C.surface,
                 borderRadius: R.card,
                 paddingVertical: 6,
@@ -157,6 +167,7 @@ export default function DashboardTableExportActions({ onExportCsv, onExportXlsx,
                   key={opt.key}
                   format={opt.format}
                   onPress={() => handleSelect(opt.onPress)}
+                  compact={isPhone}
                 />
               ))}
             </View>

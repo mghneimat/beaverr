@@ -51,19 +51,21 @@ const DatePartSelectWeb = forwardRef(function DatePartSelectWeb(
     color: value ? C.text : C.placeholder,
     paddingVertical: INPUT_FIELD.paddingVertical,
     paddingLeft: INPUT_FIELD.paddingHorizontal,
-    paddingRight: INPUT_FIELD.paddingHorizontal + 28,
+    paddingRight: INPUT_FIELD.paddingHorizontal + 22,
     border: 'none',
     outline: 'none',
     backgroundColor: 'transparent',
     appearance: 'none',
     WebkitAppearance: 'none',
-    textOverflow: 'ellipsis',
     touchAction: 'manipulation',
   };
 
   return (
     <View
-      style={{ flex, minWidth: 0 }}
+      style={{
+        flex,
+        minWidth: partKind === 'year' ? 72 : 0,
+      }}
       dataSet={{ datePart: partKind }}
     >
       <Text style={{ ...T.fieldLabel, marginBottom: S.labelGap }}>{label}</Text>

@@ -112,10 +112,9 @@ export default function SplitDateFields({
     };
   }, [focusedCount, setElevated, onElevatedChange]);
 
-  const mobileWeb = isMobileWebTouch();
-  const dayFlex = mobileWeb && showDay ? 0.75 : 1;
-  const monthFlex = mobileWeb ? 1.35 : 1;
-  const yearFlex = mobileWeb ? 0.9 : 1;
+  const dayFlex = 1;
+  const monthFlex = 1;
+  const yearFlex = 1;
 
   const emit = (d, m, y) => {
     if (errorText) {

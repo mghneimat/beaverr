@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { View, Pressable, Platform } from 'react-native';
+import { View, Pressable, ScrollView, Platform } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
 import Animated, {
   interpolate,
@@ -240,19 +240,26 @@ export default function StashTabSelectField({
       </Pressable>
 
       <AnimatedCollapse visible={listOpen} style={{ marginTop: 0 }}>
-        <View style={{ gap: 8, paddingTop: 4, paddingBottom: 2 }}>
-          {options.map((option, index) => (
-            <StashTabSelectRow
-              key={option.id}
-              option={option}
-              currency={currency}
-              selected={selectedId === option.id}
-              onPress={() => handleSelect(option.id)}
-              index={index}
-              animationKey={listOpen ? `stash-list-${listAnimationKey}` : null}
-            />
-          ))}
-        </View>
+        <ScrollView
+          style={{ maxHeight: 240 }}
+          nestedScrollEnabled
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator
+        >
+          <View style={{ gap: 8, paddingTop: 4, paddingBottom: 2 }}>
+            {options.map((option, index) => (
+              <StashTabSelectRow
+                key={option.id}
+                option={option}
+                currency={currency}
+                selected={selectedId === option.id}
+                onPress={() => handleSelect(option.id)}
+                index={index}
+                animationKey={listOpen ? `stash-list-${listAnimationKey}` : null}
+              />
+            ))}
+          </View>
+        </ScrollView>
       </AnimatedCollapse>
     </View>
   );

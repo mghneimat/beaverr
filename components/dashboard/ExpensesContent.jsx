@@ -3,6 +3,7 @@ import { View } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useI18n } from '../../lib/i18n';
 import { useDashboardScroll } from '../../lib/dashboardScroll';
+import { useDashboardLayout } from '../../lib/dashboardLayout';
 import { getCurrencySymbol } from '../../lib/currency';
 import { getTabInsight } from '../../lib/insights';
 import { committedMonthlyLoad } from '../../lib/finance';
@@ -16,7 +17,7 @@ import {
 } from '../../lib/expensePanels';
 import TabHeroMetric from './TabHeroMetric';
 import AIInsightSection from './AIInsightSection';
-import ExpenseUnderlineTabBar from './ExpenseUnderlineTabBar';
+import ExpenseUnderlineTabBar, { TrailingActionChip } from './ExpenseUnderlineTabBar';
 import ExpenseAddCategoryPicker from './ExpenseAddCategoryPicker';
 import ExpensesCategoryPanel from './ExpensesCategoryPanel';
 import DashboardTabPanel from './DashboardTabPanel';
@@ -38,6 +39,7 @@ export default function ExpensesContent({ bundle, frequency = 'monthly', setFreq
   const deepEditRow = Array.isArray(params.editRow) ? params.editRow[0] : params.editRow;
   const deepAdd = Array.isArray(params.add) ? params.add[0] : params.add;
   const { scrollToAnchor } = useDashboardScroll();
+  const { isPhone } = useDashboardLayout();
   const expenseDetailRef = useRef(null);
   const currency = getCurrencySymbol(bundle.financials.currencyCode);
   const { financials, insights } = bundle;
@@ -230,17 +232,21 @@ export default function ExpensesContent({ bundle, frequency = 'monthly', setFreq
       </SurfaceCard>
 
       <TabSectionStack tight>
-        <ExpenseUnderlineTabBar
-          tabs={primaryTabs}
-          activeKey={addFlowActive ? null : primaryTab}
-          onChange={handlePrimaryTabChange}
-          accessibilityLabel={t('dashboard.expensesScreen.tabs.primaryA11y')}
-          trailingAction={{
+        <TrailingActionChip
+          action={{
             label: t('dashboard.expensesScreen.tabs.add'),
             active: addFlowActive,
             onPress: toggleAddFlow,
             accessibilityLabel: t('dashboard.expensesScreen.tabs.addA11y'),
           }}
+          fullWidth={isPhone}
+        />
+
+        <ExpenseUnderlineTabBar
+          tabs={primaryTabs}
+          activeKey={addFlowActive ? null : primaryTab}
+          onChange={handlePrimaryTabChange}
+          accessibilityLabel={t('dashboard.expensesScreen.tabs.primaryA11y')}
         />
 
         {!isOverview && !addFlowActive ? (

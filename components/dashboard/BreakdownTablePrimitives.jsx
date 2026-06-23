@@ -21,10 +21,31 @@ import { asArray } from '../../lib/asArray';
 const PILL_ICON_SLOT = 36;
 const PILL_CHEVRON_SLOT = 32;
 const PILL_ROW_GAP = 10;
-/** Proportional pill-table columns — share sits left of amount, not pinned to the far edge. */
+/** Proportional pill-table columns — amount before share on the row. */
 const PILL_NAME_FLEX = 1.2;
 const PILL_SHARE_FLEX = 0.85;
 const PILL_AMOUNT_FLEX = 1.05;
+const PILL_SCROLL_NAME_W = 140;
+
+function pillNameColumnProps(scrollLayout) {
+  return scrollLayout
+    ? { width: PILL_SCROLL_NAME_W, align: 'left' }
+    : { flex: PILL_NAME_FLEX, align: 'left' };
+}
+
+function pillShareColumnProps(scrollLayout, shareColMinW) {
+  const scrollW = Math.max(shareColMinW, 56);
+  return scrollLayout
+    ? { width: scrollW, align: 'center' }
+    : { flex: PILL_SHARE_FLEX, minWidth: shareColMinW, align: 'center' };
+}
+
+function pillAmountColumnProps(scrollLayout, amountColMinW) {
+  const scrollW = Math.max(amountColMinW, 108);
+  return scrollLayout
+    ? { width: scrollW, align: 'right' }
+    : { flex: PILL_AMOUNT_FLEX, minWidth: amountColMinW, align: 'right' };
+}
 
 function pillColumnHeaderTextStyle(align = 'left') {
   return {
@@ -191,6 +212,7 @@ export function LedgerCardRow({
       {detailColumns.map((col) => {
         const rendered = renderCell ? renderCell(col) : cells[col.key];
         if (rendered == null || rendered === '') return null;
+        const detailIndent = leading ? PILL_ICON_SLOT + PILL_ROW_GAP : 0;
         return (
           <View
             key={col.key}
@@ -199,6 +221,7 @@ export function LedgerCardRow({
               justifyContent: 'space-between',
               alignItems: 'flex-start',
               gap: 12,
+              marginLeft: detailIndent,
             }}
           >
             <Text style={{ fontSize: 12, fontWeight: '600', color: metaColor, flex: 1 }} numberOfLines={2}>
@@ -264,23 +287,24 @@ export function BreakdownPillColumnHeaders({
   shareLabel,
   amountColMinW,
   shareColMinW,
+  scrollLayout = false,
 }) {
   return (
     <BreakdownRow style={{ paddingHorizontal: 14, marginBottom: 8, gap: PILL_ROW_GAP }}>
       <View style={{ width: PILL_ICON_SLOT, flexShrink: 0 }} />
-      <BreakdownCell flex={PILL_NAME_FLEX} align="left">
+      <BreakdownCell {...pillNameColumnProps(scrollLayout)}>
         <Text style={pillColumnHeaderTextStyle('left')}>
           {nameLabel}
         </Text>
       </BreakdownCell>
-      <BreakdownCell flex={PILL_SHARE_FLEX} minWidth={shareColMinW} align="center">
-        <Text style={pillColumnHeaderTextStyle('center')}>
-          {shareLabel}
-        </Text>
-      </BreakdownCell>
-      <BreakdownCell flex={PILL_AMOUNT_FLEX} minWidth={amountColMinW} align="right">
+      <BreakdownCell {...pillAmountColumnProps(scrollLayout, amountColMinW)}>
         <Text style={pillColumnHeaderTextStyle('right')}>
           {amountLabel}
+        </Text>
+      </BreakdownCell>
+      <BreakdownCell {...pillShareColumnProps(scrollLayout, shareColMinW)}>
+        <Text style={pillColumnHeaderTextStyle('center')}>
+          {shareLabel}
         </Text>
       </BreakdownCell>
       <View style={{ width: PILL_CHEVRON_SLOT, flexShrink: 0 }} />
@@ -370,6 +394,7 @@ function BreakdownPillRowCells({
   selected,
   amountColMinW,
   shareColMinW,
+  scrollLayout = false,
   pressed = false,
   hovered = false,
 }) {
@@ -383,19 +408,19 @@ function BreakdownPillRowCells({
   return (
     <>
       <BreakdownSectionIcon sectionKey={sectionKey} scope={scope} selected={selected} />
-      <BreakdownCell flex={PILL_NAME_FLEX} align="left">
+      <BreakdownCell {...pillNameColumnProps(scrollLayout)}>
         <Text style={{ fontSize: 15, fontWeight: '600', color: colors.label, textAlign: 'left', width: '100%' }} numberOfLines={2}>
           {label}
         </Text>
       </BreakdownCell>
-      <BreakdownCell flex={PILL_SHARE_FLEX} minWidth={shareColMinW} align="center">
-        <Text style={{ fontSize: 13, fontWeight: '500', color: colors.meta, textAlign: 'center', width: '100%', ...tabularNums }} numberOfLines={1}>
-          {share}
-        </Text>
-      </BreakdownCell>
-      <BreakdownCell flex={PILL_AMOUNT_FLEX} minWidth={amountColMinW} align="right">
+      <BreakdownCell {...pillAmountColumnProps(scrollLayout, amountColMinW)}>
         <Text style={{ fontSize: 14, fontWeight: '700', color: colors.amount, textAlign: 'right', width: '100%', ...tabularNums }} numberOfLines={1}>
           {amount}
+        </Text>
+      </BreakdownCell>
+      <BreakdownCell {...pillShareColumnProps(scrollLayout, shareColMinW)}>
+        <Text style={{ fontSize: 13, fontWeight: '500', color: colors.meta, textAlign: 'center', width: '100%', ...tabularNums }} numberOfLines={1}>
+          {share}
         </Text>
       </BreakdownCell>
     </>
@@ -421,6 +446,7 @@ export function BreakdownPillRow({
   selectA11yLabel,
   amountColMinW,
   shareColMinW,
+  scrollLayout = false,
 }) {
   const rowAnimStyle = usePillRowSelectMotion(selected);
   const [rowHovered, setRowHovered] = useState(false);
@@ -442,6 +468,7 @@ export function BreakdownPillRow({
         selected={selected}
         amountColMinW={amountColMinW}
         shareColMinW={shareColMinW}
+        scrollLayout={scrollLayout}
         pressed={bodyPressed}
         hovered={rowHovered}
       />
@@ -535,30 +562,25 @@ export function BreakdownPillRow({
         ...(Platform.OS === 'web' && onSelect ? { cursor: 'pointer' } : {}),
       })}
     >
-      {({ pressed, hovered }) => {
-        const colors = pillRowColors({ index, selected, pressed, hovered: Platform.OS === 'web' && hovered });
-        return (
-          <>
-            <BreakdownSectionIcon sectionKey={sectionKey} scope={scope} selected={selected} />
-            <BreakdownCell flex={PILL_NAME_FLEX} align="left">
-              <Text style={{ fontSize: 15, fontWeight: '600', color: colors.label, textAlign: 'left', width: '100%' }} numberOfLines={2}>
-                {label}
-              </Text>
-            </BreakdownCell>
-            <BreakdownCell flex={PILL_SHARE_FLEX} minWidth={shareColMinW} align="center">
-              <Text style={{ fontSize: 13, fontWeight: '500', color: colors.meta, textAlign: 'center', width: '100%', ...tabularNums }} numberOfLines={1}>
-                {share}
-              </Text>
-            </BreakdownCell>
-            <BreakdownCell flex={PILL_AMOUNT_FLEX} minWidth={amountColMinW} align="right">
-              <Text style={{ fontSize: 14, fontWeight: '700', color: colors.amount, textAlign: 'right', width: '100%', ...tabularNums }} numberOfLines={1}>
-                {amount}
-              </Text>
-            </BreakdownCell>
-            <View style={{ width: PILL_CHEVRON_SLOT, flexShrink: 0 }} />
-          </>
-        );
-      }}
+      {({ pressed, hovered }) => (
+        <>
+          <BreakdownPillRowCells
+            sectionKey={sectionKey}
+            scope={scope}
+            label={label}
+            amount={amount}
+            share={share}
+            index={index}
+            selected={selected}
+            amountColMinW={amountColMinW}
+            shareColMinW={shareColMinW}
+            scrollLayout={scrollLayout}
+            pressed={pressed}
+            hovered={hovered}
+          />
+          <View style={{ width: PILL_CHEVRON_SLOT, flexShrink: 0 }} />
+        </>
+      )}
     </Pressable>
     </Animated.View>
   );
@@ -571,6 +593,7 @@ export function BreakdownPillSubRow({
   share,
   amountColMinW,
   shareColMinW,
+  scrollLayout = false,
   isLast = false,
 }) {
   return (
@@ -585,19 +608,19 @@ export function BreakdownPillSubRow({
       width: '100%',
       alignSelf: 'stretch',
     }}>
-      <BreakdownCell flex={PILL_NAME_FLEX} align="left">
+      <BreakdownCell {...pillNameColumnProps(scrollLayout)}>
         <Text style={{ fontSize: 13, color: C.muted, textAlign: 'left', width: '100%' }} numberOfLines={2}>
           {label}
         </Text>
       </BreakdownCell>
-      <BreakdownCell flex={PILL_SHARE_FLEX} minWidth={shareColMinW} align="center">
-        <Text style={{ fontSize: 12, color: C.muted, textAlign: 'center', width: '100%', ...tabularNums }} numberOfLines={1}>
-          {share}
-        </Text>
-      </BreakdownCell>
-      <BreakdownCell flex={PILL_AMOUNT_FLEX} minWidth={amountColMinW} align="right">
+      <BreakdownCell {...pillAmountColumnProps(scrollLayout, amountColMinW)}>
         <Text style={{ fontSize: 13, fontWeight: '600', color: C.text, textAlign: 'right', width: '100%', ...tabularNums }} numberOfLines={1}>
           {amount}
+        </Text>
+      </BreakdownCell>
+      <BreakdownCell {...pillShareColumnProps(scrollLayout, shareColMinW)}>
+        <Text style={{ fontSize: 12, color: C.muted, textAlign: 'center', width: '100%', ...tabularNums }} numberOfLines={1}>
+          {share}
         </Text>
       </BreakdownCell>
       <View style={{ width: PILL_CHEVRON_SLOT, flexShrink: 0 }} />
@@ -903,9 +926,10 @@ export function BreakdownSectionOpenAction(props) {
 }
 
 /** Expand/collapse all — compact control for breakdown card headers. */
-export function BreakdownExpandAllButton({ allExpanded, onToggle, t }) {
+export function BreakdownExpandAllButton({ allExpanded, onToggle, t, compact = false }) {
   return (
     <CardHeaderActionButton
+      compact={compact}
       label={allExpanded
         ? t('onboarding.budget.budgetSplit.collapseAll')
         : t('onboarding.budget.budgetSplit.expandAll')}

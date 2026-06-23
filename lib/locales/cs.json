@@ -799,7 +799,8 @@
       "renewReserveTightWarning": "Obnova je za pouhých {{months}} měsíců a pravděpodobně nemáte dostatek úspor (chybí přibližně {{shortfall}}). Pokud je navrhovaná částka příliš vysoká, můžete zvolit nižší měsíční částku.",
       "budgetForRenewLabel": "Zahrnout tuto měsíční rezervu do rozpočtu?",
       "budgetForRenewHelper": "Tuto částku budeme odečítat z vašeho denního kapesného do konce smlouvy.",
-      "renewUseSuggested": "Použít navrhovanou částku ({{amount}}/měsíc)",
+      "renewUseSuggested": "Použít navrhovanou částku",
+      "renewUseSuggestedAmount": "{{amount}}/měsíc",
       "renewUseCustom": "Nastavit nižší měsíční částku",
       "renewUseCustomHelper": "Zvolte tuto možnost, pokud je navrhovaná částka pro váš rozpočet příliš vysoká.",
       "renewCustomMonthlyLabel": "Vaše měsíční rezerva",
@@ -2332,13 +2333,15 @@
         "target": "Cílová částka",
         "validationName": "Zadejte název cíle.",
         "validationTarget": "Zadejte cílovou částku větší než nula.",
-        "saveError": "Cíl se nepodařilo uložit. Zkuste to znovu."
+        "saveError": "Cíl se nepodařilo uložit. Zkuste to znovu.",
+        "closeA11y": "Zavřít nový cíl"
       },
       "edit": {
         "title": "Upravit cíl",
         "helper": "Změňte název, termín nebo cílovou částku.",
         "autoNameHelper": "Název jsme navrhli při vytvoření cíle — upravte cokoli potřebujete.",
-        "saveError": "Změny se nepodařilo uložit. Zkuste to znovu."
+        "saveError": "Změny se nepodařilo uložit. Zkuste to znovu.",
+        "closeA11y": "Zavřít úpravu cíle"
       },
       "setDeadline": {
         "title": "Termín cíle",
@@ -2346,7 +2349,8 @@
         "helper": "Zvolte, kdy chcete cíle dosáhnout.",
         "validationDate": "Zvolte termín.",
         "save": "Uložit",
-        "saveError": "Termín se nepodařilo uložit. Zkuste to znovu."
+        "saveError": "Termín se nepodařilo uložit. Zkuste to znovu.",
+        "closeA11y": "Zavřít editor termínu"
       },
       "detail": {
         "back": "Zpět na cíle",

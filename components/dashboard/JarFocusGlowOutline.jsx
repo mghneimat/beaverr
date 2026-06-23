@@ -58,6 +58,7 @@ export default function JarFocusGlowOutline({
   children,
   borderRadius = R.card,
   variant = 'glass',
+  fill = true,
 }) {
   const reduceMotion = useReducedMotion();
   const glow = useSharedValue(0);
@@ -94,7 +95,7 @@ export default function JarFocusGlowOutline({
   }));
 
   return (
-    <View style={styles.wrap}>
+    <View style={fill ? styles.wrap : styles.wrapNatural}>
       {children}
       <Animated.View
         pointerEvents="none"
@@ -115,6 +116,10 @@ export default function JarFocusGlowOutline({
 const styles = StyleSheet.create({
   wrap: {
     flex: 1,
+    position: 'relative',
+  },
+  wrapNatural: {
+    alignSelf: 'stretch',
     position: 'relative',
   },
 });

@@ -132,7 +132,8 @@ export default function InsuranceContractFields({
         <AnimatedSlideIn visible={budgetIncluded === true}>
           <View style={{ marginTop: 12, paddingBottom: S.fieldGap }}>
             <OptionCard
-              label={t('onboarding.health.renewUseSuggested', {
+              label={t('onboarding.health.renewUseSuggested')}
+              subtitle={t('onboarding.health.renewUseSuggestedAmount', {
                 amount: formatCurrency(plan.suggestedMonthly, currency),
               })}
               selected={data.renewalBudgetMode !== 'custom'}

@@ -27,6 +27,7 @@ import {
   BreakdownPillSubRow,
   BreakdownPillRowSlot,
 } from './BreakdownTablePrimitives';
+import TableHorizontalScroll, { breakdownPillTableMinWidth } from './TableHorizontalScroll';
 
 /**
  * Expandable section → line-item breakdown (Housing → Rent, Utilities, …).
@@ -56,7 +57,7 @@ export default function ExpensesCategoryBreakdown({
   const [expanded, setExpanded] = useState(initialExpand.expanded);
   const [allExpanded, setAllExpanded] = useState(initialExpand.allExpanded);
   const [selectedSectionKey, setSelectedSectionKey] = useState(null);
-  const { amountColMinW, shareColMinW } = useBreakdownTableColumns();
+  const { amountColMinW, shareColMinW, isPhone } = useBreakdownTableColumns();
 
   useEffect(() => {
     setExpanded(initialExpand.expanded);
@@ -113,7 +114,7 @@ export default function ExpensesCategoryBreakdown({
         <InCardSectionHeader
           title={title}
           trailing={hasData ? (
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, flexShrink: 0, flexWrap: isPhone ? 'wrap' : 'nowrap', justifyContent: 'flex-end' }}>
               <DashboardTableExportActions
                 onExportCsv={handleExportCsv}
                 onExportXlsx={handleExportXlsx}
@@ -124,6 +125,7 @@ export default function ExpensesCategoryBreakdown({
                   allExpanded={allExpanded}
                   onToggle={toggleAll}
                   t={t}
+                  compact={isPhone}
                 />
               ) : null}
             </View>
@@ -137,12 +139,14 @@ export default function ExpensesCategoryBreakdown({
         </Text>
       ) : (
         <View style={{ gap: 8, overflow: 'visible', width: '100%', alignSelf: 'stretch' }}>
+          <TableHorizontalScroll minWidth={breakdownPillTableMinWidth(amountColMinW, shareColMinW)}>
           <BreakdownPillColumnHeaders
             nameLabel={t('dashboard.expensesScreen.table.expense')}
             amountLabel={amountHeader}
             shareLabel={t('dashboard.expensesScreen.table.share')}
             amountColMinW={amountColMinW}
             shareColMinW={shareColMinW}
+            scrollLayout={isPhone}
           />
           {sections.map((section, sectionIdx) => {
             const flat = isFlatBreakdownSection(section);
@@ -171,6 +175,7 @@ export default function ExpensesCategoryBreakdown({
                   expanded={isOpen}
                   amountColMinW={amountColMinW}
                   shareColMinW={shareColMinW}
+                  scrollLayout={isPhone}
                   onSelect={onSectionPress ? () => handleSectionSelect(section) : undefined}
                   onExpandPress={!flat ? () => toggle(section.key) : undefined}
                   selectA11yLabel={t('dashboard.breakdown.selectSectionA11y', { label: section.label })}
@@ -191,6 +196,7 @@ export default function ExpensesCategoryBreakdown({
                           share={formatSharePct(item.monthlyAmount, panelTotal)}
                           amountColMinW={amountColMinW}
                           shareColMinW={shareColMinW}
+                          scrollLayout={isPhone}
                           isLast={itemIdx === section.items.length - 1}
                         />
                       ))}
@@ -200,6 +206,7 @@ export default function ExpensesCategoryBreakdown({
               </BreakdownPillRowSlot>
             );
           })}
+          </TableHorizontalScroll>
         </View>
       )}
     </SurfaceCard>

@@ -30,6 +30,7 @@ import PrintingInvoicesRafikiIllustration from '../../components/onboarding/Prin
 import InvoiceRafikiIllustration from '../../components/onboarding/InvoiceRafikiIllustration';
 import TaxRafikiIllustration from '../../components/onboarding/TaxRafikiIllustration';
 import OptionCard from '../../components/onboarding/OptionCard';
+import OptionCardGroup from '../../components/onboarding/OptionCardGroup';
 import OnOffSwitch from '../../components/onboarding/OnOffSwitch';
 import SplitDateFields from '../../components/onboarding/SplitDateFields';
 import AnimatedSlideIn from '../../components/onboarding/AnimatedSlideIn';
@@ -724,20 +725,18 @@ export default function HousingScreen() {
             <Text style={{ ...T.fieldLabel, marginBottom: S.labelGap }}>
               {t('onboarding.housing.rentUtilities.modeLabel')}
             </Text>
-            <View style={{ flexDirection: 'row', gap: 10, marginBottom: 16 }}>
+            <OptionCardGroup marginBottom={16}>
               <OptionCard
                 label={t('onboarding.housing.rentUtilities.modeTotal')}
                 selected={utilitiesMode === 'total'}
                 onPress={() => handleUtilitiesModeChange('total')}
-                style={{ flex: 1 }}
               />
               <OptionCard
                 label={t('onboarding.housing.rentUtilities.modeItemized')}
                 selected={utilitiesMode === 'itemized'}
                 onPress={() => handleUtilitiesModeChange('itemized')}
-                style={{ flex: 1 }}
               />
-            </View>
+            </OptionCardGroup>
 
             <AnimatedSlideIn visible={utilitiesMode === 'total'}>
               <InputGroup label={t('onboarding.housing.rentUtilities.amountLabel')}>

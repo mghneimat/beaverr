@@ -3,7 +3,7 @@ import { View, Text } from 'react-native';
 import { formatCurrency, toMonthly, totalMonthlyCosts } from '../../lib/finance';
 import { formatSharePct } from '../../lib/formatSharePct';
 import { asArray } from '../../lib/asArray';
-import { useBreakdownTableColumns } from '../../lib/dashboardLayout';
+import { useBreakdownTableColumns, useDashboardLayout } from '../../lib/dashboardLayout';
 import { C, R, tabularNums } from '../../constants/onboarding-theme';
 import InCardSectionHeader from '../dashboard/InCardSectionHeader';
 import DashboardTableExportActions from '../dashboard/DashboardTableExportActions';
@@ -95,10 +95,11 @@ export default function BudgetSetupSummaryTable({
   onExportPdf,
 }) {
   const { amountColMinW, shareColMinW, tableLayout } = useBreakdownTableColumns();
+  const { isPhone } = useDashboardLayout();
   const cardMode = tableLayout === 'card';
   const summaryColumns = useMemo(() => ([
-    { key: 'share', label: t('dashboard.expensesScreen.table.share') },
     { key: 'amount', label: t('onboarding.budget.budgetSplit.amount'), align: 'right' },
+    { key: 'share', label: t('dashboard.expensesScreen.table.share') },
   ]), [t]);
   const shareBase = totalIncome > 0 ? totalIncome : 1;
 
@@ -169,8 +170,7 @@ export default function BudgetSetupSummaryTable({
       <InCardSectionHeader
         title={t('onboarding.budget.budgetSplit.tableTitle')}
         trailing={(
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, flexShrink: 0 }}>
-            <BreakdownExpandAllButton allExpanded={allExpanded} onToggle={toggleAll} t={t} />
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, flexShrink: 0, flexWrap: isPhone ? 'wrap' : 'nowrap', justifyContent: 'flex-end' }}>
             {onExportCsv && onExportXlsx && onExportPdf ? (
               <DashboardTableExportActions
                 onExportCsv={onExportCsv}
@@ -178,6 +178,7 @@ export default function BudgetSetupSummaryTable({
                 onExportPdf={onExportPdf}
               />
             ) : null}
+            <BreakdownExpandAllButton allExpanded={allExpanded} onToggle={toggleAll} t={t} compact={isPhone} />
           </View>
         )}
       />
@@ -399,11 +400,6 @@ export default function BudgetSetupSummaryTable({
               {t('onboarding.budget.budgetSplit.budgetLabel')}
             </Text>
           </View>
-          <View style={{ minWidth: shareColMinW, alignItems: 'center', justifyContent: 'center' }}>
-            <Text style={{ fontSize: 13, fontWeight: '500', color: C.muted, ...tabularNums }} numberOfLines={1}>
-              {formatSharePct(Math.max(totalBudget, 0), shareBase)}
-            </Text>
-          </View>
           <View style={{ minWidth: amountColMinW, alignItems: 'flex-end', justifyContent: 'center' }}>
             <Text style={{
               fontSize: 15,
@@ -413,6 +409,11 @@ export default function BudgetSetupSummaryTable({
               ...tabularNums,
             }} numberOfLines={1}>
               {formatSignedMonthly(totalBudget, currency)}
+            </Text>
+          </View>
+          <View style={{ minWidth: shareColMinW, alignItems: 'center', justifyContent: 'center' }}>
+            <Text style={{ fontSize: 13, fontWeight: '500', color: C.muted, ...tabularNums }} numberOfLines={1}>
+              {formatSharePct(Math.max(totalBudget, 0), shareBase)}
             </Text>
           </View>
           <View style={{ width: 28, flexShrink: 0 }} />

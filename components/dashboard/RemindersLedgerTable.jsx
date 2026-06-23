@@ -39,8 +39,9 @@ import SurfaceCard from '../ui/SurfaceCard';
 import ConfirmDialog from '../ui/ConfirmDialog';
 import AnimatedCollapse from './AnimatedCollapse';
 import BreakdownSectionIcon from './BreakdownSectionIcon';
-import { BreakdownCell, BreakdownPillRowSlot, BreakdownRow, LedgerCardRow } from './BreakdownTablePrimitives';
-import { useBreakdownTableColumns } from '../../lib/dashboardLayout';
+import { BreakdownCell, BreakdownPillRowSlot, BreakdownRow } from './BreakdownTablePrimitives';
+import { useDashboardLayout } from '../../lib/dashboardLayout';
+import ReminderCardRow, { ReminderCardEditSummary } from './ReminderCardRow';
 
 const WARNING_CHIP = {
   bg: '#FEF3C7',
@@ -452,44 +453,73 @@ function ReminderColumnCell({
   colors,
   selected,
   onDraftChange,
+  variant = 'table',
 }) {
   const { t } = useI18n();
   const hasNextPayment = row.hasNextPayment === true;
   const savedEnabled = rowEffectivePref(row, pendingDisplay).enabled === true;
+  const isCard = variant === 'card';
+
+  const wrap = (children, chipVariant) => {
+    if (!isCard) {
+      return <ReminderColumnCenter>{children}</ReminderColumnCenter>;
+    }
+
+    const chipColors = chipVariant === 'warning'
+      ? { border: '#D97706', text: '#D97706' }
+      : chipVariant === 'on'
+        ? { border: C.positive, text: selected ? colors.label : C.positive }
+        : { border: selected ? 'rgba(255,255,255,0.45)' : C.pillUnselectedBorder, text: selected ? colors.label : REMINDERS_CELL_META };
+
+    return (
+      <View style={{
+        borderWidth: 1,
+        borderRadius: R.pill,
+        paddingVertical: 4,
+        paddingHorizontal: 10,
+        borderColor: chipColors.border,
+        alignSelf: 'flex-start',
+      }}>
+        {typeof children === 'string' || typeof children === 'number' ? (
+          <Text style={{
+            fontSize: 13,
+            fontWeight: '600',
+            color: chipColors.text,
+            textAlign: 'left',
+          }}>
+            {children}
+          </Text>
+        ) : children}
+      </View>
+    );
+  };
 
   const viewContent = !hasNextPayment ? (
-    <ReminderColumnCenter>
+    wrap(
       <Text
         accessible={false}
-        style={{ fontSize: 16, color: '#D97706', lineHeight: 20 }}
+        style={{ fontSize: 14, fontWeight: '600', color: '#D97706', lineHeight: 18 }}
       >
         ⚠
-      </Text>
-    </ReminderColumnCenter>
+      </Text>,
+      'warning',
+    )
   ) : (
-    <ReminderColumnCenter>
-      <Text style={{
-        fontSize: 13,
-        fontWeight: '600',
-        color: selected ? colors.label : (savedEnabled ? C.positive : REMINDERS_CELL_META),
-        textAlign: 'center',
-      }}>
-        {savedEnabled
-          ? t('dashboard.remindersScreen.reminderOn')
-          : t('dashboard.remindersScreen.reminderOff')}
-      </Text>
-    </ReminderColumnCenter>
+    wrap(
+      savedEnabled
+        ? t('dashboard.remindersScreen.reminderOn')
+        : t('dashboard.remindersScreen.reminderOff'),
+      savedEnabled ? 'on' : 'off',
+    )
   );
 
-  const editContent = (
-    <ReminderColumnCenter>
-      <ReminderSwitch
-        enabled={draftEnabled}
-        onToggle={onDraftChange}
-        disabled={!hasNextPayment || saving}
-        a11yLabel={t('dashboard.remindersScreen.enableAlert')}
-      />
-    </ReminderColumnCenter>
+  const editContent = wrap(
+    <ReminderSwitch
+      enabled={draftEnabled}
+      onToggle={onDraftChange}
+      disabled={!hasNextPayment || saving}
+      a11yLabel={t('dashboard.remindersScreen.enableAlert')}
+    />,
   );
 
   if (!editing) {
@@ -499,14 +529,15 @@ function ReminderColumnCell({
   return editContent;
 }
 
-function ReminderTypesCell({ pref, colors, t, hasNextPayment }) {
+function ReminderTypesCell({ pref, colors, t, hasNextPayment, variant = 'table' }) {
+  const textAlign = variant === 'card' ? 'left' : 'center';
   if (!pref?.enabled) {
     return (
       <Text style={{
         fontSize: 14,
         fontWeight: '500',
         color: colors.meta,
-        textAlign: 'center',
+        textAlign,
         width: '100%',
       }}>
         {t('dashboard.expensesScreen.noDate')}
@@ -521,7 +552,7 @@ function ReminderTypesCell({ pref, colors, t, hasNextPayment }) {
         fontSize: 13,
         fontWeight: '500',
         color: colors.meta,
-        textAlign: 'center',
+        textAlign,
         width: '100%',
       }}>
         {t('dashboard.remindersScreen.reminderTypePleaseSelect')}
@@ -535,7 +566,7 @@ function ReminderTypesCell({ pref, colors, t, hasNextPayment }) {
         fontSize: 13,
         fontWeight: '500',
         color: colors.meta,
-        textAlign: 'center',
+        textAlign,
         width: '100%',
       }}>
         {labels[0]}
@@ -544,7 +575,7 @@ function ReminderTypesCell({ pref, colors, t, hasNextPayment }) {
   }
 
   return (
-    <View style={{ width: '100%', alignItems: 'center', gap: 2 }}>
+    <View style={{ width: '100%', alignItems: variant === 'card' ? 'flex-start' : 'center', gap: 2 }}>
       {labels.map((label) => (
         <Text
           key={label}
@@ -552,7 +583,7 @@ function ReminderTypesCell({ pref, colors, t, hasNextPayment }) {
             fontSize: 12,
             fontWeight: '500',
             color: colors.meta,
-            textAlign: 'center',
+            textAlign,
             lineHeight: 15,
           }}
         >
@@ -733,7 +764,7 @@ function RemindersTableRow({
       <BreakdownSectionIcon
         sectionKey={row.iconSectionKey || iconSectionKey}
         scope={row.iconScope || iconScope}
-        selected={rowSelected}
+        selected={rowSelected && !editing}
       />
       {columns.map((col) => {
         const sizing = remindersColumnSizing(col);
@@ -808,9 +839,43 @@ function RemindersTableRow({
 
   const rowPressable = editing ? (
     <View style={editCardShellStyle}>
-      <View style={rowCellsStyle}>
-        {renderRowCells(staticColors)}
-      </View>
+      {cardMode ? (
+        <View style={{
+          paddingHorizontal: REMINDERS_ROW_PAD_H,
+          paddingTop: 10,
+          paddingBottom: settingsExpanded ? 8 : 0,
+        }}>
+          <ReminderCardEditSummary
+            columns={columns}
+            cells={row.cells}
+            leading={(
+              <BreakdownSectionIcon
+                sectionKey={row.iconSectionKey || iconSectionKey}
+                scope={row.iconScope || iconScope}
+                selected={rowSelected && !editing}
+              />
+            )}
+            reminderStatus={(
+              <ReminderColumnCell
+                row={row}
+                editing={editing}
+                draftEnabled={draftEnabled}
+                saving={saving}
+                pendingDisplay={pendingDisplay}
+                colors={staticColors}
+                selected={rowSelected}
+                onDraftChange={onDraftChange}
+                variant="card"
+              />
+            )}
+            colors={staticColors}
+          />
+        </View>
+      ) : (
+        <View style={rowCellsStyle}>
+          {renderRowCells(staticColors)}
+        </View>
+      )}
       <AnimatedCollapse
         visible={settingsExpanded}
         fallbackHeight={280}
@@ -850,50 +915,48 @@ function RemindersTableRow({
       </AnimatedCollapse>
     </View>
   ) : cardMode ? (
-    <LedgerCardRow
+    <ReminderCardRow
       columns={columns}
       cells={row.cells}
       index={index}
       selected={rowSelected && !editing}
       onPress={onSelect}
+      onEdit={handleEditPress}
+      editLabel={t('common.edit')}
+      editA11yLabel={editA11yLabel}
       accessibilityLabel={selectA11yLabel}
+      displayPref={displayPref}
+      hasNextPayment={hasNextPayment}
+      formattedReminderDate={formatReminderDateLabel(displayPref, t, { hasNextPayment })}
+      reminderTypeContent={(
+        <ReminderTypesCell
+          pref={displayPref}
+          colors={resolveRowShellColors(false, false)}
+          t={t}
+          hasNextPayment={hasNextPayment}
+          variant="card"
+        />
+      )}
+      reminderStatus={(
+        <ReminderColumnCell
+          row={row}
+          editing={false}
+          draftEnabled={draftEnabled}
+          saving={saving}
+          pendingDisplay={pendingDisplay}
+          colors={resolveRowShellColors(false, false)}
+          selected={rowSelected}
+          onDraftChange={onDraftChange}
+          variant="card"
+        />
+      )}
       leading={(
         <BreakdownSectionIcon
           sectionKey={row.iconSectionKey || iconSectionKey}
           scope={row.iconScope || iconScope}
-          selected={rowSelected}
+          selected={rowSelected && !editing}
         />
       )}
-      renderCell={(col) => {
-        if (col.key === 'reminderType') {
-          return (
-            <ReminderTypesCell
-              pref={displayPref}
-              colors={resolveRowShellColors(false, false)}
-              t={t}
-              hasNextPayment={hasNextPayment}
-            />
-          );
-        }
-        if (col.key === 'reminder') {
-          return (
-            <ReminderColumnCell
-              row={row}
-              editing={false}
-              draftEnabled={draftEnabled}
-              saving={saving}
-              pendingDisplay={pendingDisplay}
-              colors={resolveRowShellColors(false, false)}
-              selected={rowSelected}
-              onDraftChange={onDraftChange}
-            />
-          );
-        }
-        if (col.key === 'reminderDate') {
-          return formatReminderDateLabel(displayPref, t, { hasNextPayment });
-        }
-        return row.cells[col.key];
-      }}
     />
   ) : (
     <Pressable
@@ -917,6 +980,10 @@ function RemindersTableRow({
       )}
     </Pressable>
   );
+
+  if (cardMode && !editing) {
+    return rowPressable;
+  }
 
   return (
     <BreakdownPillRowSlot
@@ -948,8 +1015,8 @@ export default function RemindersLedgerTable({
   const { t } = useI18n();
   const router = useRouter();
   const reduceMotion = useReducedMotion();
-  const { tableLayout } = useBreakdownTableColumns();
-  const cardMode = tableLayout === 'card';
+  const { isNarrow } = useDashboardLayout();
+  const cardMode = isNarrow;
   const [selectedId, setSelectedId] = useState(null);
   const [editSessionId, setEditSessionId] = useState(null);
   const [editExpanded, setEditExpanded] = useState(false);

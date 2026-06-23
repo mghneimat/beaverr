@@ -247,6 +247,7 @@ function JarBudgetGridCard({
   onEmptyPress,
   transferA11y,
   emptyTransferA11y,
+  fill = true,
 }) {
   const title = getJarTitle(line, t);
   const Icon = jarIconForLine(line);
@@ -256,7 +257,7 @@ function JarBudgetGridCard({
   const infoReserved = showTransferAction && !deletable;
 
   return (
-    <View style={{ flex: 1, position: 'relative' }}>
+    <View style={{ flex: fill ? 1 : undefined, position: 'relative' }}>
       <MetricExplainCard
         enterKey={enterKey}
         enterIndex={enterIndex}
@@ -332,6 +333,7 @@ function renderJarCell({
   onEmptyPress,
   transferA11y,
   emptyTransferA11y,
+  outlineFill = true,
 }) {
   return (
     <JarsAnimatedCell
@@ -345,12 +347,13 @@ function renderJarCell({
       <View
         ref={getJarAnchorRef(line.id)}
         collapsable={false}
-        style={{ flex: 1 }}
+        style={outlineFill ? { flex: 1 } : undefined}
       >
         <JarFocusGlowOutline
           glowToken={glowJarId === line.id ? glowToken : 0}
           onComplete={glowJarId === line.id ? handleGlowComplete : undefined}
           variant="surface"
+          fill={outlineFill}
         >
           <JarBudgetGridCard
             line={line}
@@ -370,6 +373,7 @@ function renderJarCell({
             onEmptyPress={onEmptyPress}
             transferA11y={transferA11y}
             emptyTransferA11y={emptyTransferA11y}
+            fill={outlineFill}
           />
         </JarFocusGlowOutline>
       </View>
@@ -398,10 +402,10 @@ export default function JarsBudgetGrid({
   const router = useRouter();
   const { isPhone } = useDashboardLayout();
   const gridItemStyle = isPhone
-    ? { width: '100%', flexBasis: '100%' }
+    ? { width: '100%', flexShrink: 0 }
     : QUAD_GRID_ITEM;
   const rowHalfItemStyle = isPhone
-    ? { width: '100%', flexBasis: '100%' }
+    ? { width: '100%', flexShrink: 0 }
     : ROW_HALF_ITEM;
   const { scrollToAnchor } = useDashboardScroll();
   const [explainLine, setExplainLine] = useState(null);
@@ -417,6 +421,10 @@ export default function JarsBudgetGrid({
   const jarAnchorRefs = useRef({});
   const infoA11y = t('dashboard.home.infoA11y');
   const isSavingsLayout = layout === 'savings';
+  const savingsPhoneCellStyle = isSavingsLayout && isPhone
+    ? { flexShrink: 0, alignSelf: 'stretch' }
+    : { flex: 1 };
+  const savingsOutlineFill = !(isSavingsLayout && isPhone);
 
   const gridCells = useMemo(
     () => (jarLines || []).map((line) => ({ kind: 'jar', line, key: line.id })),
@@ -593,7 +601,7 @@ export default function JarsBudgetGrid({
 
         {isSavingsLayout ? (
           <View>
-            <View style={{ flexDirection: 'row', gap: 12 }}>
+            <View style={{ flexDirection: isPhone ? 'column' : 'row', gap: 12 }}>
               {primaryLines.map((line, index) => (
                 <View key={line.id} style={rowHalfItemStyle}>
                   {renderJarCell({
@@ -601,15 +609,16 @@ export default function JarsBudgetGrid({
                     ...buildTransferProps(line),
                     line,
                     index,
-                    cellStyle: { flex: 1 },
+                    cellStyle: savingsPhoneCellStyle,
                     motion: 'full',
+                    outlineFill: savingsOutlineFill,
                   })}
                 </View>
               ))}
             </View>
 
             <AnimatedCollapse visible={hasCustomTabs} style={{ marginTop: hasCustomTabs ? 12 : 0 }}>
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, paddingBottom: 4 }}>
+              <View style={{ flexDirection: isPhone ? 'column' : 'row', flexWrap: isPhone ? 'nowrap' : 'wrap', gap: 12, paddingBottom: 4 }}>
                 {customLines.map((line, index) => {
                   const title = getJarTitle(line, t);
                   const isExiting = exitingLineId === line.id;
@@ -621,8 +630,9 @@ export default function JarsBudgetGrid({
                         ...buildTransferProps(line),
                         line,
                         index: primaryLines.length + index,
-                        cellStyle: { flex: 1 },
+                        cellStyle: savingsPhoneCellStyle,
                         motion: 'full',
+                        outlineFill: savingsOutlineFill,
                         exiting: isExiting,
                         onExitComplete: isExiting ? handleStashExitComplete : undefined,
                         onDeletePress: () => requestDeleteStash(line),

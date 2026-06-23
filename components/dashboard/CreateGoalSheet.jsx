@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { View, Modal, Pressable, Platform, ScrollView } from 'react-native';
+import { View, Pressable, Platform } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
 import { useI18n } from '../../lib/i18n';
 import { formatCurrency } from '../../lib/finance';
@@ -20,6 +20,7 @@ import { notifyDashboardRefresh } from '../../lib/dashboardRefresh';
 import { parseAmount } from '../../lib/sectionEditStorage';
 import { SavingsIcon, CreditCardIcon } from '../app/AppNavIcons';
 import GoalDeadlineFields from './GoalDeadlineFields';
+import DashboardScrollSheet from './DashboardScrollSheet';
 import { startOfToday } from '../../lib/goals/goalFundingSchedule';
 
 function GoalKindOption({ Icon, label, subtitle, selected, onPress }) {
@@ -288,22 +289,12 @@ export default function CreateGoalSheet({ visible, onClose, financials, goals = 
   };
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <Pressable
-        style={{ flex: 1, backgroundColor: 'rgba(30, 58, 95, 0.35)', justifyContent: 'center', padding: 24 }}
-        onPress={onClose}
-      >
-        <Pressable
-          onPress={(e) => e.stopPropagation()}
-          style={{
-            maxWidth: 440,
-            width: '100%',
-            alignSelf: 'center',
-            backgroundColor: C.surface,
-            borderRadius: R.card,
-            padding: 24,
-          }}
-        >
+    <DashboardScrollSheet
+      visible={visible}
+      onClose={onClose}
+      closeA11yLabel={t('dashboard.goalsScreen.create.closeA11y')}
+      contentContainerStyle={dateDropdownOpen ? { paddingBottom: 240 } : undefined}
+    >
           {step === 'details' ? (
             <Pressable
               onPress={handleBackToKind}
@@ -370,18 +361,7 @@ export default function CreateGoalSheet({ visible, onClose, financials, goals = 
               </View>
             </View>
           ) : (
-            <ScrollView
-              style={{
-                maxHeight: 520,
-                ...(dateDropdownOpen ? { overflow: 'visible' } : null),
-              }}
-              contentContainerStyle={{
-                paddingBottom: dateDropdownOpen ? 240 : 4,
-                ...(dateDropdownOpen ? { overflow: 'visible' } : null),
-              }}
-              scrollEnabled={!dateDropdownOpen}
-              keyboardShouldPersistTaps="handled"
-            >
+            <View>
               {kind === 'savings' ? (
                 <>
                   <FormInput
@@ -498,10 +478,8 @@ export default function CreateGoalSheet({ visible, onClose, financials, goals = 
                   </PrimaryButton>
                 </View>
               </View>
-            </ScrollView>
+            </View>
           )}
-        </Pressable>
-      </Pressable>
-    </Modal>
+    </DashboardScrollSheet>
   );
 }

@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { View, Modal, Pressable, Platform } from 'react-native';
+import { View, Platform } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
 import { useI18n } from '../../../lib/i18n';
 import { updateActiveCycleStartDate } from '../../../lib/cycleEdit';
@@ -7,9 +7,10 @@ import { storedDateToIso, isoToStoredDate } from '../../../lib/cycleDates';
 import { isoDateKey } from '../../../lib/dailyLog';
 import { notifyDashboardRefresh } from '../../../lib/dashboardRefresh';
 import { emitDashboardToast } from '../../../lib/dashboardToast';
-import { C, R, T } from '../../../constants/onboarding-theme';
+import { C, T } from '../../../constants/onboarding-theme';
 import SplitDateFields from '../../onboarding/SplitDateFields';
 import PrimaryButton from '../../ui/PrimaryButton';
+import DashboardScrollSheet from '../DashboardScrollSheet';
 
 export default function EditCycleStartSheet({
   visible,
@@ -88,63 +89,39 @@ export default function EditCycleStartSheet({
   if (!cycle) return null;
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
-        <Pressable
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(30,58,95,0.35)',
-          }}
-          onPress={onClose}
-          accessibilityRole="button"
-          accessibilityLabel={t('dashboard.cycles.editStart.closeA11y')}
+    <DashboardScrollSheet
+      visible={visible}
+      onClose={onClose}
+      closeA11yLabel={t('dashboard.cycles.editStart.closeA11y')}
+      contentContainerStyle={dateDropdownOpen ? { paddingBottom: 240 } : undefined}
+    >
+      <Text style={{ ...T.cardTitle, marginBottom: 8 }}>
+        {t('dashboard.cycles.editStart.title')}
+      </Text>
+      <Text style={{ ...T.helper, color: C.muted, marginBottom: 16 }}>
+        {t('dashboard.cycles.editStart.helper')}
+      </Text>
+
+      <View style={dateSectionStyle}>
+        <SplitDateFields
+          value={startDate}
+          onChange={setStartDate}
+          yearPast={2}
+          errorText={errorText}
+          onElevatedChange={handleDateElevatedChange}
         />
-        <View
-          style={{
-            width: '100%',
-            maxWidth: 440,
-            backgroundColor: C.surface,
-            borderRadius: R.card,
-            borderWidth: 1,
-            borderColor: C.border,
-            padding: 20,
-            overflow: 'visible',
-            ...(Platform.OS === 'web' ? { cursor: 'default' } : {}),
-          }}
-        >
-          <Text style={{ ...T.cardTitle, marginBottom: 8 }}>
-            {t('dashboard.cycles.editStart.title')}
-          </Text>
-          <Text style={{ ...T.helper, color: C.muted, marginBottom: 16 }}>
-            {t('dashboard.cycles.editStart.helper')}
-          </Text>
-
-          <View style={dateSectionStyle}>
-            <SplitDateFields
-              value={startDate}
-              onChange={setStartDate}
-              yearPast={2}
-              errorText={errorText}
-              onElevatedChange={handleDateElevatedChange}
-            />
-          </View>
-
-          <View style={footerStyle}>
-            <PrimaryButton
-              onPress={handleSave}
-              disabled={saving}
-              accessibilityState={{ busy: saving }}
-              style={{ marginTop: 16 }}
-            >
-              {saving ? t('dashboard.cycles.editStart.saving') : t('common.save')}
-            </PrimaryButton>
-          </View>
-        </View>
       </View>
-    </Modal>
+
+      <View style={footerStyle}>
+        <PrimaryButton
+          onPress={handleSave}
+          disabled={saving}
+          accessibilityState={{ busy: saving }}
+          style={{ marginTop: 16 }}
+        >
+          {saving ? t('dashboard.cycles.editStart.saving') : t('common.save')}
+        </PrimaryButton>
+      </View>
+    </DashboardScrollSheet>
   );
 }

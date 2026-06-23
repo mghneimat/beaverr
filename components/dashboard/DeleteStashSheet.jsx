@@ -1,14 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
-import { View, Modal, Pressable, Platform } from 'react-native';
+import { View } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
 import { useI18n } from '../../lib/i18n';
 import { formatCurrency } from '../../lib/finance';
 import { getJarTitle } from '../../lib/jarRouting';
 import { buildStashDestinationOptions, getStashBalance } from '../../lib/stashTransfers';
-import { C, R, T } from '../../constants/onboarding-theme';
+import { C, T } from '../../constants/onboarding-theme';
 import PrimaryButton from '../ui/PrimaryButton';
 import OutlineButton from '../ui/OutlineButton';
 import StashTabSelectField from './StashTabSelectField';
+import DashboardScrollSheet from './DashboardScrollSheet';
 
 /**
  * Delete a custom stash — asks where to send the balance when it is greater than zero.
@@ -73,77 +74,53 @@ export default function DeleteStashSheet({
   if (!visible || !line) return null;
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={handleClose}>
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
-        <Pressable
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(30,58,95,0.35)',
-          }}
-          onPress={handleClose}
-          accessibilityRole="button"
-          accessibilityLabel={t('dashboard.budgetScreen.jars.deleteSheet.closeA11y')}
-        />
-        <View
-          style={{
-            width: '100%',
-            maxWidth: 440,
-            backgroundColor: C.surface,
-            borderRadius: R.card,
-            borderWidth: 1,
-            borderColor: C.border,
-            padding: 20,
-            ...(Platform.OS === 'web' ? { cursor: 'default' } : {}),
-          }}
-        >
-          <Text style={{ ...T.cardTitle, marginBottom: 8 }}>
-            {t('dashboard.budgetScreen.jars.deleteSheet.title')}
-          </Text>
-          <Text style={{ ...T.caption, color: C.muted, marginBottom: 20, lineHeight: 22 }}>
-            {t('dashboard.budgetScreen.jars.deleteSheet.bodyWithBalance', {
-              name: title,
-              amount: formatCurrency(balance, currency),
-            })}
-          </Text>
+    <DashboardScrollSheet
+      visible={visible}
+      onClose={handleClose}
+      closeA11yLabel={t('dashboard.budgetScreen.jars.deleteSheet.closeA11y')}
+    >
+      <Text style={{ ...T.cardTitle, marginBottom: 8 }}>
+        {t('dashboard.budgetScreen.jars.deleteSheet.title')}
+      </Text>
+      <Text style={{ ...T.caption, color: C.muted, marginBottom: 20, lineHeight: 22 }}>
+        {t('dashboard.budgetScreen.jars.deleteSheet.bodyWithBalance', {
+          name: title,
+          amount: formatCurrency(balance, currency),
+        })}
+      </Text>
 
-          <StashTabSelectField
-            label={t('dashboard.budgetScreen.jars.deleteSheet.toLabel')}
-            options={destinationOptions}
-            selectedId={selectedDestination}
-            onSelect={(id) => {
-              setSelectedDestination(id);
-              setErrorText('');
-            }}
-            currency={currency}
-          />
+      <StashTabSelectField
+        label={t('dashboard.budgetScreen.jars.deleteSheet.toLabel')}
+        options={destinationOptions}
+        selectedId={selectedDestination}
+        onSelect={(id) => {
+          setSelectedDestination(id);
+          setErrorText('');
+        }}
+        currency={currency}
+      />
 
-          {errorText ? (
-            <Text style={{ ...T.caption, color: C.danger, marginTop: 12 }}>{errorText}</Text>
-          ) : null}
+      {errorText ? (
+        <Text style={{ ...T.caption, color: C.danger, marginTop: 12 }}>{errorText}</Text>
+      ) : null}
 
-          <View style={{ flexDirection: 'row', gap: 12, marginTop: 20 }}>
-            <View style={{ flex: 1 }}>
-              <OutlineButton onPress={handleClose} disabled={saving}>
-                {t('common.cancel')}
-              </OutlineButton>
-            </View>
-            <View style={{ flex: 1 }}>
-              <PrimaryButton
-                onPress={handleDelete}
-                disabled={saving}
-                style={{ backgroundColor: C.danger }}
-              >
-                {t('common.delete')}
-              </PrimaryButton>
-            </View>
-          </View>
+      <View style={{ flexDirection: 'row', gap: 12, marginTop: 20 }}>
+        <View style={{ flex: 1 }}>
+          <OutlineButton onPress={handleClose} disabled={saving}>
+            {t('common.cancel')}
+          </OutlineButton>
+        </View>
+        <View style={{ flex: 1 }}>
+          <PrimaryButton
+            onPress={handleDelete}
+            disabled={saving}
+            style={{ backgroundColor: C.danger }}
+          >
+            {t('common.delete')}
+          </PrimaryButton>
         </View>
       </View>
-    </Modal>
+    </DashboardScrollSheet>
   );
 }
 

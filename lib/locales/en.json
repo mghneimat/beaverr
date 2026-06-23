@@ -799,7 +799,8 @@
       "renewReserveTightWarning": "Renewal is only {{months}} months away and you may not have enough saved yet (about {{shortfall}} still needed). You can use a lower monthly amount if the suggested one feels too high.",
       "budgetForRenewLabel": "Include this monthly reserve in your budget?",
       "budgetForRenewHelper": "We'll deduct this from your daily spending allowance until the contract ends.",
-      "renewUseSuggested": "Use suggested amount ({{amount}}/month)",
+      "renewUseSuggested": "Use suggested amount",
+      "renewUseSuggestedAmount": "{{amount}}/month",
       "renewUseCustom": "Set a lower monthly amount",
       "renewUseCustomHelper": "Choose this if the suggested amount is too high for your budget right now.",
       "renewCustomMonthlyLabel": "Your monthly reserve",
@@ -2334,13 +2335,15 @@
         "target": "Target amount",
         "validationName": "Enter a goal name.",
         "validationTarget": "Enter a target amount greater than zero.",
-        "saveError": "Could not save goal. Try again."
+        "saveError": "Could not save goal. Try again.",
+        "closeA11y": "Close new goal"
       },
       "edit": {
         "title": "Edit goal",
         "helper": "Change the name, deadline, or target amount.",
         "autoNameHelper": "We suggested this name when the goal was created — change anything here.",
-        "saveError": "Could not save changes. Try again."
+        "saveError": "Could not save changes. Try again.",
+        "closeA11y": "Close edit goal"
       },
       "setDeadline": {
         "title": "Goal deadline",
@@ -2348,7 +2351,8 @@
         "helper": "Pick when you want to reach this goal.",
         "validationDate": "Choose a deadline date.",
         "save": "Save",
-        "saveError": "Could not save deadline. Try again."
+        "saveError": "Could not save deadline. Try again.",
+        "closeA11y": "Close deadline editor"
       },
       "detail": {
         "back": "Back to goals",

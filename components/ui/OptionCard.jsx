@@ -3,14 +3,27 @@ import { Pressable, View } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
 import { C, OPTION_CARD, R } from '../../constants/onboarding-theme';
 import { useClearOnboardingValidation } from '../../lib/onboardingValidationClear';
+import { useOnboardingLayout } from '../../lib/onboardingLayout';
 
 /**
  * Selectable option card — blue/navy design system.
- * Fixed height: label-only cards reserve a subtitle line so all rows match goalIntents-style cards.
  */
-export function OptionCard({ icon, label, subtitle, selected, onPress, style }) {
+export function OptionCard({
+  icon,
+  label,
+  subtitle,
+  selected,
+  onPress,
+  style,
+  labelLines: labelLinesProp,
+  subtitleLines: subtitleLinesProp,
+}) {
   const [hovered, setHovered] = useState(false);
   const clearValidation = useClearOnboardingValidation();
+  const { isPhone } = useOnboardingLayout();
+  const labelLines = labelLinesProp ?? (isPhone ? 2 : 1);
+  const subtitleLines = subtitleLinesProp ?? (isPhone ? 2 : 1);
+  const multiLine = labelLines > 1 || Boolean(subtitle);
 
   const handlePress = () => {
     clearValidation?.();
@@ -41,11 +54,11 @@ export function OptionCard({ icon, label, subtitle, selected, onPress, style }) 
               : C.surface,
         marginBottom: 10,
         flexDirection: 'row',
-        alignItems: 'center',
+        alignItems: multiLine ? 'flex-start' : 'center',
       }, style])}
     >
       {icon ? (
-        <Text style={{ fontSize: 20, lineHeight: 24, marginRight: 12 }}>{icon}</Text>
+        <Text style={{ fontSize: 20, lineHeight: 24, marginRight: 12, marginTop: multiLine ? 2 : 0 }}>{icon}</Text>
       ) : null}
 
       <View style={{ flex: 1, minWidth: 0, alignSelf: 'stretch', justifyContent: 'center', alignItems: 'flex-start' }}>
@@ -57,7 +70,7 @@ export function OptionCard({ icon, label, subtitle, selected, onPress, style }) 
             lineHeight: OPTION_CARD.labelLineHeight,
             textAlign: 'left',
           }}
-          numberOfLines={1}
+          numberOfLines={labelLines}
         >
           {label}
         </Text>
@@ -70,7 +83,7 @@ export function OptionCard({ icon, label, subtitle, selected, onPress, style }) 
               marginTop: OPTION_CARD.subtitleMarginTop,
               textAlign: 'left',
             }}
-            numberOfLines={1}
+            numberOfLines={subtitleLines}
           >
             {subtitle}
           </Text>
@@ -86,6 +99,8 @@ export function OptionCard({ icon, label, subtitle, selected, onPress, style }) 
           alignItems: 'center',
           justifyContent: 'center',
           marginLeft: 10,
+          marginTop: multiLine ? 2 : 0,
+          flexShrink: 0,
         }}>
           <Text style={{ color: '#FFFFFF', fontSize: 12, lineHeight: 14, fontWeight: '700' }}>
             {'✓'}

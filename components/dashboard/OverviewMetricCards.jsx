@@ -941,12 +941,15 @@ export default function OverviewMetricCards({
 
         {secondaryMetricIds.map((id) => {
           const isQuadGrid = secondaryMetricIds.length === 4;
+          const cellStyle = isPhone
+            ? { width: '100%', flexBasis: '100%', minWidth: 0 }
+            : isQuadGrid
+              ? { width: '47%', flexGrow: 1, flexBasis: '45%' }
+              : { flex: 1, minWidth: 140 };
           return (
           <View
             key={id}
-            style={isQuadGrid
-              ? { width: '47%', flexGrow: 1, flexBasis: '45%' }
-              : { flex: 1, minWidth: 140 }}
+            style={cellStyle}
           >
 
             <MetricExplainCard

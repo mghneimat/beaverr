@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { View, Modal, Pressable, Platform, ScrollView } from 'react-native';
+import { View, Pressable, Platform } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
 import { useI18n } from '../../lib/i18n';
-import { C, R, T } from '../../constants/onboarding-theme';
+import { C, T } from '../../constants/onboarding-theme';
 import FormInput from '../ui/FormInput';
 import PrimaryButton from '../ui/PrimaryButton';
 import OutlineButton from '../ui/OutlineButton';
 import GoalDeadlineFields from './GoalDeadlineFields';
+import DashboardScrollSheet from './DashboardScrollSheet';
 import { saveGoalEdits } from '../../lib/goals/goalCrud';
 import { startOfToday } from '../../lib/goals/goalFundingSchedule';
 import { notifyDashboardRefresh } from '../../lib/dashboardRefresh';
@@ -110,101 +111,76 @@ export default function EditGoalSheet({ visible, goal, currency, onClose }) {
   if (!canEdit) return null;
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <Pressable
-        style={{ flex: 1, backgroundColor: 'rgba(30, 58, 95, 0.35)', justifyContent: 'center', padding: 24 }}
-        onPress={onClose}
-      >
-        <Pressable
-          onPress={(e) => e.stopPropagation()}
-          style={{
-            maxWidth: 440,
-            width: '100%',
-            alignSelf: 'center',
-            backgroundColor: C.surface,
-            borderRadius: R.card,
-            padding: 24,
-            overflow: 'visible',
-            maxHeight: '90%',
-            paddingBottom: dateDropdownOpen ? 260 : 24,
-          }}
-        >
-          <ScrollView
-            keyboardShouldPersistTaps="handled"
-            scrollEnabled={!dateDropdownOpen}
-            style={dateDropdownOpen ? { overflow: 'visible' } : undefined}
-            contentContainerStyle={{
-              paddingBottom: dateDropdownOpen ? 240 : 4,
-              ...(dateDropdownOpen ? { overflow: 'visible' } : null),
-            }}
-          >
-            <Text style={{ ...T.cardTitle, marginBottom: 4 }}>
-              {t('dashboard.goalsScreen.edit.title')}
-            </Text>
-            <Text style={{ ...T.caption, color: C.muted, marginBottom: 16 }}>
-              {goal.autoCreated
-                ? t('dashboard.goalsScreen.edit.autoNameHelper')
-                : t('dashboard.goalsScreen.edit.helper')}
-            </Text>
+    <DashboardScrollSheet
+      visible={visible}
+      onClose={onClose}
+      closeA11yLabel={t('dashboard.goalsScreen.edit.closeA11y')}
+      contentContainerStyle={dateDropdownOpen ? { paddingBottom: 240 } : undefined}
+    >
+      <Text style={{ ...T.cardTitle, marginBottom: 4 }}>
+        {t('dashboard.goalsScreen.edit.title')}
+      </Text>
+      <Text style={{ ...T.caption, color: C.muted, marginBottom: 16 }}>
+        {goal.autoCreated
+          ? t('dashboard.goalsScreen.edit.autoNameHelper')
+          : t('dashboard.goalsScreen.edit.helper')}
+      </Text>
 
-            <FormInput
-              label={t('dashboard.goalsScreen.create.name')}
-              value={name}
-              onChangeText={(text) => {
-                setName(text);
-                setError('');
-              }}
-              placeholder={t('dashboard.goalsScreen.create.namePlaceholder')}
-            />
+      <FormInput
+        label={t('dashboard.goalsScreen.create.name')}
+        value={name}
+        onChangeText={(text) => {
+          setName(text);
+          setError('');
+        }}
+        placeholder={t('dashboard.goalsScreen.create.namePlaceholder')}
+      />
 
-            <GoalDeadlineFields
-              mode={deadlineMode}
-              onModeChange={(mode) => {
-                setDeadlineMode(mode);
-                setError('');
-              }}
-              endDate={endDate}
-              onEndDateChange={(value) => {
-                setEndDate(value);
-                setError('');
-              }}
-              minSelectableDate={minSelectableDate}
-              onElevatedChange={handleDateElevatedChange}
-              errorText={error && deadlineMode === 'set' ? error : undefined}
-              sectionStyle={dateSectionStyle}
-            />
+      <GoalDeadlineFields
+        mode={deadlineMode}
+        onModeChange={(mode) => {
+          setDeadlineMode(mode);
+          setError('');
+        }}
+        endDate={endDate}
+        onEndDateChange={(value) => {
+          setEndDate(value);
+          setError('');
+        }}
+        minSelectableDate={minSelectableDate}
+        onElevatedChange={handleDateElevatedChange}
+        errorText={error && deadlineMode === 'set' ? error : undefined}
+        sectionStyle={dateSectionStyle}
+      />
 
-            <FormInput
-              label={t(isDebtGoal ? 'dashboard.goalsScreen.totalDebt' : 'dashboard.goalsScreen.create.target')}
-              value={targetText}
-              onChangeText={(text) => {
-                setTargetText(text);
-                setError('');
-              }}
-              placeholder="0"
-              numeric
-              currency={currency}
-            />
+      <FormInput
+        label={t(isDebtGoal ? 'dashboard.goalsScreen.totalDebt' : 'dashboard.goalsScreen.create.target')}
+        value={targetText}
+        onChangeText={(text) => {
+          setTargetText(text);
+          setError('');
+        }}
+        placeholder="0"
+        numeric
+        currency={currency}
+      />
 
-            {error && deadlineMode !== 'set' ? (
-              <Text style={{ ...T.caption, color: C.danger, marginBottom: 12 }}>{error}</Text>
-            ) : null}
+      {error && deadlineMode !== 'set' ? (
+        <Text style={{ ...T.caption, color: C.danger, marginBottom: 12 }}>{error}</Text>
+      ) : null}
 
-            <View style={[footerStyle, { flexDirection: 'row', gap: 12, marginTop: 8 }]}>
-              <View style={{ flex: 1 }}>
-                <OutlineButton onPress={onClose} disabled={saving}>
-                  {t('common.cancel')}
-                </OutlineButton>
-              </View>
-              <View style={{ flex: 1 }}>
-                <PrimaryButton onPress={handleSave} disabled={saving}>
-                  {t('common.save')}
-                </PrimaryButton>
-              </View>
-            </View>
-          </ScrollView>
-        </Pressable>
-      </Pressable>
-    </Modal>
+      <View style={[footerStyle, { flexDirection: 'row', gap: 12, marginTop: 8 }]}>
+        <View style={{ flex: 1 }}>
+          <OutlineButton onPress={onClose} disabled={saving}>
+            {t('common.cancel')}
+          </OutlineButton>
+        </View>
+        <View style={{ flex: 1 }}>
+          <PrimaryButton onPress={handleSave} disabled={saving}>
+            {t('common.save')}
+          </PrimaryButton>
+        </View>
+      </View>
+    </DashboardScrollSheet>
   );
 }

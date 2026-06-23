@@ -5,6 +5,7 @@ import ExpandCollapseIcon from '../onboarding/ExpandCollapseIcon';
 
 /** Shared min width for Export, Expand all, Add, and other card header controls. */
 export const CARD_HEADER_ACTION_MIN_WIDTH = 140;
+export const CARD_HEADER_ACTION_MIN_WIDTH_PHONE = 0;
 
 const CARD_HEADER_TOGGLE_SIZE = 18;
 
@@ -54,22 +55,23 @@ export function CardHeaderExpandIcon(props) {
   );
 }
 
-export function cardHeaderActionStyle({ pressed, hovered, active = false }) {
+export function cardHeaderActionStyle({ pressed, hovered, active = false, compact = false }) {
   return {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
-    minWidth: CARD_HEADER_ACTION_MIN_WIDTH,
-    minHeight: 36,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
+    gap: compact ? 4 : 6,
+    minWidth: compact ? CARD_HEADER_ACTION_MIN_WIDTH_PHONE : CARD_HEADER_ACTION_MIN_WIDTH,
+    minHeight: compact ? 32 : 36,
+    paddingVertical: compact ? 6 : 8,
+    paddingHorizontal: compact ? 10 : 16,
     borderRadius: R.pill,
     backgroundColor: active || pressed
       ? C.overlayPressed
       : hovered
         ? C.overlayHover
         : 'transparent',
+    flexShrink: compact ? 1 : 0,
     ...(Platform.OS === 'web' ? { cursor: 'pointer' } : {}),
   };
 }
@@ -94,6 +96,7 @@ export default function CardHeaderActionButton({
   accessibilityState,
   trailingIcon = null,
   active = false,
+  compact = false,
   style,
 }) {
   return (
@@ -102,7 +105,7 @@ export default function CardHeaderActionButton({
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel || label}
       accessibilityState={accessibilityState}
-      style={({ pressed, hovered }) => [cardHeaderActionStyle({ pressed, hovered, active }), style]}
+      style={({ pressed, hovered }) => [cardHeaderActionStyle({ pressed, hovered, active, compact }), style]}
     >
       <Text style={cardHeaderActionLabelStyle(active)} numberOfLines={1}>
         {label}

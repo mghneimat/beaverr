@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { View, Modal, Pressable, Platform } from 'react-native';
+import { View, Pressable, Platform } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
 import Svg, { Path } from 'react-native-svg';
 import { useI18n } from '../../lib/i18n';
@@ -32,6 +32,7 @@ import StashTabSelectField from './StashTabSelectField';
 import FrequencyPills from '../onboarding/FrequencyPills';
 import SplitDateFields from '../onboarding/SplitDateFields';
 import AnimatedCollapse from './AnimatedCollapse';
+import DashboardScrollSheet from './DashboardScrollSheet';
 import {
   PiggyBankIcon,
   SavingsIcon,
@@ -559,34 +560,11 @@ export default function GoalFundingSheet({
   if (!visible || !goal) return null;
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={handleClose}>
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
-        <Pressable
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(30,58,95,0.35)',
-          }}
-          onPress={handleClose}
-          accessibilityRole="button"
-          accessibilityLabel={t('dashboard.goalsScreen.funding.closeA11y')}
-        />
-        <View
-          style={{
-            width: '100%',
-            maxWidth: 440,
-            backgroundColor: C.surface,
-            borderRadius: R.card,
-            borderWidth: 1,
-            borderColor: C.border,
-            padding: 20,
-            overflow: 'visible',
-            ...(Platform.OS === 'web' ? { cursor: 'default' } : {}),
-          }}
-        >
+    <DashboardScrollSheet
+      visible={visible}
+      onClose={handleClose}
+      closeA11yLabel={t('dashboard.goalsScreen.funding.closeA11y')}
+    >
           <Text style={{ ...T.cardTitle, marginBottom: 4 }}>
             {t('dashboard.goalsScreen.funding.title')}
           </Text>
@@ -801,8 +779,6 @@ export default function GoalFundingSheet({
               </PrimaryButton>
             </View>
           ) : null}
-        </View>
-      </View>
-    </Modal>
+    </DashboardScrollSheet>
   );
 }
