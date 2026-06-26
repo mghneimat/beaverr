@@ -17,7 +17,9 @@ import InputGroup from '../../components/onboarding/InputGroup';
 import SkipButton from '../../components/onboarding/SkipButton';
 import OnboardingCategoryAccordion from '../../components/onboarding/OnboardingCategoryAccordion';
 import OtherIncomeCategoryIcon from '../../components/onboarding/OtherIncomeCategoryIcon';
+import { getOnboardingState } from '../../lib/onboardingProgress';
 import { useSectionExit } from '../../lib/finishOnboardingSection';
+import { getQuickSetupNextRoute, isQuickSetupMode } from '../../lib/onboardingQuickPath';
 import { useOnboardingMultiStep } from '../../lib/useOnboardingMultiStep';
 import { useOnboardingLayout } from '../../lib/onboardingLayout';
 import SavingsIllustration from '../../components/onboarding/SavingsIllustration';
@@ -63,6 +65,7 @@ export default function IncomeScreen() {
   const { isEditMode, completeSection, leaveSection, editContinueLabel } = useSectionExit();
   const occupationRef = useRef(null);
   const hasPartnerRef = useRef(false);
+  const quickModeRef = useRef(false);
 
   // ── Loaded data ──
   const [occupation, setOccupation] = useState(null);
@@ -88,6 +91,9 @@ export default function IncomeScreen() {
       hasPartnerRef.current = Boolean(partnerHousehold);
       if (partnerHousehold) setPartnerName(household.partnerName);
 
+      const onboarding = await getOnboardingState();
+      quickModeRef.current = isQuickSetupMode(onboarding);
+
       if (saved) {
         if (saved.amount) setIncomeAmount(String(saved.amount));
         if (saved.frequency) setIncomeFrequency(normalizeOnboardingIncomeFrequency(saved.frequency));
@@ -109,6 +115,7 @@ export default function IncomeScreen() {
           hasPartner: hasPartnerRef.current,
           userOccupation: occupationRef.current?.user,
           partnerOccupation: occupationRef.current?.partner,
+          quickMode: quickModeRef.current,
         }),
       };
     },
@@ -160,6 +167,7 @@ export default function IncomeScreen() {
       return;
     }
 
+    const quickMode = quickModeRef.current;
     const result = resolveIncomeContinue({
       step,
       isNotWorking,
@@ -170,6 +178,7 @@ export default function IncomeScreen() {
       partnerName,
       otherIncomeStep,
       otherIncomeRows,
+      quickMode,
     });
 
     if (result.type === 'validationError') {
@@ -218,17 +227,29 @@ export default function IncomeScreen() {
   const saveIncomeSection = async () => {
     const existing = (await getData('beaverr_income')) || {};
     const incomeData = { ...existing, ...buildIncomePayload() };
+    const quickMode = isQuickSetupMode(await getOnboardingState());
 
     await completeSection({
       persist: async () => { await setData('beaverr_income', incomeData); },
-      onboardingPatch: { completed: false, currentStep: 'income', percentComplete: 53 },
-      nextRoute: '/(onboarding)/splash-strategy',
+      onboardingPatch: {
+        completed: false,
+        currentStep: 'income',
+        percentComplete: quickMode ? 22 : 53,
+        setupMode: quickMode ? 'quick' : 'full',
+        resumeRoute: quickMode ? getQuickSetupNextRoute('income') : undefined,
+      },
+      nextRoute: quickMode ? getQuickSetupNextRoute('income') : '/(onboarding)/splash-strategy',
       routeName: 'income',
     });
   };
 
-  const handleBack = () => {
+  const handleBack = async () => {
     setValidationError('');
+
+    if (quickModeRef.current && step === 'yourIncome') {
+      navigateForward('/(onboarding)/occupation');
+      return;
+    }
     if (step === 'savings') {
       if (otherIncomeRows.length > 0) {
         setOtherIncomeStep('fill');

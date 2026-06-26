@@ -1,0 +1,23 @@
+{
+  "id": "healthy_no_rules_triggered_cs",
+  "locale": "cs",
+  "snapshot": {
+    "v": 1,
+    "locale": "cs",
+    "household": { "adults": 2, "children": 0, "has_partner": true },
+    "ledger": {
+      "currency": "CZK",
+      "income_m": 95000,
+      "income_sources": [
+        { "role": "user", "m": 55000 },
+        { "role": "partner", "m": 40000 }
+      ],
+      "fixed_m": 42000,
+      "debt_m": 0,
+      "flex_m": 20000,
+      "surplus_m": 33000,
+      "fix_ratio": 0.44
+    }
+  },
+  "triggered_rules": []
+}

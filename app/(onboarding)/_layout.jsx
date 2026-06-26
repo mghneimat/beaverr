@@ -82,16 +82,15 @@ export default function OnboardingLayout() {
     <Stack screenOptions={{ headerShown: false, animation: 'none', contentStyle: { flex: 1 } }}>
       {/* Entry points */}
       <Stack.Screen name="welcome" />
-      <Stack.Screen name="consent" />
       <Stack.Screen name="setup-mode" />
-      <Stack.Screen name="quick-setup" />
+      <Stack.Screen name="quick-housing" />
 
       {/* Section 1 — Household Setup */}
       <Stack.Screen name="splash-household" />
       <Stack.Screen name="household" />
 
-      {/* Section 2 — Location & Occupation */}
-      <Stack.Screen name="splash-location" />
+      {/* Section 2 — Residence & Work */}
+      <Stack.Screen name="splash-residence" />
       <Stack.Screen name="location" />
       <Stack.Screen name="citizenship" />
       <Stack.Screen name="residence-permit" />

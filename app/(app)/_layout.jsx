@@ -6,11 +6,13 @@ import AppTopNavBar from '../../components/app/AppTopNavBar';
 import QuestionnaireBanner from '../../components/app/QuestionnaireBanner';
 import { getData } from '../../lib/storage';
 import { isTabLockedForQuickSetup } from '../../lib/onboardingProgress';
+import { useTheme } from '../../lib/theme';
 import { C } from '../../constants/onboarding-theme';
 
 const WIDE_BREAKPOINT = 768;
 
 export default function AppLayout() {
+  useTheme();
   const { width } = useWindowDimensions();
   const isWide = width >= WIDE_BREAKPOINT;
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);

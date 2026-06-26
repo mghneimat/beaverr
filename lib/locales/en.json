@@ -27,6 +27,120 @@
       "estimateWarning": "Figures are estimates until you complete the full questionnaire."
     }
   },
+  "auth": {
+    "welcome": {
+      "title": "Welcome to Beaverr",
+      "body": "Create an account to save your household budget securely and access it on any device.",
+      "continueWithEmail": "Continue with email",
+      "switchPrompt": "Already have an account?",
+      "switchLink": "Sign in",
+      "goToLogin": "Already have an account? Sign in"
+    },
+    "social": {
+      "google": "Continue with Google",
+      "facebook": "Continue with Facebook",
+      "apple": "Continue with Apple",
+      "divider": "or",
+      "comingSoon": "Coming soon"
+    },
+    "completeProfile": {
+      "title": "Complete your account",
+      "submit": "Continue",
+      "sectionAccount": "Your account",
+      "helper": "One last step — choose a username and preferences to finish setting up your account.",
+      "switchPrompt": "Wrong account?",
+      "switchGoogleLink": "Use a different Google account",
+      "switchGoogleA11y": "Remove this account and sign in with a different Google account",
+      "switchOAuthLink": "Sign in with a different account",
+      "switchOAuthA11y": "Remove this account and sign in again with a different account",
+      "deleteIncompleteLink": "Delete account and go back",
+      "deleteIncompleteA11y": "Delete this account and return to the welcome screen",
+      "deleteIncompleteConfirmTitle": "Delete this account?",
+      "deleteIncompleteConfirmMessage": "You haven't finished setting up yet. This permanently removes this Beaverr account and returns you to the welcome screen.",
+      "deleteIncompleteConfirmButton": "Delete account"
+    },
+    "login": {
+      "title": "Sign in",
+      "helper": "Use the email and password for your Beaverr account.",
+      "submit": "Sign in",
+      "switchPrompt": "Need an account?",
+      "switchLink": "Create one",
+      "goToSignUp": "Need an account? Create one"
+    },
+    "signup": {
+      "title": "Create Account",
+      "submit": "Create Account",
+      "switchPrompt": "Already have an account?",
+      "switchLink": "Sign in",
+      "goToLogin": "Already have an account? Sign in",
+      "sectionPreferences": "Preferences",
+      "sectionLocation": "Preferences",
+      "sectionAccount": "Your account",
+      "consentLabel": "I agree to GDPR-compliant data processing.",
+      "consentLink": "Read privacy details"
+    },
+    "fields": {
+      "name": "Name",
+      "firstNamePlaceholder": "First name",
+      "lastNamePlaceholder": "Last name (optional)",
+      "country": "Country",
+      "countryPlaceholder": "Select country",
+      "language": "Language",
+      "languagePlaceholder": "Select language",
+      "languageEn": "English",
+      "languageCs": "Čeština",
+      "currency": "Currency",
+      "currencyPlaceholder": "Select currency",
+      "email": "Email",
+      "emailPlaceholder": "Email",
+      "emailValid": "Email looks good",
+      "password": "Password",
+      "passwordPlaceholder": "Password",
+      "passwordHintMinLength": "At least 8 characters",
+      "passwordHintLetter": "At least one letter",
+      "passwordHintNumber": "At least one number",
+      "passwordValid": "Password meets requirements",
+      "showPassword": "Show password",
+      "hidePassword": "Hide password",
+      "confirmPassword": "Confirm password",
+      "confirmPasswordPlaceholder": "Confirm password",
+      "confirmPasswordMatch": "Passwords match",
+      "username": "Username",
+      "usernamePlaceholder": "Username",
+      "usernameChecking": "Checking availability…",
+      "usernameAvailable": "Username is available"
+    },
+    "errors": {
+      "required": "Please fill in all required fields.",
+      "currencyRequired": "Please select a currency.",
+      "consentRequired": "Please accept the privacy terms to continue.",
+      "passwordTooShort": "Password must be at least 8 characters.",
+      "passwordWeak": "Password must be at least 8 characters and include a letter and a number.",
+      "passwordMismatch": "Passwords do not match.",
+      "emailInvalid": "Enter a valid email address.",
+      "usernameRequired": "Please choose a username.",
+      "usernameInvalid": "Use 3–20 characters: letters, numbers, and underscores only.",
+      "usernameTaken": "That username is already taken.",
+      "usernameCheckFailed": "Could not verify this username. Please try again.",
+      "signInFailed": "Sign-in failed. Check your email and password.",
+      "socialSignInFailed": "Social sign-in failed. Please try again.",
+      "signUpFailed": "Could not create account. Please try again.",
+      "emailAlreadyRegistered": "An account with this email already exists. Sign in instead.",
+      "confirmEmail": "Check your email to confirm your account, then sign in.",
+      "oauthCancelled": "Sign-in was cancelled.",
+      "oauthLocalhostMobile": "Google sign-in cannot use localhost on a phone. On your computer run Expo with LAN (npx expo start --lan), open the app at http://YOUR-PC-IP:8081 on this phone, and add that callback URL in Supabase → Authentication → Redirect URLs.",
+      "oauthRedirectOriginPlaceholder": "EXPO_PUBLIC_AUTH_REDIRECT_ORIGIN is still a placeholder (e.g. 192.168.x.x). Set your PC's real LAN IP in .env.local, restart Expo, and add http://YOUR-IP:8081/auth/callback in Supabase Redirect URLs.",
+      "oauthPkceMismatch": "Sign-in callback did not match where you started (e.g. localhost vs LAN IP). Open the app at one address only, remove EXPO_PUBLIC_AUTH_REDIRECT_ORIGIN on laptop, and try Google sign-in again.",
+      "accountExists": "An account with this email already exists. Sign in with email and password instead.",
+      "misconfigured": "Account services are temporarily unavailable. Please try again later."
+    },
+    "notice": {
+      "confirmEmail": "Account created. Check your email to confirm, then sign in here."
+    },
+    "signOut": "Sign out",
+    "signOutHelper": "Sign out on this device. Your data stays saved in your account.",
+    "signedInAs": "Signed in as {{email}}"
+  },
   "common": {
     "continue": "Continue",
     "back": "Back",
@@ -99,16 +213,19 @@
   },
   "onboarding": {
     "welcome": {
-      "heading": "Welcome to Beaverr",
-      "description": "Beaverr walks you through your household finances step by step — income, fixed costs, and what remains for everyday spending. Plain language, one clear monthly picture.",
-      "illustrationA11y": "Friendly person avatar illustration",
+      "heading": "Let's set up your budget",
+      "description": "For accurate insights and monthly stats, we'll ask a few questions about your income, costs, and everyday spending — it won't take long. Prefer to move fast? Choose quick setup and fill in the rest whenever you're ready.",
+      "illustrationA11y": "Illustration of someone planning their time with a clock and hourglass",
       "title": "Beaver",
       "subtitle": "Not rich. Just ready.",
-      "cta": "Start now"
+      "cta": "Continue"
     },
     "consent": {
       "title": "Your privacy",
-      "body": "During alpha and beta, Beaverr stores your budget data locally in this app. We never sell your data or share it with third parties for marketing. You can delete everything from Settings at any time. We process your information in compliance with the GDPR (EU General Data Protection Regulation). If we add optional cloud sync later, we will ask for your consent again.",
+      "bodyIntro": "Beaverr stores your household budget in your account on secure, EU-hosted cloud infrastructure. When you sign in, your data syncs so you can continue on another device.",
+      "bodyRights": "We do not sell your data or use it for third-party advertising. You can sign out, withdraw consent, and delete your data from Account settings at any time.",
+      "bodyLegal": "We process your personal data in compliance with the GDPR (EU General Data Protection Regulation) to provide the budgeting service you signed up for.",
+      "body": "Beaverr stores your household budget in your account on secure, EU-hosted cloud infrastructure. When you sign in, your data syncs so you can continue on another device. We do not sell your data or use it for third-party advertising. You can sign out, withdraw consent, and delete your data from Account settings at any time. We process your personal data in compliance with the GDPR (EU General Data Protection Regulation) to provide the budgeting service you signed up for.",
       "checkbox": "I agree to GDPR-compliant data processing and want to continue",
       "illustrationA11y": "Illustration of a person holding a GDPR privacy shield and flag"
     },
@@ -139,6 +256,11 @@
       "discardMessageQuickSetup": "Your full questionnaire progress will be cleared. Your quick setup details stay on the dashboard until you finish the full questionnaire.",
       "discardMessageReturning": "Your in-progress changes will be discarded. Your last submitted questionnaire will be restored.",
       "discardConfirm": "Discard"
+    },
+    "leave": {
+      "title": "Leave questionnaire?",
+      "message": "You will return to the dashboard. Your progress is saved and you can continue later.",
+      "confirm": "Return to dashboard"
     },
     "quickSetup": {
       "chapter": "Quick setup",
@@ -230,6 +352,12 @@
       "heading": "Where you live and what you do",
       "body": "We'll ask for your country, city, and currency, plus citizenship and employment for each adult. If anyone needs a visa or residence permit, we'll capture permit type and renewal costs so they land in your plan.",
       "illustrationA11y": "Illustration of a person with a globe"
+    },
+    "splashResidence": {
+      "chapter": "Residence & Work",
+      "heading": "Citizenship and employment",
+      "body": "We'll confirm citizenship for each adult and child, then capture visa or residence permit details where needed. Employment comes next so your plan reflects who works and how.",
+      "illustrationA11y": "Illustration of a person holding an identity card"
     },
     "location": {
       "chapter": "Location & Work",
@@ -1486,9 +1614,9 @@
       "income": "Household income and savings goals — edit amounts inline.",
       "expenses": "Fixed costs and debt payments already committed each month.",
       "budget": "How much is left for everyday spending after commitments.",
-      "profile": "Your account, preferences, and sign-out.",
+      "profile": "Your account name and username from sign-up.",
       "subscriptions": "Your plan, billing, and PRO features.",
-      "accountSettings": "Privacy, data, and account controls.",
+      "accountSettings": "Country, language, currency, and delete account.",
       "helpFeedback": "Help articles and feedback for the Beaverr team.",
       "summary": "Full ledger with health metrics and section-by-section analysis."
     },
@@ -1498,7 +1626,9 @@
     "accountSettingsScreen": {
       "helper": "Manage your account preferences and data.",
       "privacyTitle": "Privacy & data",
-      "revokeHelper": "Withdraw consent and delete all local data. You will need to set up Beaverr again."
+      "deleteAccountHelper": "Permanently delete your Beaverr account, cloud data, and everything stored on this device.",
+      "preferencesHelper": "Update country, language, and currency from when you signed up.",
+      "saveSuccess": "Preferences saved."
     },
     "appearance": {
       "title": "Appearance",
@@ -1514,6 +1644,10 @@
     "profileScreen": {
       "accountTitle": "Account",
       "helper": "Manage your Beaverr profile and preferences here.",
+      "accountHelper": "Update the name and username you entered when you signed up.",
+      "saveSuccess": "Account details saved.",
+      "fieldFirstName": "First name",
+      "fieldLastName": "Last name",
       "preferencesTitle": "Preferences"
     },
     "headerToolbar": {
@@ -1525,6 +1659,8 @@
       "defaultDisplayName": "Jan Smile",
       "accountSettings": "Account settings",
       "appearance": "Appearance",
+      "appearanceSwitchToDark": "Switch to dark mode",
+      "appearanceSwitchToLight": "Switch to light mode",
       "subscription": "Subscription",
       "proBadge": "PRO",
       "proBadgeA11y": "Pro subscription",
@@ -2069,6 +2205,23 @@
           "summary": "This category is {{pct}}% of your monthly income."
         }
       }
+    },
+    "advice": {
+      "title": "Personalized advice",
+      "loading": "Generating personalized advice…",
+      "disclaimer": "AI-generated guidance for education only — not financial, legal, or tax advice.",
+      "error": "Could not load personalized advice. Try again later.",
+      "notConfigured": "Cloud advice is not configured on this build.",
+      "consentLabel": "Send anonymized household totals to Google Cloud for personalized explanations",
+      "consentHelper": "Google processes data as a subprocessor under their cloud terms. No names or account numbers are sent.",
+      "enableButton": "Enable AI advice",
+      "signInTitle": "Sign in to get personalized advice",
+      "signInHelper": "Your account links advice to you and enables secure access.",
+      "emailPlaceholder": "Email",
+      "passwordPlaceholder": "Password",
+      "signInButton": "Sign in",
+      "signInError": "Sign-in failed. Check your email and password.",
+      "refresh": "Refresh advice"
     },
     "summaryScreen": {
       "intro": "Full household ledger with insights on each section. Tap Edit to update any area.",
@@ -3164,7 +3317,15 @@
       },
       "reminderOn": "On",
       "reminderOff": "Off",
+      "expandAll": "Expand all",
+      "collapseAll": "Collapse all",
       "editReminderA11y": "Edit reminder for {{name}}",
+      "a11y": {
+        "expandRow": "Expand {{label}}",
+        "collapseRow": "Collapse {{label}}",
+        "expandAll": "Expand all reminders",
+        "collapseAll": "Collapse all reminders"
+      },
       "dateTypes": {
         "renewal": "Renewal",
         "due": "Due",
@@ -3372,10 +3533,12 @@
   "settings": {
     "title": "Settings",
     "redoSetup": "Redo Setup",
-    "revokeConsent": "Withdraw consent",
-    "revokeConsentConfirmTitle": "Are you sure?",
-    "revokeConsentConfirmMessage": "This will delete all your data and progress. You will need to retake the questionnaire.",
-    "revokeConsentConfirmButton": "Withdraw",
+    "deleteAccount": "Delete account and data",
+    "deleteAccountConfirmTitle": "Delete your account?",
+    "deleteAccountConfirmMessage": "This permanently deletes your Beaverr account, cloud data, and all progress on this device. You cannot undo this.",
+    "deleteAccountConfirmButton": "Delete account",
+    "deleteAccountFailed": "Could not delete your account. Please try again.",
+    "deleteAccountNotConfigured": "Account deletion is not enabled on the server yet. Run the delete-account migration or deploy the delete-account Edge Function.",
     "language": "Language",
     "theme": "Theme",
     "currency": "Currency"

@@ -21,6 +21,9 @@ import { asArray } from '../../lib/asArray';
 const PILL_ICON_SLOT = 36;
 const PILL_CHEVRON_SLOT = 32;
 const PILL_ROW_GAP = 10;
+/** Align nested card/pill content with parent name column (past icon slot). */
+export const BREAKDOWN_CONTENT_INDENT = PILL_ICON_SLOT + PILL_ROW_GAP;
+const CARD_ROW_PAD_H = 14;
 /** Proportional pill-table columns — amount before share on the row. */
 const PILL_NAME_FLEX = 1.2;
 const PILL_SHARE_FLEX = 0.85;
@@ -628,6 +631,64 @@ export function BreakdownPillSubRow({
   );
 }
 
+/**
+ * Phone nested line item — full-width inset row (no nested card shell).
+ * @param {{ label: string, amount?: string, share?: string, shareLabel?: string, nestedLevel?: number, isLast?: boolean }} props
+ */
+export function BreakdownCardSubRow({
+  label,
+  amount,
+  share,
+  shareLabel = 'Share',
+  nestedLevel = 0,
+  isLast = false,
+}) {
+  const paddingLeft = CARD_ROW_PAD_H + BREAKDOWN_CONTENT_INDENT * (1 + nestedLevel);
+
+  return (
+    <View style={{
+      paddingLeft,
+      paddingRight: CARD_ROW_PAD_H,
+      paddingVertical: 8,
+      marginBottom: isLast ? 0 : 4,
+      width: '100%',
+      alignSelf: 'stretch',
+      gap: 4,
+    }}
+    >
+      <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10 }}>
+        <Text style={{ flex: 1, fontSize: 13, color: C.muted, minWidth: 0 }} numberOfLines={2}>
+          {label}
+        </Text>
+        {amount != null && amount !== '' ? (
+          <Text
+            style={{
+              fontSize: 13,
+              fontWeight: '600',
+              color: C.text,
+              flexShrink: 0,
+              ...tabularNums,
+            }}
+            numberOfLines={1}
+          >
+            {amount}
+          </Text>
+        ) : null}
+      </View>
+      {share != null && share !== '' ? (
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+          <Text style={{ fontSize: 12, fontWeight: '600', color: C.muted }} numberOfLines={1}>
+            {shareLabel}
+          </Text>
+          <Text style={{ fontSize: 12, color: C.muted, ...tabularNums }} numberOfLines={1}>
+            {share}
+          </Text>
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
 /** Subtle scale when a pill row is selected — shared by breakdown + ledger tables. */
 export function usePillRowSelectMotion(selected) {
   const reduceMotion = useReducedMotion();
@@ -926,17 +987,25 @@ export function BreakdownSectionOpenAction(props) {
 }
 
 /** Expand/collapse all — compact control for breakdown card headers. */
-export function BreakdownExpandAllButton({ allExpanded, onToggle, t, compact = false }) {
+export function BreakdownExpandAllButton({
+  allExpanded,
+  onToggle,
+  t,
+  compact = false,
+  i18nKeys,
+}) {
+  const keys = i18nKeys ?? {
+    expand: 'onboarding.budget.budgetSplit.expandAll',
+    collapse: 'onboarding.budget.budgetSplit.collapseAll',
+    expandA11y: 'onboarding.budget.budgetSplit.a11y.expandAll',
+    collapseA11y: 'onboarding.budget.budgetSplit.a11y.collapseAll',
+  };
   return (
     <CardHeaderActionButton
       compact={compact}
-      label={allExpanded
-        ? t('onboarding.budget.budgetSplit.collapseAll')
-        : t('onboarding.budget.budgetSplit.expandAll')}
+      label={allExpanded ? t(keys.collapse) : t(keys.expand)}
       onPress={onToggle}
-      accessibilityLabel={allExpanded
-        ? t('onboarding.budget.budgetSplit.a11y.collapseAll')
-        : t('onboarding.budget.budgetSplit.a11y.expandAll')}
+      accessibilityLabel={allExpanded ? t(keys.collapseA11y) : t(keys.expandA11y)}
       trailingIcon={<CardHeaderExpandIcon expanded={allExpanded} color={C.muted} active={allExpanded} />}
     />
   );

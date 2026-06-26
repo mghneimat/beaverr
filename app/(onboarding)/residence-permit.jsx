@@ -140,7 +140,7 @@ export default function ResidencePermitScreen() {
   return (
     <QuestionScreen
       animationKey={`${subject}-${childIndex}-permit`}
-      chapter={t('onboarding.location.chapter')}
+      chapter={t('onboarding.splashResidence.chapter')}
       illustration={<CitizenshipIdCardIllustration width={layout.illustrationWidth} />}
       title={copy.title}
       helper={copy.helper}

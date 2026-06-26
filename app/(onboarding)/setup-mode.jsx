@@ -14,6 +14,7 @@ import { useI18n } from '../../lib/i18n';
 import { useOnboardingLayout } from '../../lib/onboardingLayout';
 import { patchOnboardingState } from '../../lib/onboardingProgress';
 import { navigateBack, navigateForward, ONBOARDING_ENTRY_HISTORY, resetNavHistory, useOnboardingScreen } from '../../lib/onboardingNavigation';
+import useLeaveToDashboardConfirm from '../../lib/useLeaveToDashboardConfirm';
 
 /**
  * Post-consent setup path choice — full questionnaire (recommended) or quick setup.
@@ -24,6 +25,7 @@ export default function SetupModeScreen() {
   const isFullBleed = layout.surfaceVariant === 'fullBleed';
   useOnboardingScreen();
   const [mode, setMode] = useState('full');
+  const { handleBackWithConfirm, leaveDialog } = useLeaveToDashboardConfirm('/(onboarding)/setup-mode');
 
   const handleContinue = async () => {
     if (mode === 'full') {
@@ -53,11 +55,11 @@ export default function SetupModeScreen() {
       dashboardUnlocked: false,
       questionnaireComplete: false,
       setupMode: 'quick',
-      currentStep: 'quick-setup',
-      percentComplete: 0,
-      resumeRoute: '/(onboarding)/quick-setup',
+      currentStep: 'household',
+      percentComplete: 4,
+      resumeRoute: '/(onboarding)/household',
     });
-    navigateForward('/(onboarding)/quick-setup');
+    navigateForward('/(onboarding)/household');
   };
 
   const introCard = (
@@ -173,6 +175,7 @@ export default function SetupModeScreen() {
 
   return (
     <OnboardingScreenShell>
+    {leaveDialog}
     <View style={{ flex: 1, backgroundColor: isFullBleed ? C.surface : C.bg }}>
       <View style={{
         backgroundColor: C.surface,
@@ -184,7 +187,7 @@ export default function SetupModeScreen() {
         flexShrink: 0,
       }}
       >
-        <OnboardingNavBackButton onPress={() => navigateBack()} cooldown={false} />
+        <OnboardingNavBackButton onPress={handleBackWithConfirm} cooldown={false} />
         <View style={{
           position: 'absolute',
           left: 0,

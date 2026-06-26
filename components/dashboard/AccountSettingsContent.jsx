@@ -1,78 +1,60 @@
-import { useState, useEffect } from 'react';
-import { View, Pressable } from 'react-native';
+import { useState } from 'react';
 import { Text } from '@gluestack-ui/themed';
 import { useRouter } from 'expo-router';
 import { useI18n } from '../../lib/i18n';
-import { isConsentAccepted, revokeConsent } from '../../lib/consent';
-import { C, R, T } from '../../constants/onboarding-theme';
+import { deleteAccountAndData } from '../../lib/account/deleteAccountAndData';
+import { mapDeleteAccountErrorKey } from '../../lib/auth/deleteAccount';
+import { useAuth } from '../../lib/auth/AuthProvider';
+import { clearScheduledCloudPush } from '../../lib/cloud/syncHousehold';
+import { C, T } from '../../constants/onboarding-theme';
 import SurfaceCard from '../ui/SurfaceCard';
 import InCardSectionHeader from './InCardSectionHeader';
 import ConfirmDialog from '../ui/ConfirmDialog';
 import TabSectionStack from './TabSectionStack';
-
-function SettingsActionRow({ label, onPress, destructive = false }) {
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      style={({ pressed, hovered }) => ({
-        flexDirection: 'row',
-        alignItems: 'center',
-        minHeight: 48,
-        paddingHorizontal: 4,
-        paddingVertical: 10,
-        borderRadius: R.pill,
-        backgroundColor: pressed || hovered ? C.overlayHover : 'transparent',
-      })}
-    >
-      <Text style={{
-        fontSize: 15,
-        fontWeight: '600',
-        color: destructive ? C.danger : C.text,
-      }}>
-        {label}
-      </Text>
-    </Pressable>
-  );
-}
+import CardActionRow from './CardActionRow';
+import AccountPreferencesForm from './AccountPreferencesForm';
 
 export default function AccountSettingsContent() {
   const { t } = useI18n();
   const router = useRouter();
-  const [showRevokeConsent, setShowRevokeConsent] = useState(false);
-  const [revokeDialogOpen, setRevokeDialogOpen] = useState(false);
+  const { user, configured } = useAuth();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
 
-  useEffect(() => {
-    isConsentAccepted().then(setShowRevokeConsent);
-  }, []);
-
-  const handleConfirmRevoke = async () => {
-    setRevokeDialogOpen(false);
-    await revokeConsent();
-    setShowRevokeConsent(false);
-    router.replace('/(onboarding)/consent');
+  const handleConfirmDeleteAccount = async () => {
+    setDeleteDialogOpen(false);
+    setDeleteError('');
+    clearScheduledCloudPush();
+    const result = await deleteAccountAndData();
+    if (!result.ok) {
+      setDeleteError(mapDeleteAccountErrorKey(result.code, result.error, t));
+      return;
+    }
+    router.replace('/(auth)/welcome');
   };
 
   return (
     <>
       <TabSectionStack>
         <SurfaceCard>
-          <InCardSectionHeader title={t('dashboard.accountSettings')} />
-          <Text style={{ ...T.helper, color: C.muted }}>
-            {t('dashboard.accountSettingsScreen.helper')}
-          </Text>
+          <InCardSectionHeader title={t('auth.signup.sectionPreferences')} />
+          <AccountPreferencesForm />
         </SurfaceCard>
 
-        {showRevokeConsent ? (
+        {configured && user ? (
           <SurfaceCard>
             <InCardSectionHeader title={t('dashboard.accountSettingsScreen.privacyTitle')} />
             <Text style={{ ...T.helper, color: C.muted, marginBottom: 8 }}>
-              {t('dashboard.accountSettingsScreen.revokeHelper')}
+              {t('dashboard.accountSettingsScreen.deleteAccountHelper')}
             </Text>
-            <SettingsActionRow
-              label={t('settings.revokeConsent')}
-              onPress={() => setRevokeDialogOpen(true)}
+            {deleteError ? (
+              <Text style={{ ...T.helper, color: C.danger, marginBottom: 8 }}>
+                {deleteError}
+              </Text>
+            ) : null}
+            <CardActionRow
+              label={t('settings.deleteAccount')}
+              onPress={() => setDeleteDialogOpen(true)}
               destructive
             />
           </SurfaceCard>
@@ -80,14 +62,14 @@ export default function AccountSettingsContent() {
       </TabSectionStack>
 
       <ConfirmDialog
-        visible={revokeDialogOpen}
-        title={t('settings.revokeConsentConfirmTitle')}
-        message={t('settings.revokeConsentConfirmMessage')}
-        confirmLabel={t('settings.revokeConsentConfirmButton')}
+        visible={deleteDialogOpen}
+        title={t('settings.deleteAccountConfirmTitle')}
+        message={t('settings.deleteAccountConfirmMessage')}
+        confirmLabel={t('settings.deleteAccountConfirmButton')}
         cancelLabel={t('common.cancel')}
         destructive
-        onConfirm={handleConfirmRevoke}
-        onCancel={() => setRevokeDialogOpen(false)}
+        onConfirm={handleConfirmDeleteAccount}
+        onCancel={() => setDeleteDialogOpen(false)}
       />
     </>
   );

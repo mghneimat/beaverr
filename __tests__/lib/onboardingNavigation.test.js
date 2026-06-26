@@ -75,10 +75,10 @@ describe('onboardingNavigation', () => {
 
   test('recordVisit appends distinct routes', () => {
     recordVisit('/(onboarding)/welcome');
-    recordVisit('/(onboarding)/consent');
+    recordVisit('/(onboarding)/setup-mode');
     expect(getNavHistory()).toEqual([
       { route: '/(onboarding)/welcome' },
-      { route: '/(onboarding)/consent' },
+      { route: '/(onboarding)/setup-mode' },
     ]);
   });
 

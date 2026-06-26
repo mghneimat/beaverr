@@ -14,7 +14,7 @@ import QuestionScreen from '../../components/onboarding/QuestionScreen';
 import PillToggle from '../../components/onboarding/PillToggle';
 import SplitDateFields from '../../components/onboarding/SplitDateFields';
 import AnimatedSlideIn from '../../components/onboarding/AnimatedSlideIn';
-import RemoveButton from '../../components/onboarding/RemoveButton';
+import DeleteTextButton from '../../components/onboarding/DeleteTextButton';
 import LabeledInput from '../../components/onboarding/LabeledInput';
 import YesNoToggle from '../../components/onboarding/YesNoToggle';
 import AddAnotherButton from '../../components/onboarding/AddAnotherButton';
@@ -166,13 +166,10 @@ export default function DebtsScreen() {
     <ScrollFocusAnchor key={debt.id || idx} focusId={debt.id || String(idx)} focusToken={focusToken}>
     <AnimatedSlideIn visible={visibleDebts[idx] !== false}>
       <View style={{ marginBottom: 20, paddingHorizontal: 16, paddingTop: 16, paddingBottom: 24, backgroundColor: C.surface, borderRadius: 12, borderWidth: 1, borderColor: C.border }}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+        <View style={{ marginBottom: 14 }}>
           <Text style={{ fontSize: 15, fontWeight: '600', color: C.primary }}>
             {t('onboarding.debts.debtDetails.debtLabel', { n: idx + 1 })}
           </Text>
-          {debts.length > 1 && (
-            <RemoveButton onPress={() => removeDebt(idx)} />
-          )}
         </View>
 
         {/* Debt type pills */}
@@ -286,6 +283,10 @@ export default function DebtsScreen() {
           multiline
           containerStyle={{ marginTop: 16 }}
         />
+
+        {debts.length > 1 ? (
+          <DeleteTextButton onPress={() => removeDebt(idx)} />
+        ) : null}
       </View>
     </AnimatedSlideIn>
     </ScrollFocusAnchor>
@@ -297,10 +298,7 @@ export default function DebtsScreen() {
         {t('onboarding.debts.debtDetails.helper')}
       </Text>
       {debts.map((debt, idx) => renderDebtForm(debt, idx))}
-      <AddAnotherButton
-        label={t('onboarding.debts.debtDetails.addDebt')}
-        onPress={addDebt}
-      />
+      <AddAnotherButton onPress={addDebt} />
     </View>
   );
 

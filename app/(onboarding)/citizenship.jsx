@@ -196,7 +196,7 @@ export default function CitizenshipScreen() {
   return (
     <QuestionScreen
       animationKey="citizenship-all"
-      chapter={t('onboarding.location.chapter')}
+      chapter={t('onboarding.splashResidence.chapter')}
       illustration={<CitizenshipIdCardIllustration width={layout.illustrationWidth} />}
       title={t('onboarding.citizenship.allTitle')}
       helper={t('onboarding.citizenship.allHelper')}

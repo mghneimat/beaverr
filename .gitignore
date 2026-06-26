@@ -33,6 +33,7 @@ yarn-error.*
 *.pem
 
 # local env files
+.env
 .env*.local
 
 # typescript
@@ -43,4 +44,5 @@ yarn-error.*
 /android
 .tmp-*/
 
-.vercel
+lib/advice/__evals__/reports/*.md
+!lib/advice/__evals__/reports/.gitkeep

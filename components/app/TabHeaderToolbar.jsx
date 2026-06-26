@@ -9,9 +9,11 @@ import {
 } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
 import { useRouter, useSegments } from 'expo-router';
+import { useTheme } from '../../lib/theme';
 import { useI18n } from '../../lib/i18n';
 import { resolveProfileDisplayName } from '../../lib/profileDisplay';
-import { revokeConsent } from '../../lib/consent';
+import { useAuth } from '../../lib/auth/AuthProvider';
+import { clearScheduledCloudPush } from '../../lib/cloud/syncHousehold';
 import { navigateAppTab } from '../../lib/screenTransition';
 import { C, R, T } from '../../constants/onboarding-theme';
 import { elevationShadow } from '../../lib/shadow';
@@ -22,6 +24,7 @@ import {
   CreditCardIcon,
   SlidersIcon,
   SunIcon,
+  MoonIcon,
   CircleHelpIcon,
   LogOutIcon,
   ZapIcon,
@@ -104,6 +107,7 @@ function ProfileMenuOption({
   destructive = false,
   selected = false,
   trailing = null,
+  accessibilityLabel,
 }) {
   const [hovered, setHovered] = useState(false);
   const [pressed, setPressed] = useState(false);
@@ -114,7 +118,7 @@ function ProfileMenuOption({
     <Pressable
       onPress={onPress}
       accessibilityRole="menuitem"
-      accessibilityLabel={label}
+      accessibilityLabel={accessibilityLabel || label}
       accessibilityState={{ selected }}
       onPressIn={() => setPressed(true)}
       onPressOut={() => setPressed(false)}
@@ -156,8 +160,10 @@ function ProfileMenuOption({
 /**
  * Alerts + profile pill for tab headers — notifications left, profile right.
  */
-export default function TabHeaderToolbar({ alertCount = 0, profileName }) {
+export default function TabHeaderToolbar({ alertCount = 0, household = null }) {
+  const { signOut, user, configured } = useAuth();
   const { t } = useI18n();
+  const { toggleMode, isDark } = useTheme();
   const router = useRouter();
   const segments = useSegments();
   const currentRoute = segments[segments.length - 1];
@@ -176,10 +182,7 @@ export default function TabHeaderToolbar({ alertCount = 0, profileName }) {
   const [logOutDialogOpen, setLogOutDialogOpen] = useState(false);
   const profileTriggerRef = useRef(null);
 
-  const displayName = resolveProfileDisplayName(
-    profileName ? { displayName: profileName } : null,
-    t,
-  );
+  const displayName = resolveProfileDisplayName(household, t, user);
   const isProfileRoute = currentRoute === 'profile';
 
   const closeProfileMenu = () => {
@@ -213,10 +216,15 @@ export default function TabHeaderToolbar({ alertCount = 0, profileName }) {
     setTimeout(() => navigateAppTab(router, route, currentRoute), 0);
   };
 
-  const openAppearance = () => {
+  const handleToggleAppearance = () => {
+    toggleMode();
     closeProfileMenu();
-    setTimeout(() => navigateAppTab(router, 'appearance', currentRoute), 0);
   };
+
+  const AppearanceMenuIcon = isDark ? MoonIcon : SunIcon;
+  const appearanceA11y = isDark
+    ? t('dashboard.headerToolbar.appearanceSwitchToLight')
+    : t('dashboard.headerToolbar.appearanceSwitchToDark');
 
   const handleLogOutRequest = () => {
     closeProfileMenu();
@@ -225,8 +233,9 @@ export default function TabHeaderToolbar({ alertCount = 0, profileName }) {
 
   const handleConfirmLogOut = async () => {
     setLogOutDialogOpen(false);
-    await revokeConsent();
-    router.replace('/(onboarding)/consent');
+    clearScheduledCloudPush();
+    await signOut();
+    router.replace('/(auth)/welcome');
   };
 
   const menuTop = profileAnchor ? profileAnchor.y + profileAnchor.height + 8 : 0;
@@ -379,8 +388,9 @@ export default function TabHeaderToolbar({ alertCount = 0, profileName }) {
               />
               <ProfileMenuOption
                 label={t('dashboard.headerToolbar.appearance')}
-                icon={SunIcon}
-                onPress={openAppearance}
+                icon={AppearanceMenuIcon}
+                onPress={handleToggleAppearance}
+                accessibilityLabel={appearanceA11y}
               />
 
               <View style={{ height: 1, backgroundColor: C.border, marginVertical: 6, marginHorizontal: 12 }} />
@@ -391,12 +401,14 @@ export default function TabHeaderToolbar({ alertCount = 0, profileName }) {
                 onPress={() => openSettingsTab('help-feedback')}
                 selected={currentRoute === 'help-feedback'}
               />
-              <ProfileMenuOption
-                label={t('dashboard.headerToolbar.logOut')}
-                icon={LogOutIcon}
-                onPress={handleLogOutRequest}
-                destructive
-              />
+              {configured && user ? (
+                <ProfileMenuOption
+                  label={t('auth.signOut')}
+                  icon={LogOutIcon}
+                  onPress={handleLogOutRequest}
+                  destructive
+                />
+              ) : null}
             </View>
           ) : null}
         </View>
@@ -404,9 +416,9 @@ export default function TabHeaderToolbar({ alertCount = 0, profileName }) {
 
       <ConfirmDialog
         visible={logOutDialogOpen}
-        title={t('dashboard.headerToolbar.logOutConfirmTitle')}
-        message={t('dashboard.headerToolbar.logOutConfirmMessage')}
-        confirmLabel={t('dashboard.headerToolbar.logOutConfirmButton')}
+        title={t('auth.signOut')}
+        message={t('auth.signOutHelper')}
+        confirmLabel={t('auth.signOut')}
         cancelLabel={t('common.cancel')}
         destructive
         onConfirm={handleConfirmLogOut}

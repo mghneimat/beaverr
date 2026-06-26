@@ -1,7 +1,7 @@
 import { View } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
 import { C, R, S } from '../../constants/onboarding-theme';
-import RemoveButton from './RemoveButton';
+import DeleteTextButton from './DeleteTextButton';
 
 /**
  * Standardised cost/item card shell for onboarding list screens.
@@ -9,10 +9,10 @@ import RemoveButton from './RemoveButton';
  * @param {Object} props
  * @param {string} [props.title] - Card header label
  * @param {string} [props.icon] - Optional emoji/icon left of title
- * @param {Function} [props.onRemove] - Shows RemoveButton when provided
- * @param {'default'|'active'|'nested'} [props.variant] - Surface vs highlighted active vs inset nested card
- * @param {object} [props.style] - Additional outer View styles
- * @param {React.ReactNode} props.children - Card body (inputs, pills, etc.)
+ * @param {Function} [props.onRemove] - Centred delete link below card body
+ * @param {'default'|'active'|'nested'} [props.variant]
+ * @param {object} [props.style]
+ * @param {React.ReactNode} props.children
  */
 export default function CostCard({
   title,
@@ -38,22 +38,19 @@ export default function CostCard({
       {title ? (
         <View style={{
           flexDirection: 'row',
-          justifyContent: 'space-between',
           alignItems: 'center',
           marginBottom: 12,
         }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-            {icon ? (
-              <Text style={{ fontSize: 18, marginRight: 8 }}>{icon}</Text>
-            ) : null}
-            <Text style={{ fontSize: 14, fontWeight: '600', color: C.primary }}>
-              {title}
-            </Text>
-          </View>
-          {onRemove ? <RemoveButton onPress={onRemove} /> : null}
+          {icon ? (
+            <Text style={{ fontSize: 18, marginRight: 8 }}>{icon}</Text>
+          ) : null}
+          <Text style={{ fontSize: 14, fontWeight: '600', color: C.primary, flex: 1 }}>
+            {title}
+          </Text>
         </View>
       ) : null}
       {children}
+      {onRemove ? <DeleteTextButton onPress={onRemove} /> : null}
     </View>
   );
 }

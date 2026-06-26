@@ -32,6 +32,15 @@ describe('resolveInitialIncomeStep', () => {
       userOccupation: 'notWorking',
     })).toBe('otherIncome');
   });
+
+  it('quick mode starts at your income for working solo user', () => {
+    expect(resolveInitialIncomeStep({
+      isEditMode: false,
+      hasPartner: false,
+      userOccupation: 'employee',
+      quickMode: true,
+    })).toBe('yourIncome');
+  });
 });
 
 describe('validateOtherIncomeContinue', () => {
@@ -114,5 +123,24 @@ describe('resolveIncomeContinue', () => {
       otherIncomeRows: [],
     });
     expect(result).toEqual({ type: 'nextStep', step: 'otherIncome' });
+  });
+
+  it('quick mode completes after partner income', () => {
+    expect(resolveIncomeContinue({
+      step: 'partnerIncome',
+      partnerIncomeAmount: '50000',
+      quickMode: true,
+    })).toEqual({ type: 'complete' });
+  });
+
+  it('quick mode completes after your income when solo', () => {
+    expect(resolveIncomeContinue({
+      step: 'yourIncome',
+      isNotWorking: false,
+      incomeAmount: '50000',
+      hasPartner: false,
+      partnerIsNotWorking: false,
+      quickMode: true,
+    })).toEqual({ type: 'complete' });
   });
 });

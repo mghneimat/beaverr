@@ -23,7 +23,7 @@ import AnimatedRow from '../../components/onboarding/AnimatedRow';
 import CostCard from '../../components/onboarding/CostCard';
 import InputGroup from '../../components/onboarding/InputGroup';
 import OptionalPaymentDatesFields from '../../components/onboarding/OptionalPaymentDatesFields';
-import RemoveButton from '../../components/onboarding/RemoveButton';
+import DeleteTextButton from '../../components/onboarding/DeleteTextButton';
 import ScrollFocusAnchor from '../../components/onboarding/ScrollFocusAnchor';
 import { useSectionExit } from '../../lib/finishOnboardingSection';
 
@@ -262,11 +262,10 @@ export default function PetsScreen() {
 
   const renderPetForm = (pet, idx) => (
     <View key={idx} style={{ marginBottom: 24, padding: 16, backgroundColor: C.surface, borderRadius: 12, borderWidth: 1, borderColor: C.border }}>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+      <View style={{ marginBottom: 16 }}>
         <Text style={{ fontSize: 15, fontWeight: '600', color: C.primary }}>
           {t('onboarding.pets.petDetails.title', { n: idx + 1 })}
         </Text>
-        {pets.length > 1 ? <RemoveButton onPress={() => removePet(idx)} /> : null}
       </View>
 
       {/* Pet type pills */}
@@ -375,6 +374,10 @@ export default function PetsScreen() {
           </AnimatedSlideIn>
         </View>
       )}
+
+      {pets.length > 1 ? (
+        <DeleteTextButton onPress={() => removePet(idx)} />
+      ) : null}
     </View>
   );
 
@@ -432,11 +435,7 @@ export default function PetsScreen() {
           </AnimatedRow>
         </ScrollFocusAnchor>
 
-        <AddAnotherButton
-          label={t('onboarding.pets.petDetails.addPet')}
-          onPress={addPet}
-          style={{ marginTop: 8, width: '100%', alignSelf: 'stretch' }}
-        />
+        <AddAnotherButton onPress={addPet} style={{ marginTop: 8 }} />
       </View>
     );
   };

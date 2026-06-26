@@ -150,7 +150,7 @@ Rules:
 | Navigation | Expo Router | File-based routing; works on web and native |
 | Backend + Auth + DB | Supabase | Postgres, Auth, Row Level Security, Realtime |
 | Payments / Paywall | RevenueCat | Cross-platform subscription management |
-| AI | DeepSeek API | Financial insights and questionnaire assistance |
+| AI | Google Gemini (Google Cloud API, EU) | Premium household advice narration; see `docs/AI-INTEGRATION-PLAN.md` |
 | Build + Distribution | Expo EAS | Cloud builds for iOS and Android |
 
 ### JavaScript vs TypeScript
@@ -214,7 +214,7 @@ If you believe a specific file genuinely benefits from TypeScript (e.g. a comple
           ┌──────────────────────┼───────────────────────────┐
           │                      │                           │
    ┌──────▼──────┐       ┌───────▼──────┐         ┌─────────▼────┐
-   │  Supabase   │       │  DeepSeek    │         │  RevenueCat  │
+   │  Supabase   │       │  Gemini AI   │         │  RevenueCat  │
    │  Auth + DB  │       │  AI API      │         │  Paywall     │
    │  RLS + Edge │       │  (Insights + │         │  (Phase 5)   │
    │  Functions  │       │   Prefill)   │         └──────────────┘
@@ -227,7 +227,7 @@ If you believe a specific file genuinely benefits from TypeScript (e.g. a comple
 
 **Supabase (Phase 2+):** Each user's financial data is stored in Postgres with Row Level Security. Supabase Auth handles sign-up, login, and the 30-day trial gate. No data is shared or sold.
 
-**DeepSeek AI (Phase 4+):** (A) Prefilling questionnaire fields from location-based data. (B) Personal finance expert that analyses the completed profile and gives honest, goal-aware advice.
+**Gemini AI (Phase 4+):** Premium household advice narration via Supabase Edge + Google Cloud Gemini API (EU). See `docs/AI-INTEGRATION-PLAN.md`. Questionnaire prefill (future) is a separate provider decision.
 
 **RevenueCat (Phase 5):** Manages subscriptions across iOS and Android from one API. AI Insights and push notifications are premium features.
 
@@ -890,17 +890,19 @@ Costs screen and Income section show all entries at a selected frequency (daily 
 
 ## AI FEATURES (Phase 4+)
 
-### A — Questionnaire Prefill Assistant
-When the user selects a city, DeepSeek retrieves the current local waste tax rate or OSVČ insurance minimum and pre-fills the input. Implementation: a Supabase Edge Function calls DeepSeek with a structured prompt and returns a number. UI shows a "pre-filled by AI" badge; user can edit freely.
+> **Canonical spec:** `docs/AI-INTEGRATION-PLAN.md` — local warnings are rule-based; LLM narrates only for **premium** users with separate AI consent.
 
-### B — Personal Finance Expert
-After onboarding, DeepSeek receives the user's anonymised financial profile (no names, country/city only) and:
-- Assesses whether the financial goal is achievable within the timeframe
-- If not, honestly explains why and suggests adjustments
-- Highlights the top 3 actions to improve the financial position
-- Flags high-risk items (high APR debts, no savings buffer, over-subscribed streaming)
+### A — Questionnaire Prefill Assistant (future)
+Location-based prefill (e.g. waste tax, OSVČ minimum) via Supabase Edge Function. Provider TBD; must meet same EU GDPR bar as advice. UI shows “pre-filled by AI” badge; user can edit.
 
-Displayed as an Insight Card on the Dashboard. Regenerated when the profile changes materially. Premium feature (Phase 5).
+### B — Personal Finance Expert (premium)
+**Google Gemini `gemini-3.1-flash-lite`** via Supabase Edge Function. Server sends compact financial snapshot + triggered rules only when rules fire. Local warnings always shown without LLM.
+
+- Narrates triggered rules with practical next steps (JSON in/out, prompt v2)
+- **Not** shown when `triggered_rules` is empty — static healthy copy instead
+- Regenerated on user Refresh or material profile change; cached in Postgres
+- **Premium + `beaverr_ai_consent` required**; production uses **Google Cloud Gemini API (EU)** + Google Cloud DPA
+- Dev/eval: Google AI Studio — `npm run advice:eval`
 
 ---
 
@@ -993,7 +995,7 @@ Migrate to Expo + NativeWind. Web still works. Supabase for persistence (anonymo
 Supabase Auth (email magic link). 30-day free trial then premium gate (RevenueCat). Expo push notifications. Invite partner.
 
 ### 🔜 Phase 4 — AI Insights
-DeepSeek API. Questionnaire prefill assistant + personal finance expert insight card.
+Gemini API (Google Cloud, EU region). Premium personal finance expert insight card. See `docs/AI-INTEGRATION-PLAN.md`.
 
 ### 🔜 Phase 5 — Premium + App Store
 AI Insights + push notifications = premium. Submit via Expo EAS.

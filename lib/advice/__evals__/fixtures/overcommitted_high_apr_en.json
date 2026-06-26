@@ -1,0 +1,41 @@
+{
+  "id": "overcommitted_high_apr_en",
+  "locale": "en",
+  "snapshot": {
+    "v": 1,
+    "locale": "en",
+    "household": { "adults": 1, "children": 0, "has_partner": false },
+    "ledger": {
+      "currency": "CZK",
+      "income_m": 38000,
+      "income_sources": [{ "role": "user", "m": 38000 }],
+      "fixed_m": 29000,
+      "debt_m": 11000,
+      "flex_m": 6000,
+      "surplus_m": -8000,
+      "fix_ratio": 1.05
+    }
+  },
+  "triggered_rules": [
+    {
+      "id": "overcommitted",
+      "severity": "critical",
+      "facts": { "fix_ratio": 1.05, "threshold": 1.0 }
+    },
+    {
+      "id": "negative_surplus",
+      "severity": "critical",
+      "facts": { "surplus_m": -8000 }
+    },
+    {
+      "id": "high_apr",
+      "severity": "warning",
+      "facts": { "apr": 0.24, "threshold": 0.20 },
+      "detail": {
+        "debts": [
+          { "ref": "debt_1", "type": "credit_card", "balance": 45000, "apr": 0.24, "payment_m": 4200 }
+        ]
+      }
+    }
+  ]
+}

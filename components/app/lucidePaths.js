@@ -370,6 +370,11 @@ export const SUN_NODES = [
 ];
 
 /** @type {import('./LucideStrokeIcon').LucideNode[]} */
+export const MOON_NODES = [
+  ['path', { d: 'M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z', key: 'a7tn18' }],
+];
+
+/** @type {import('./LucideStrokeIcon').LucideNode[]} */
 export const CIRCLE_HELP_NODES = [
   ['circle', { cx: '12', cy: '12', r: '10', key: '1mglay' }],
   ['path', { d: 'M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3', key: '1u773s' }],
@@ -476,4 +481,20 @@ export const PAW_PRINT_NODES = [
   ['circle', { cx: '18', cy: '8', r: '2', key: 'paw-2' }],
   ['circle', { cx: '20', cy: '16', r: '2', key: 'paw-3' }],
   ['path', { d: 'M9 10a5 5 0 0 1 5 5v3.5a3.5 3.5 0 0 1-6.84 1.045Q6.52 17.48 4.46 16.84A3.5 3.5 0 0 1 5.5 10Z', key: 'paw-4' }],
+];
+
+/** @type {import('./LucideStrokeIcon').LucideNode[]} */
+export const EYE_NODES = [
+  ['path', { d: 'M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0', key: 'eye-1' }],
+  ['circle', { cx: '12', cy: '12', r: '3', key: 'eye-2' }],
+];
+
+/** Current Lucide eye-closed — closed eyelids, no slash. */
+/** @type {import('./LucideStrokeIcon').LucideNode[]} */
+export const EYE_CLOSED_NODES = [
+  ['path', { d: 'm15 18-.722-3.25', key: 'eye-closed-1' }],
+  ['path', { d: 'M2 8a10.645 10.645 0 0 0 20 0', key: 'eye-closed-2' }],
+  ['path', { d: 'm20 15-1.726-2.05', key: 'eye-closed-3' }],
+  ['path', { d: 'm4 15 1.726-2.05', key: 'eye-closed-4' }],
+  ['path', { d: 'm9 18-.722-3.25', key: 'eye-closed-5' }],
 ];

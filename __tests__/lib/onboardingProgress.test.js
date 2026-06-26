@@ -4,10 +4,15 @@ import {
   isQuickSetupIncomplete,
   isTabLockedForQuickSetup,
   shouldShowQuestionnaireBanners,
+  shouldShowQuestionnaireEstimateWarning,
+  shouldShowQuestionnaireContinueSoft,
   shouldShowRetakeQuestionnaire,
   shouldShowContinueQuestionnaire,
   shouldShowStartQuestionnaire,
   getSavedResumeRoute,
+  getValidSavedResumeRoute,
+  normalizeResumeRoute,
+  resolveBootResumeRoute,
   getQuestionnaireStartRoute,
   getQuestionnaireNavigationRoute,
   getWelcomeContinueRoute,
@@ -41,6 +46,21 @@ describe('onboardingProgress', () => {
       completed: false,
     })).toBe(true);
     expect(shouldShowQuestionnaireBanners({ completed: true, dashboardUnlocked: true })).toBe(false);
+    expect(shouldShowQuestionnaireBanners({
+      dashboardUnlocked: true,
+      completed: false,
+      questionnaireEverCompleted: true,
+    })).toBe(false);
+    expect(shouldShowQuestionnaireContinueSoft({
+      dashboardUnlocked: true,
+      completed: false,
+      questionnaireEverCompleted: true,
+    })).toBe(true);
+    expect(shouldShowQuestionnaireEstimateWarning({
+      dashboardUnlocked: true,
+      completed: false,
+      questionnaireEverCompleted: true,
+    })).toBe(false);
   });
 
   test('questionnaire percent caps below 100 until complete', () => {
@@ -96,7 +116,7 @@ describe('onboardingProgress', () => {
     });
     expect(repairOnboardingState({
       completed: false,
-      currentStep: 'quick-setup',
+      currentStep: 'quick-housing',
       percentComplete: 8,
       dashboardUnlocked: true,
     })).toMatchObject({
@@ -122,6 +142,40 @@ describe('onboardingProgress', () => {
     }).resumeRoute).toBe('/(onboarding)/budget-setup');
   });
 
+  test('repairOnboardingState migrates deleted quick-setup resume route and step', () => {
+    expect(repairOnboardingState({
+      completed: false,
+      dashboardUnlocked: true,
+      setupMode: 'quick',
+      currentStep: 'quick-setup',
+      resumeRoute: '/(onboarding)/quick-setup',
+      navHistory: [{ route: '/(onboarding)/quick-setup' }],
+    })).toEqual({
+      completed: false,
+      dashboardUnlocked: true,
+      questionnaireComplete: false,
+      setupMode: 'quick',
+      currentStep: 'quick-housing',
+      resumeRoute: '/(onboarding)/quick-housing',
+      navHistory: [{ route: '/(onboarding)/quick-housing' }],
+    });
+  });
+
+  test('normalizeResumeRoute maps legacy aliases and rejects unknown routes', () => {
+    expect(normalizeResumeRoute('/(onboarding)/quick-setup')).toBe('/(onboarding)/quick-housing');
+    expect(normalizeResumeRoute('/(onboarding)/income')).toBe('/(onboarding)/income');
+    expect(normalizeResumeRoute('/(onboarding)/missing-screen')).toBeNull();
+  });
+
+  test('resolveBootResumeRoute returns null for unknown saved routes', () => {
+    expect(resolveBootResumeRoute({
+      resumeRoute: '/(onboarding)/quick-setup',
+    })).toBe('/(onboarding)/quick-housing');
+    expect(resolveBootResumeRoute({
+      resumeRoute: '/(onboarding)/deleted-route',
+    })).toBeNull();
+  });
+
   test('continue vs start questionnaire tools depend on saved resume route', () => {
     const inProgress = {
       dashboardUnlocked: true,
@@ -143,6 +197,12 @@ describe('onboardingProgress', () => {
     expect(getSavedResumeRoute(afterDiscard)).toBeNull();
     expect(getQuestionnaireStartRoute(afterDiscard)).toBe('/(onboarding)/welcome');
     expect(getQuestionnaireNavigationRoute(afterDiscard)).toBe(QUICK_RESUME_ROUTE);
+    expect(getQuestionnaireNavigationRoute({
+      dashboardUnlocked: true,
+      completed: false,
+      questionnaireEverCompleted: true,
+      resumeRoute: null,
+    })).toBe(QUICK_RESUME_ROUTE);
   });
 
   test('welcome continue routes incomplete quick-setup users into full questionnaire', () => {

@@ -4,7 +4,8 @@ import { Text } from '@gluestack-ui/themed';
 import { useLocalSearchParams } from 'expo-router';
 import { useI18n } from '../../lib/i18n';
 import { getData, setData } from '../../lib/storage';
-import { patchOnboardingState, patchProgressOnSectionComplete } from '../../lib/onboardingProgress';
+import { getOnboardingState, patchOnboardingState, patchProgressOnSectionComplete } from '../../lib/onboardingProgress';
+import { getQuickSetupNextRoute, isQuickSetupMode } from '../../lib/onboardingQuickPath';
 import { navigateBack, navigateForward, recordVisit } from '../../lib/onboardingNavigation';
 import {
   buildHouseholdResumeRoute,
@@ -180,6 +181,16 @@ export default function HouseholdScreen() {
         ageGroup: children[i]?.ageGroup || '',
       }));
       setChildren(newChildren);
+      const onboarding = await getOnboardingState();
+      if (isQuickSetupMode(onboarding)) {
+        const placeholders = Array.from({ length: numChildren }, () => ({
+          displayName: null,
+          ageGroup: '',
+        }));
+        setChildren(placeholders);
+        await saveAndContinue(placeholders);
+        return;
+      }
       setCurrentChildIndex(0);
       setCurrentStep('childDetails');
     } else if (currentStep === 'childDetails') {
@@ -203,11 +214,12 @@ export default function HouseholdScreen() {
     }
   };
 
-  const saveAndContinue = async () => {
+  const saveAndContinue = async (childrenOverride) => {
+    const childrenData = childrenOverride ?? (hasChildren ? children : []);
     const householdData = {
       type: householdType,
       partnerName: householdType === 'partner' ? partnerName : null,
-      children: hasChildren ? children : [],
+      children: hasChildren ? childrenData : [],
     };
 
     const returnPoint = computeHouseholdReturnPoint({
@@ -216,7 +228,9 @@ export default function HouseholdScreen() {
       numChildren,
     });
 
+    const existing = (await getData('beaverr_household')) || {};
     await setData('beaverr_household', {
+      ...existing,
       ...householdData,
       householdOnboardingStep: returnPoint.step,
       householdOnboardingChildIndex: returnPoint.childIndex,
@@ -224,16 +238,21 @@ export default function HouseholdScreen() {
       hasChildren,
     });
 
+    const onboarding = await getOnboardingState();
+    const quickMode = isQuickSetupMode(onboarding);
+
     await patchProgressOnSectionComplete('household');
     await patchOnboardingState({
       completed: false,
-      setupMode: 'full',
+      setupMode: quickMode ? 'quick' : 'full',
       currentStep: 'household',
-      resumeRoute: '/(onboarding)/splash-location',
+      resumeRoute: quickMode
+        ? getQuickSetupNextRoute('household')
+        : '/(onboarding)/splash-residence',
     });
 
     recordVisit('/(onboarding)/household', householdNavParams(returnPoint.step, returnPoint.childIndex));
-    navigateForward('/(onboarding)/splash-location');
+    navigateForward(quickMode ? getQuickSetupNextRoute('household') : '/(onboarding)/splash-residence');
   };
 
   const sharedScreenProps = {

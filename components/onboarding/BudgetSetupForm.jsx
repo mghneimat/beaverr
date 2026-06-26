@@ -18,10 +18,10 @@ function getIncomeBreakdownItems(income, t) {
   const partnerMonthly = toMonthly(income?.partnerAmount || 0, income?.partnerFrequency || 'monthly');
   const breakdowns = [];
   if (userMonthly > 0) {
-    breakdowns.push({ label: t('onboarding.budget.budgetSplit.incomeUser'), amount: userMonthly, indent: 28 });
+    breakdowns.push({ label: t('onboarding.budget.budgetSplit.incomeUser'), amount: userMonthly });
   }
   if (partnerMonthly > 0) {
-    breakdowns.push({ label: t('onboarding.budget.budgetSplit.incomePartner'), amount: partnerMonthly, indent: 28 });
+    breakdowns.push({ label: t('onboarding.budget.budgetSplit.incomePartner'), amount: partnerMonthly });
   }
   asArray(income?.otherIncomeRows).forEach((r, idx) => {
     const monthly = toMonthly(r.amount || 0, r.frequency || 'monthly');
@@ -29,7 +29,6 @@ function getIncomeBreakdownItems(income, t) {
       breakdowns.push({
         label: r.label || `${t('onboarding.budget.budgetSplit.incomeOther')} ${idx + 1}`,
         amount: monthly,
-        indent: 28,
       });
     }
   });

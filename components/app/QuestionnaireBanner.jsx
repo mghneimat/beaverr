@@ -15,7 +15,7 @@ const BANNER_PROGRESS_ROW_HEIGHT = 18;
 export default function QuestionnaireBanner() {
   const { t } = useI18n();
   const router = useRouter();
-  const { visible, percent, navigationRoute } = useQuestionnaireBannerState();
+  const { visible, showEstimateWarning, percent, navigationRoute } = useQuestionnaireBannerState();
 
   if (!visible) return null;
 
@@ -25,12 +25,12 @@ export default function QuestionnaireBanner() {
 
   return (
     <View style={{
-      backgroundColor: C.bg,
+      backgroundColor: C.infoWashBg,
       paddingHorizontal: S.pagePadH,
       paddingTop: 12,
       paddingBottom: 12,
       borderBottomWidth: 1,
-      borderBottomColor: C.border,
+      borderBottomColor: C.infoWashBorder,
       alignItems: 'center',
     }}>
       <Pressable
@@ -90,6 +90,7 @@ export default function QuestionnaireBanner() {
         </View>
       </Pressable>
 
+      {showEstimateWarning ? (
       <View
         accessibilityRole="alert"
         style={{
@@ -108,6 +109,7 @@ export default function QuestionnaireBanner() {
           {t('app.questionnaireBanner.estimateWarning')}
         </Text>
       </View>
+      ) : null}
     </View>
   );
 }

@@ -22,7 +22,7 @@ import { calcMotNextDateFromExpiry, stkIntervalYearsForCategory } from '../../li
 import InsuranceContractFields from '../../components/onboarding/InsuranceContractFields';
 import RevealAfterToggle from '../../components/onboarding/RevealAfterToggle';
 import AnimatedRow from '../../components/onboarding/AnimatedRow';
-import RemoveButton, { REMOVE_BUTTON_SIZE } from '../../components/onboarding/RemoveButton';
+import DeleteTextButton from '../../components/onboarding/DeleteTextButton';
 import LabeledInput from '../../components/onboarding/LabeledInput';
 import YesNoToggle from '../../components/onboarding/YesNoToggle';
 import FrequencyPills from '../../components/onboarding/FrequencyPills';
@@ -636,27 +636,15 @@ export default function TransportScreen() {
                 placeholder={descText}
                 containerStyle={{ marginBottom: 10 }}
               />
-              <Text style={{ ...T.fieldLabel, marginBottom: S.labelGap }}>
-                {t(`onboarding.transport.${localePrefix}.maintenanceCostLabel`)}
-              </Text>
-              <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center', marginBottom: 10, width: '100%' }}>
-                <View style={{ flex: 1, minWidth: 0 }}>
-                  <LabeledInput
-                    value={item.cost}
-                    onChangeText={(val) => updateMaintenanceItem(idx, { cost: val })}
-                    numeric
-                    placeholder={t(`onboarding.transport.${localePrefix}.maintenanceCostPlaceholder`)}
-                    accessibilityLabel={t(`onboarding.transport.${localePrefix}.maintenanceCostLabel`)}
-                    currency={currency}
-                    containerStyle={{ marginBottom: 0, width: '100%' }}
-                  />
-                </View>
-                {activeCount > 1 ? (
-                  <RemoveButton onPress={() => removeMaintenanceItem(item.id)} />
-                ) : (
-                  <View style={{ width: REMOVE_BUTTON_SIZE, height: REMOVE_BUTTON_SIZE }} />
-                )}
-              </View>
+              <LabeledInput
+                label={t(`onboarding.transport.${localePrefix}.maintenanceCostLabel`)}
+                value={item.cost}
+                onChangeText={(val) => updateMaintenanceItem(idx, { cost: val })}
+                numeric
+                placeholder={t(`onboarding.transport.${localePrefix}.maintenanceCostPlaceholder`)}
+                currency={currency}
+                containerStyle={{ marginBottom: 10, width: '100%' }}
+              />
               <Text style={{ ...T.fieldLabel, marginBottom: S.labelGap }}>
                 {t(`onboarding.transport.${localePrefix}.maintenanceDateLabel`)}
                 <Text style={{ fontWeight: '400', fontSize: 11, color: C.muted }}>
@@ -668,6 +656,10 @@ export default function TransportScreen() {
                 onChange={(val) => updateMaintenanceItem(idx, { date: val })}
                 yearEnd={new Date().getFullYear() + 10}
               />
+
+              {activeCount > 1 ? (
+                <DeleteTextButton onPress={() => removeMaintenanceItem(item.id)} />
+              ) : null}
             </View>
           </AnimatedRow>
         ))}

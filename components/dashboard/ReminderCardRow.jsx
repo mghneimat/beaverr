@@ -1,6 +1,8 @@
 import { View, Pressable, Platform } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
 import { C, R, T, tabularNums } from '../../constants/onboarding-theme';
+import AnimatedCollapse from './AnimatedCollapse';
+import BudgetExpandChevron from '../onboarding/BudgetExpandChevron';
 
 const EMPTY_VALUE = '—';
 
@@ -25,11 +27,12 @@ export default function ReminderCardRow({
   cells,
   index,
   selected,
-  onPress,
   onEdit,
   editLabel,
   editA11yLabel,
-  accessibilityLabel,
+  expanded = false,
+  onExpandPress,
+  expandA11yLabel,
   leading,
   reminderStatus,
   reminderTypeContent,
@@ -53,111 +56,128 @@ export default function ReminderCardRow({
   const reminderEnabled = displayPref?.enabled === true;
   const showReminderFields = reminderEnabled && hasNextPayment;
 
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel={accessibilityLabel}
-      accessibilityState={{ selected }}
-      style={({ pressed, hovered }) => ({
-        paddingVertical: 14,
-        paddingHorizontal: 14,
-        borderRadius: R.card,
-        backgroundColor: pressed
-          ? C.breakdownRowHover
-          : hovered && Platform.OS === 'web'
-            ? C.breakdownRowHover
-            : bg,
-        borderWidth: 1,
-        borderColor: selected ? C.pillSelectedBg : C.tableRowBorder,
-        width: '100%',
-        minHeight: 44,
-        opacity: pressed ? 0.92 : 1,
-        ...(Platform.OS === 'web' ? { cursor: 'pointer' } : {}),
-      })}
-    >
-      <View style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 10,
-        marginBottom: 12,
-      }}>
-        {leading}
-        <Text style={{
-          flex: 1,
-          fontSize: 15,
-          fontWeight: '600',
-          color: labelColor,
-          minWidth: 0,
-        }}
-        numberOfLines={2}
-        >
-          {cells.name}
-        </Text>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-          {reminderStatus}
-          <Pressable
-            onPress={(e) => {
-              e?.stopPropagation?.();
-              onEdit?.();
-            }}
-            accessibilityRole="button"
-            accessibilityLabel={editA11yLabel}
-            hitSlop={8}
-            style={({ pressed, hovered }) => ({
-              paddingVertical: 4,
-              paddingHorizontal: 10,
-              borderRadius: R.pill,
-              backgroundColor: pressed
-                ? C.overlayPressed
-                : hovered
-                  ? C.overlayHover
-                  : selected
-                    ? 'rgba(255,255,255,0.15)'
-                    : C.bg,
-              ...(Platform.OS === 'web' ? { cursor: 'pointer' } : {}),
-            })}
-          >
-            <Text style={{ ...T.caption, fontWeight: '600', color: selected ? C.pillSelectedText : C.primary }}>
-              {editLabel}
-            </Text>
-          </Pressable>
-        </View>
-      </View>
+  const cardShellStyle = {
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    borderRadius: R.card,
+    backgroundColor: bg,
+    borderWidth: 1,
+    borderColor: selected ? C.pillSelectedBg : C.tableRowBorder,
+    width: '100%',
+    minHeight: 44,
+    overflow: 'hidden',
+  };
 
-      <View style={{ gap: 10 }}>
-        {nextPaymentCol ? (
-          <CardFieldStack label={nextPaymentCol.label} labelColor={metaColor}>
-            <Text style={{ fontSize: 14, fontWeight: '500', color: valueColor, ...tabularNums }}>
-              {cells.nextPayment || EMPTY_VALUE}
+  const detailFields = (
+    <View style={{ gap: 10, paddingTop: 12 }}>
+      {nextPaymentCol ? (
+        <CardFieldStack label={nextPaymentCol.label} labelColor={metaColor}>
+          <Text style={{ fontSize: 14, fontWeight: '500', color: valueColor, ...tabularNums }}>
+            {cells.nextPayment || EMPTY_VALUE}
+          </Text>
+        </CardFieldStack>
+      ) : null}
+      {endDateCol ? (
+        <CardFieldStack label={endDateCol.label} labelColor={metaColor}>
+          <Text style={{ fontSize: 14, fontWeight: '500', color: metaColor, ...tabularNums }}>
+            {cells.endDate || EMPTY_VALUE}
+          </Text>
+        </CardFieldStack>
+      ) : null}
+      {reminderDateCol ? (
+        <CardFieldStack label={reminderDateCol.label} labelColor={metaColor}>
+          <Text style={{ fontSize: 14, fontWeight: '500', color: valueColor, ...tabularNums }}>
+            {showReminderFields ? (formattedReminderDate || EMPTY_VALUE) : EMPTY_VALUE}
+          </Text>
+        </CardFieldStack>
+      ) : null}
+      {reminderTypeCol ? (
+        <CardFieldStack label={reminderTypeCol.label} labelColor={metaColor}>
+          {showReminderFields ? reminderTypeContent : (
+            <Text style={{ fontSize: 14, fontWeight: '500', color: metaColor }}>
+              {EMPTY_VALUE}
             </Text>
-          </CardFieldStack>
-        ) : null}
-        {endDateCol ? (
-          <CardFieldStack label={endDateCol.label} labelColor={metaColor}>
-            <Text style={{ fontSize: 14, fontWeight: '500', color: metaColor, ...tabularNums }}>
-              {cells.endDate || EMPTY_VALUE}
+          )}
+        </CardFieldStack>
+      ) : null}
+    </View>
+  );
+
+  return (
+    <View style={cardShellStyle}>
+      <Pressable
+        onPress={onExpandPress}
+        accessibilityRole="button"
+        accessibilityLabel={expandA11yLabel}
+        accessibilityState={{ expanded }}
+        style={({ pressed, hovered }) => ({
+          opacity: pressed ? 0.92 : 1,
+          ...(Platform.OS === 'web' ? { cursor: 'pointer' } : {}),
+          ...(pressed || (hovered && Platform.OS === 'web')
+            ? { backgroundColor: C.breakdownRowHover, marginHorizontal: -14, paddingHorizontal: 14, borderRadius: R.card }
+            : {}),
+        })}
+      >
+        <View style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 10,
+        }}
+        >
+          {leading}
+          <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
+            <Text style={{
+              fontSize: 15,
+              fontWeight: '600',
+              color: labelColor,
+            }}
+            numberOfLines={2}
+            >
+              {cells.name}
             </Text>
-          </CardFieldStack>
-        ) : null}
-        {reminderDateCol ? (
-          <CardFieldStack label={reminderDateCol.label} labelColor={metaColor}>
-            <Text style={{ fontSize: 14, fontWeight: '500', color: valueColor, ...tabularNums }}>
-              {showReminderFields ? (formattedReminderDate || EMPTY_VALUE) : EMPTY_VALUE}
-            </Text>
-          </CardFieldStack>
-        ) : null}
-        {reminderTypeCol ? (
-          <CardFieldStack label={reminderTypeCol.label} labelColor={metaColor}>
-            {showReminderFields ? reminderTypeContent : (
-              <Text style={{ fontSize: 14, fontWeight: '500', color: metaColor }}>
-                {EMPTY_VALUE}
+            {!expanded && nextPaymentCol ? (
+              <Text style={{ fontSize: 13, color: metaColor, ...tabularNums }} numberOfLines={1}>
+                {nextPaymentCol.label}: {cells.nextPayment || EMPTY_VALUE}
               </Text>
-            )}
-          </CardFieldStack>
-        ) : null}
-      </View>
-    </Pressable>
+            ) : null}
+          </View>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+            {reminderStatus}
+            <Pressable
+              onPress={(e) => {
+                e?.stopPropagation?.();
+                onEdit?.();
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={editA11yLabel}
+              hitSlop={8}
+              style={({ pressed, hovered }) => ({
+                paddingVertical: 4,
+                paddingHorizontal: 10,
+                borderRadius: R.pill,
+                backgroundColor: pressed
+                  ? C.overlayPressed
+                  : hovered
+                    ? C.overlayHover
+                    : selected
+                      ? 'rgba(255,255,255,0.15)'
+                      : C.bg,
+                ...(Platform.OS === 'web' ? { cursor: 'pointer' } : {}),
+              })}
+            >
+              <Text style={{ ...T.caption, fontWeight: '600', color: selected ? C.pillSelectedText : C.primary }}>
+                {editLabel}
+              </Text>
+            </Pressable>
+            <BudgetExpandChevron expanded={expanded} color={selected ? C.pillSelectedText : C.primary} />
+          </View>
+        </View>
+      </Pressable>
+
+      <AnimatedCollapse visible={expanded} fallbackHeight={140}>
+        {detailFields}
+      </AnimatedCollapse>
+    </View>
   );
 }
 

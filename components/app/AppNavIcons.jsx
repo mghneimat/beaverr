@@ -22,6 +22,7 @@ import {
   CREDIT_CARD_NODES,
   SLIDERS_HORIZONTAL_NODES,
   SUN_NODES,
+  MOON_NODES,
   CIRCLE_HELP_NODES,
   LOG_OUT_NODES,
   ZAP_NODES,
@@ -83,6 +84,7 @@ export const BadgeCheckIcon = lucideNavIcon(BADGE_CHECK_NODES);
 export const CreditCardIcon = lucideNavIcon(CREDIT_CARD_NODES);
 export const SlidersIcon = lucideNavIcon(SLIDERS_HORIZONTAL_NODES);
 export const SunIcon = lucideNavIcon(SUN_NODES);
+export const MoonIcon = lucideNavIcon(MOON_NODES);
 export const CircleHelpIcon = lucideNavIcon(CIRCLE_HELP_NODES);
 export const LogOutIcon = lucideNavIcon(LOG_OUT_NODES);
 export const ZapIcon = lucideNavIcon(ZAP_NODES);

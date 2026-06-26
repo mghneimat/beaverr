@@ -13,18 +13,23 @@ const ROW_CONTENT = {
 /**
  * Pill-shaped select trigger — label left, chevron right (matches FormInput fields).
  */
-export default function DropdownTrigger({ onPress, label, placeholder, value, style }) {
+export default function DropdownTrigger({ onPress, label, placeholder, value, style, disabled = false }) {
   const display = value ?? placeholder;
   const isPlaceholder = !value;
 
   return (
     <OnboardingPressable
       onPress={onPress}
+      disabled={disabled}
       accessibilityRole="button"
+      accessibilityState={{ disabled }}
       contentStyle={ROW_CONTENT}
       style={({ pressed, hovered }) => ({
         ...style,
-        backgroundColor: washBg({ pressed, hovered }, style?.backgroundColor ?? C.surface),
+        opacity: disabled ? 0.92 : 1,
+        backgroundColor: disabled
+          ? (style?.backgroundColor ?? C.surface)
+          : washBg({ pressed, hovered }, style?.backgroundColor ?? C.surface),
       })}
     >
       <Text

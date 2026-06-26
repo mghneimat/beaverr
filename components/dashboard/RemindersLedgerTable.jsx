@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { View, Pressable, Platform } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
 import { useRouter } from 'expo-router';
@@ -39,7 +39,7 @@ import SurfaceCard from '../ui/SurfaceCard';
 import ConfirmDialog from '../ui/ConfirmDialog';
 import AnimatedCollapse from './AnimatedCollapse';
 import BreakdownSectionIcon from './BreakdownSectionIcon';
-import { BreakdownCell, BreakdownPillRowSlot, BreakdownRow } from './BreakdownTablePrimitives';
+import { BreakdownCell, BreakdownExpandAllButton, BreakdownPillRowSlot, BreakdownRow } from './BreakdownTablePrimitives';
 import { useDashboardLayout } from '../../lib/dashboardLayout';
 import ReminderCardRow, { ReminderCardEditSummary } from './ReminderCardRow';
 
@@ -461,8 +461,28 @@ function ReminderColumnCell({
   const isCard = variant === 'card';
 
   const wrap = (children, chipVariant) => {
+    const isPrimitive = typeof children === 'string' || typeof children === 'number';
+
     if (!isCard) {
-      return <ReminderColumnCenter>{children}</ReminderColumnCenter>;
+      return (
+        <ReminderColumnCenter>
+          {isPrimitive ? (
+            <Text style={{
+              fontSize: 13,
+              fontWeight: '600',
+              color: chipVariant === 'on'
+                ? C.positive
+                : chipVariant === 'warning'
+                  ? '#D97706'
+                  : REMINDERS_CELL_META,
+              textAlign: 'center',
+            }}
+            >
+              {children}
+            </Text>
+          ) : children}
+        </ReminderColumnCenter>
+      );
     }
 
     const chipColors = chipVariant === 'warning'
@@ -689,6 +709,9 @@ function RemindersTableRow({
   onSave,
   onCancel,
   cardMode = false,
+  rowExpanded = false,
+  onRowExpandPress,
+  rowExpandA11yLabel,
 }) {
   const { t } = useI18n();
   const [dateDropdownOpen, setDateDropdownOpen] = useState(false);
@@ -920,11 +943,12 @@ function RemindersTableRow({
       cells={row.cells}
       index={index}
       selected={rowSelected && !editing}
-      onPress={onSelect}
       onEdit={handleEditPress}
       editLabel={t('common.edit')}
       editA11yLabel={editA11yLabel}
-      accessibilityLabel={selectA11yLabel}
+      expanded={rowExpanded}
+      onExpandPress={onRowExpandPress}
+      expandA11yLabel={rowExpandA11yLabel}
       displayPref={displayPref}
       hasNextPayment={hasNextPayment}
       formattedReminderDate={formatReminderDateLabel(displayPref, t, { hasNextPayment })}
@@ -1017,6 +1041,37 @@ export default function RemindersLedgerTable({
   const reduceMotion = useReducedMotion();
   const { isNarrow } = useDashboardLayout();
   const cardMode = isNarrow;
+  const rowIds = useMemo(() => rows.map((row) => row.id), [rows]);
+
+  const buildCollapsedRowState = useCallback((ids) => (
+    Object.fromEntries(ids.map((id) => [id, false]))
+  ), []);
+
+  const [expandedRows, setExpandedRows] = useState(() => buildCollapsedRowState(rowIds));
+  const [allRowsExpanded, setAllRowsExpanded] = useState(false);
+
+  useEffect(() => {
+    setExpandedRows(buildCollapsedRowState(rowIds));
+    setAllRowsExpanded(false);
+  }, [rowIds, buildCollapsedRowState]);
+
+  const toggleRowExpand = useCallback((rowId) => {
+    setExpandedRows((prev) => ({ ...prev, [rowId]: !prev[rowId] }));
+  }, []);
+
+  const toggleAllRows = useCallback(() => {
+    setAllRowsExpanded((prevAll) => {
+      const next = !prevAll;
+      setExpandedRows(Object.fromEntries(rowIds.map((id) => [id, next])));
+      return next;
+    });
+  }, [rowIds]);
+
+  const reminderExpandA11y = useCallback((label, isOpen) => (
+    isOpen
+      ? t('dashboard.remindersScreen.a11y.collapseRow', { label })
+      : t('dashboard.remindersScreen.a11y.expandRow', { label })
+  ), [t]);
   const [selectedId, setSelectedId] = useState(null);
   const [editSessionId, setEditSessionId] = useState(null);
   const [editExpanded, setEditExpanded] = useState(false);
@@ -1177,7 +1232,25 @@ export default function RemindersLedgerTable({
 
   return (
     <SurfaceCard style={{ overflow: 'visible' }}>
-      {title ? <InCardSectionHeader title={title} /> : null}
+      {title ? (
+        <InCardSectionHeader
+          title={title}
+          trailing={cardMode && rows.length > 0 ? (
+            <BreakdownExpandAllButton
+              allExpanded={allRowsExpanded}
+              onToggle={toggleAllRows}
+              t={t}
+              compact={cardMode}
+              i18nKeys={{
+                expand: 'dashboard.remindersScreen.expandAll',
+                collapse: 'dashboard.remindersScreen.collapseAll',
+                expandA11y: 'dashboard.remindersScreen.a11y.expandAll',
+                collapseA11y: 'dashboard.remindersScreen.a11y.collapseAll',
+              }}
+            />
+          ) : null}
+        />
+      ) : null}
 
       {rows.length === 0 ? (
         <Text style={{ ...T.helper, textAlign: 'center', paddingVertical: 24, paddingHorizontal: 16 }}>
@@ -1190,6 +1263,8 @@ export default function RemindersLedgerTable({
             const inSession = editSessionId === row.id;
             const selected = selectedId === row.id;
             const rowPendingDisplay = pendingDisplay?.rowId === row.id ? pendingDisplay : null;
+            const rowName = row.cells?.name || row.name || '';
+            const isRowExpanded = expandedRows[row.id] ?? false;
             return (
               <RemindersTableRow
                 key={row.id}
@@ -1217,6 +1292,9 @@ export default function RemindersLedgerTable({
                 onSave={() => handleSave(row)}
                 onCancel={handleCancel}
                 cardMode={cardMode}
+                rowExpanded={isRowExpanded}
+                onRowExpandPress={() => toggleRowExpand(row.id)}
+                rowExpandA11yLabel={reminderExpandA11y(rowName, isRowExpanded)}
               />
             );
           })}

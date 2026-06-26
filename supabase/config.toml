@@ -1,0 +1,17 @@
+# Beaverr Supabase — linked project: beaverr (eu-west-1)
+# https://fetbfivnidpaxcsadnnb.supabase.co
+
+[api]
+enabled = true
+
+[db]
+major_version = 15
+
+[functions.advice-generate]
+verify_jwt = true
+
+[functions.username-check]
+verify_jwt = false
+
+[functions.delete-account]
+verify_jwt = true

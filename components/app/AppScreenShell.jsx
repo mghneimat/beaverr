@@ -12,6 +12,7 @@ import {
   SETTLE_FADE_IN_MS,
 } from '../../lib/motion';
 import { useReducedMotion } from '../../lib/useReducedMotion';
+import { useTheme } from '../../lib/theme';
 import SettleCrossfade from '../ui/SettleCrossfade';
 
 /**
@@ -25,6 +26,7 @@ export default function AppScreenShell({
   settleKey,
   style,
 }) {
+  useTheme();
   const reduceMotion = useReducedMotion();
   const isFocused = useIsFocused();
   const segments = useSegments();

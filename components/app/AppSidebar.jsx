@@ -27,12 +27,16 @@ import {
   getOnboardingState,
   isTabLockedForQuickSetup,
   getResumeRoute,
+  getQuestionnairePercent,
   getQuestionnaireStartRoute,
   shouldShowContinueQuestionnaire,
+  shouldShowQuestionnaireContinueSoft,
   shouldShowStartQuestionnaire,
   shouldShowRetakeQuestionnaire,
   patchOnboardingState,
+  QUICK_RESUME_ROUTE,
 } from '../../lib/onboardingProgress';
+import QuestionnaireProgressRing from './QuestionnaireProgressRing';
 import { subscribeDashboardRefresh } from '../../lib/dashboardRefresh';
 import { useReducedMotion } from '../../lib/useReducedMotion';
 import { C, R, S, T } from '../../constants/onboarding-theme';
@@ -61,7 +65,6 @@ const SIDEBAR_COLLAPSED = 68;
 const WIDE_BREAKPOINT = 768;
 const EASE = Easing.bezier(0.16, 1, 0.3, 1);
 const SECTION_LABEL_COLOR = '#64748B';
-const NAV_INACTIVE_COLOR = C.text;
 const NAV_ICON_SIZE = 16;
 
 /** Fixed icon column — never changes during collapse animation */
@@ -147,7 +150,7 @@ const SidebarNavRow = memo(function SidebarNavRow({
       ? C.danger
       : isActive
         ? C.primary
-        : NAV_INACTIVE_COLOR;
+        : C.text;
   const a11yLabel = accessibilityLabel ?? label;
   const collapsedIconRail = showTooltip;
 
@@ -522,6 +525,7 @@ export default function AppSidebar({ mobileOpen = false, onMobileClose }) {
     await patchOnboardingState({
       completed: false,
       questionnaireComplete: false,
+      resumeRoute: QUICK_RESUME_ROUTE,
     });
     if (!isWide && onMobileClose) onMobileClose();
     setTimeout(() => router.push('/(onboarding)/welcome'), isWide ? 0 : 240);
@@ -539,7 +543,7 @@ export default function AppSidebar({ mobileOpen = false, onMobileClose }) {
   const renderNavItem = (item) => {
     const isActive = currentRoute === item.name;
     const locked = isTabLockedForQuickSetup(onboardingState, item.name);
-    const color = locked ? C.muted : isActive ? C.primary : NAV_INACTIVE_COLOR;
+    const color = locked ? C.muted : isActive ? C.primary : C.text;
     const { Icon } = item;
 
     const showTooltip = isWide && collapsed;
@@ -671,6 +675,9 @@ export default function AppSidebar({ mobileOpen = false, onMobileClose }) {
             labelAnimatedStyle={isWide ? labelClipStyle : undefined}
             rowCollapseAnimatedStyle={rowCollapseStyle}
             showTooltip={isWide && collapsed}
+            trailing={shouldShowQuestionnaireContinueSoft(onboardingState) ? (
+              <QuestionnaireProgressRing percent={getQuestionnairePercent(onboardingState)} />
+            ) : null}
           />
         ) : null}
 
@@ -692,7 +699,7 @@ export default function AppSidebar({ mobileOpen = false, onMobileClose }) {
             isActive={false}
             onPress={handleRetakeQuestionnaire}
             Icon={QuestionnaireIcon}
-            iconColor={NAV_INACTIVE_COLOR}
+            iconColor={C.text}
             label={t('app.sidebar.retakeQuestionnaire')}
             labelAnimatedStyle={isWide ? labelClipStyle : undefined}
             rowCollapseAnimatedStyle={rowCollapseStyle}

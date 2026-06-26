@@ -11,10 +11,12 @@ import AnimatedCollapse from '../dashboard/AnimatedCollapse';
 import BreakdownSectionIcon from '../dashboard/BreakdownSectionIcon';
 import BudgetExpandChevron from './BudgetExpandChevron';
 import {
+  BreakdownCardSubRow,
   BreakdownExpandAllButton,
   BreakdownPillColumnHeaders,
   BreakdownPillRow,
   BreakdownPillSubRow,
+  BREAKDOWN_CONTENT_INDENT,
   LedgerCardRow,
   MaytechTableFrame,
 } from '../dashboard/BreakdownTablePrimitives';
@@ -60,24 +62,6 @@ function BudgetSummaryCardRow({
   );
 }
 
-function BudgetSummarySubCardRow({ label, amount, share, columns, isLast }) {
-  return (
-    <View style={{
-      marginLeft: 12,
-      marginBottom: isLast ? 0 : 6,
-      paddingLeft: 12,
-      borderLeftWidth: 2,
-      borderLeftColor: C.divider,
-    }}
-    >
-      <LedgerCardRow
-        columns={columns}
-        cells={{ name: label, share, amount }}
-      />
-    </View>
-  );
-}
-
 /**
  * Onboarding budget summary — pill breakdown table matching dashboard expenses design.
  */
@@ -101,6 +85,7 @@ export default function BudgetSetupSummaryTable({
     { key: 'amount', label: t('onboarding.budget.budgetSplit.amount'), align: 'right' },
     { key: 'share', label: t('dashboard.expensesScreen.table.share') },
   ]), [t]);
+  const shareColumnLabel = summaryColumns.find((col) => col.key === 'share')?.label ?? '';
   const shareBase = totalIncome > 0 ? totalIncome : 1;
 
   const categoryKeys = useMemo(
@@ -240,12 +225,13 @@ export default function BudgetSetupSummaryTable({
                   <View style={{ marginTop: 4, marginBottom: 4 }}>
                     {incomeBreakdowns.map((item, itemIdx) => (
                       cardMode ? (
-                        <BudgetSummarySubCardRow
+                        <BreakdownCardSubRow
                           key={item.label}
                           label={item.label}
                           amount={formatSignedMonthly(item.amount, currency)}
                           share={formatSharePct(item.amount, shareBase)}
-                          columns={summaryColumns}
+                          shareLabel={shareColumnLabel}
+                          nestedLevel={0}
                           isLast={itemIdx === incomeBreakdowns.length - 1}
                         />
                       ) : (
@@ -269,7 +255,13 @@ export default function BudgetSetupSummaryTable({
                   visible={isOpen}
                   fallbackHeight={Math.max(asArray(costsByCategory).length * 56, 56)}
                 >
-                  <View style={{ marginTop: 4, marginBottom: 4, gap: 8 }}>
+                  <View style={{
+                    marginTop: 4,
+                    marginBottom: 4,
+                    gap: 8,
+                    ...(cardMode ? { paddingLeft: BREAKDOWN_CONTENT_INDENT } : {}),
+                  }}
+                  >
                     {asArray(costsByCategory).map((cat, catIdx) => {
                       const catKey = `cat_${cat.category}`;
                       const catItems = asArray(cat.items);
@@ -319,12 +311,13 @@ export default function BudgetSetupSummaryTable({
                                   const itemAmount = formatSignedMonthly(-itemMonthly, currency);
                                   const itemShare = formatSharePct(itemMonthly, shareBase);
                                   return cardMode ? (
-                                    <BudgetSummarySubCardRow
+                                    <BreakdownCardSubRow
                                       key={`${catKey}-${itemIdx}`}
                                       label={item.label}
                                       amount={itemAmount}
                                       share={itemShare}
-                                      columns={summaryColumns}
+                                      shareLabel={shareColumnLabel}
+                                      nestedLevel={1}
                                       isLast={itemIdx === catItems.length - 1}
                                     />
                                   ) : (

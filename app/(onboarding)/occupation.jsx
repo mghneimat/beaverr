@@ -4,7 +4,8 @@ import { Text } from '@gluestack-ui/themed';
 import { useI18n } from '../../lib/i18n';
 import { navigateBack, navigateForward, recordVisit } from '../../lib/onboardingNavigation';
 import { getData, setData } from '../../lib/storage';
-import { patchOnboardingState } from '../../lib/onboardingProgress';
+import { patchOnboardingState, getOnboardingState } from '../../lib/onboardingProgress';
+import { getQuickSetupNextRoute, isQuickSetupMode } from '../../lib/onboardingQuickPath';
 import {
   buildOccupationResumeRoute,
   computeOccupationReturnPoint,
@@ -122,6 +123,11 @@ export default function OccupationScreen() {
     };
 
     const returnPoint = computeOccupationReturnPoint({ hasPartner });
+    const onboarding = await getOnboardingState();
+    const quickMode = isQuickSetupMode(onboarding);
+    const nextRoute = quickMode
+      ? getQuickSetupNextRoute('occupation')
+      : '/(onboarding)/splash-income';
 
     await setData('beaverr_occupation', {
       ...occupationData,
@@ -130,14 +136,14 @@ export default function OccupationScreen() {
 
     await patchOnboardingState({
       completed: false,
-      setupMode: 'full',
+      setupMode: quickMode ? 'quick' : 'full',
       currentStep: 'occupation',
-      percentComplete: 40,
-      resumeRoute: '/(onboarding)/splash-income',
+      percentComplete: quickMode ? 18 : 40,
+      resumeRoute: nextRoute,
     });
 
     recordVisit('/(onboarding)/occupation', occupationNavParams(returnPoint.step));
-    navigateForward('/(onboarding)/splash-income');
+    navigateForward(nextRoute);
   };
 
   const resumeRoute = buildOccupationResumeRoute(step);
@@ -146,15 +152,22 @@ export default function OccupationScreen() {
     if (step === 'partner') {
       setStep('user');
       setValidationError('');
-    } else {
-      await getData('beaverr_location');
-      await getData('beaverr_household');
-      navigateBack();
+      return;
     }
+
+    const onboarding = await getOnboardingState();
+    if (isQuickSetupMode(onboarding)) {
+      navigateForward('/(onboarding)/household');
+      return;
+    }
+
+    await getData('beaverr_location');
+    await getData('beaverr_household');
+    navigateBack();
   };
 
   const sharedScreenProps = {
-    chapter: t('onboarding.location.chapter'),
+    chapter: t('onboarding.splashResidence.chapter'),
     onContinue: handleContinue,
     onBack: handleBack,
     validationError,

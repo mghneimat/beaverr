@@ -2,7 +2,8 @@ import { useState, useRef } from 'react';
 import { View, Text, Pressable, Modal, Animated, Dimensions, Alert } from 'react-native';
 import { useI18n } from '../lib/i18n';
 import { useRouter } from 'expo-router';
-import { revokeConsent } from '../lib/consent';
+import { deleteAccountAndData } from '../lib/account/deleteAccountAndData';
+import { mapDeleteAccountErrorKey } from '../lib/auth/deleteAccount';
 import { navigateToAppRoute } from '../lib/screenTransition';
 import { USE_NATIVE_DRIVER } from '../lib/animation';
 import { elevationShadow } from '../lib/shadow';
@@ -102,20 +103,27 @@ export default function HamburgerMenu() {
     setTimeout(() => navigateToAppRoute(router, '/(app)/alerts'), 260);
   };
 
-  const handleRevokeConsentPress = () => {
+  const handleDeleteAccountPress = () => {
     closeMenu();
     setTimeout(() => {
       Alert.alert(
-        t('settings.revokeConsentConfirmTitle'),
-        t('settings.revokeConsentConfirmMessage'),
+        t('settings.deleteAccountConfirmTitle'),
+        t('settings.deleteAccountConfirmMessage'),
         [
           { text: t('common.cancel'), style: 'cancel' },
           {
-            text: t('settings.revokeConsentConfirmButton'),
+            text: t('settings.deleteAccountConfirmButton'),
             style: 'destructive',
             onPress: async () => {
-              await revokeConsent();
-              router.replace('/(onboarding)/consent');
+              const result = await deleteAccountAndData();
+              if (!result.ok) {
+                Alert.alert(
+                  t('settings.deleteAccountConfirmTitle'),
+                  mapDeleteAccountErrorKey(result.code, result.error, t),
+                );
+                return;
+              }
+              router.replace('/(auth)/welcome');
             },
           },
         ],
@@ -336,9 +344,9 @@ export default function HamburgerMenu() {
               <Text style={{ fontSize: 15, color: C.muted }}>{'→'}</Text>
             </Pressable>
 
-            {/* Withdraw consent */}
+            {/* Delete account */}
             <Pressable
-              onPress={handleRevokeConsentPress}
+              onPress={handleDeleteAccountPress}
               style={({ pressed }) => ({
                 paddingHorizontal: 20,
                 paddingVertical: 16,
@@ -349,7 +357,7 @@ export default function HamburgerMenu() {
               })}
             >
               <Text style={{ fontSize: 15, color: C.danger }}>
-                {t('settings.revokeConsent')}
+                {t('settings.deleteAccount')}
               </Text>
             </Pressable>
           </View>

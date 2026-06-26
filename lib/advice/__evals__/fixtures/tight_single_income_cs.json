@@ -1,0 +1,31 @@
+{
+  "id": "tight_single_income_cs",
+  "locale": "cs",
+  "snapshot": {
+    "v": 1,
+    "locale": "cs",
+    "household": { "adults": 2, "children": 1, "has_partner": true },
+    "ledger": {
+      "currency": "CZK",
+      "income_m": 52000,
+      "income_sources": [{ "role": "user", "m": 52000 }],
+      "fixed_m": 41000,
+      "debt_m": 0,
+      "flex_m": 9000,
+      "surplus_m": 2000,
+      "fix_ratio": 0.79
+    }
+  },
+  "triggered_rules": [
+    {
+      "id": "fixed_cost_ratio_tight",
+      "severity": "warning",
+      "facts": { "fix_ratio": 0.79, "threshold": 0.80 }
+    },
+    {
+      "id": "single_income_household",
+      "severity": "info",
+      "facts": { "income_source_count": 1 }
+    }
+  ]
+}

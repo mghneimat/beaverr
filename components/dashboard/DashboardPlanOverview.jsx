@@ -17,6 +17,7 @@ import { C, T, tabularNums } from '../../constants/onboarding-theme';
 import SurfaceCard from '../ui/SurfaceCard';
 import DashboardFrequencyHeaderControls from './DashboardFrequencyHeaderControls';
 import AIInsightSection from './AIInsightSection';
+import AdviceNarrativePanel from './AdviceNarrativePanel';
 import { getTabInsight } from '../../lib/insights';
 import { SavedSoFarLabel } from './JarsPanel';
 import MetricExplainModal from './MetricExplainModal';
@@ -248,6 +249,8 @@ export default function DashboardPlanOverview({
               accessibilityLabel={tabInsight.ctaLabel}
             />
           ) : null}
+
+          <AdviceNarrativePanel financials={financials} />
         </>,
       )}
 

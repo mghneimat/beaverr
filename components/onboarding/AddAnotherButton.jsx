@@ -1,35 +1,35 @@
 import { Text } from 'react-native';
-import { C, R, T } from '../../constants/onboarding-theme';
+import { C, T } from '../../constants/onboarding-theme';
+import { useI18n } from '../../lib/i18n';
 import OnboardingPressable from './OnboardingPressable';
-import { addButtonBg } from './pressableFeedback';
 
 /**
- * Standardised "Add another" dashed-border button.
- * Updated to match UI Examples — blue dashed border with blue text.
+ * Standardised borderless "Add" link for onboarding repeating rows.
  *
  * @param {Object} props
- * @param {string} props.label - Button label text (e.g. "+ Add another debt")
- * @param {Function} props.onPress - Press handler
- * @param {object} [props.style] - Additional styles on the Pressable
+ * @param {string} [props.label] - Defaults to common.add
+ * @param {Function} props.onPress
+ * @param {'left'|'center'} [props.align='center']
+ * @param {object} [props.style]
  */
-export default function AddAnotherButton({ label, onPress, style }) {
+export default function AddAnotherButton({ label, onPress, align = 'center', style }) {
+  const { t } = useI18n();
+  const text = label ?? t('common.add');
+
   return (
     <OnboardingPressable
       onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={text}
       style={({ pressed, hovered }) => ([{
-        width: '100%',
-        alignSelf: 'stretch',
+        alignSelf: align === 'center' ? 'center' : 'flex-start',
         paddingVertical: 12,
-        borderRadius: R.input,
-        borderWidth: 2,
-        borderColor: C.addBorder,
-        borderStyle: 'dashed',
-        alignItems: 'center',
-        backgroundColor: addButtonBg({ pressed, hovered }),
+        paddingHorizontal: 4,
+        ...(pressed || hovered ? { opacity: 0.75 } : null),
       }, style])}
     >
-      <Text style={{ ...T.btnAdd, color: C.addText }}>
-        {label}
+      <Text style={{ ...T.btnAdd, color: C.accent, textAlign: align }}>
+        {text}
       </Text>
     </OnboardingPressable>
   );

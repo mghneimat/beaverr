@@ -37,7 +37,11 @@ import AnimatedSlideIn from '../../components/onboarding/AnimatedSlideIn';
 import AddAnotherButton from '../../components/onboarding/AddAnotherButton';
 import RevealAfterToggle from '../../components/onboarding/RevealAfterToggle';
 import AnimatedRow from '../../components/onboarding/AnimatedRow';
-import RemoveButton from '../../components/onboarding/RemoveButton';
+import DeleteTextButton from '../../components/onboarding/DeleteTextButton';
+import {
+  ensureVisibleContributionRow,
+  loadContributionRowsFromSaved,
+} from '../../lib/housing/contributionRows';
 import OptionalPaymentDatesFields from '../../components/onboarding/OptionalPaymentDatesFields';
 import LabeledInput from '../../components/onboarding/LabeledInput';
 import YesNoToggle from '../../components/onboarding/YesNoToggle';
@@ -185,14 +189,20 @@ export default function HousingScreen() {
         if (saved.mortgageAmount) setMortgageAmount(String(saved.mortgageAmount));
         if (saved.mortgageEndDate) setMortgageEndDate(saved.mortgageEndDate);
         if (saved.hasOtherCosts !== undefined) setHasOtherCosts(saved.hasOtherCosts);
-        if (saved.otherCostRows) {
-          setOtherCostRows(saved.otherCostRows.map((r, i) => ({ ...r, id: i, visible: true })));
-          nextCostRowId.current = saved.otherCostRows.length;
+        if (saved.hasOtherCosts === true || saved.otherCostRows) {
+          setOtherCostRows(loadContributionRowsFromSaved(
+            saved.otherCostRows,
+            saved.hasOtherCosts === true,
+            nextCostRowId,
+          ));
         }
         if (saved.contributesToFamily !== undefined) setContributesToFamily(saved.contributesToFamily);
-        if (saved.familyContributionRows) {
-          setFamilyContributionRows(saved.familyContributionRows.map((r, i) => ({ ...r, id: i, visible: true })));
-          nextFamilyRowId.current = saved.familyContributionRows.length;
+        if (saved.contributesToFamily === true || saved.familyContributionRows) {
+          setFamilyContributionRows(loadContributionRowsFromSaved(
+            saved.familyContributionRows,
+            saved.contributesToFamily === true,
+            nextFamilyRowId,
+          ));
         }
         if (saved.govtTaxes) {
           const userEdited = saved.govtTaxes.wasteTaxUserEdited === true;
@@ -372,6 +382,20 @@ export default function HousingScreen() {
   };
 
   // ── Helpers for repeating rows ──
+  const handleHasOtherCostsChange = (value) => {
+    setHasOtherCosts(value);
+    if (value === true) {
+      setOtherCostRows((rows) => ensureVisibleContributionRow(rows, nextCostRowId));
+    }
+  };
+
+  const handleContributesToFamilyChange = (value) => {
+    setContributesToFamily(value);
+    if (value === true) {
+      setFamilyContributionRows((rows) => ensureVisibleContributionRow(rows, nextFamilyRowId));
+    }
+  };
+
   const addCostRow = () => {
     const id = nextCostRowId.current++;
     setOtherCostRows([...otherCostRows, { id, amount: '', description: '', dueDate: '', visible: true }]);
@@ -1087,7 +1111,7 @@ export default function HousingScreen() {
       >
         <YesNoToggle
           value={hasOtherCosts}
-          onChange={setHasOtherCosts}
+          onChange={handleHasOtherCostsChange}
           yesLabel={t('onboarding.housing.ownershipCosts.yes')}
           noLabel={t('onboarding.housing.ownershipCosts.no')}
         />
@@ -1110,29 +1134,17 @@ export default function HousingScreen() {
                 borderRadius: R.card,
                 padding: S.cardPad,
               }}>
-                {/* Amount + remove */}
-                <Text style={{ ...T.fieldLabel, color: C.muted, marginBottom: S.labelGap }}>
-                  {t('onboarding.housing.ownershipCosts.amountLabel')}
-                </Text>
-                <View style={{ flexDirection: 'row', gap: 4, alignItems: 'center', marginBottom: 10, width: '100%' }}>
-                  <View style={{ flex: 1, minWidth: 0 }}>
-                    <LabeledInput
-                      value={row.amount}
-                      onChangeText={(v) => updateCostRow(index, 'amount', v)}
-                      numeric
-                      placeholder={t('onboarding.housing.ownershipCosts.amountPlaceholder')}
-                      accessibilityLabel={t('onboarding.housing.ownershipCosts.amountLabel')}
-                      large
-                      containerStyle={{ marginBottom: 0, width: '100%' }}
-                      currency={currency}
-                    />
-                  </View>
-                  {otherCostRows.filter((r) => r.visible).length > 1 ? (
-                    <RemoveButton onPress={() => removeCostRow(row.id)} />
-                  ) : null}
-                </View>
+                <LabeledInput
+                  label={t('onboarding.housing.ownershipCosts.amountLabel')}
+                  value={row.amount}
+                  onChangeText={(v) => updateCostRow(index, 'amount', v)}
+                  numeric
+                  placeholder={t('onboarding.housing.ownershipCosts.amountPlaceholder')}
+                  large
+                  containerStyle={{ marginBottom: 10, width: '100%' }}
+                  currency={currency}
+                />
 
-                {/* Description */}
                 <LabeledInput
                   label={t('onboarding.housing.ownershipCosts.descriptionLabel')}
                   required
@@ -1143,7 +1155,6 @@ export default function HousingScreen() {
                   containerStyle={{ marginBottom: 10 }}
                 />
 
-                {/* Due date */}
                 <Text style={{ ...T.fieldLabel, color: C.muted, marginBottom: S.labelGap }}>
                   {t('onboarding.housing.ownershipCosts.dueDateLabel')}
                 </Text>
@@ -1151,17 +1162,17 @@ export default function HousingScreen() {
                   value={row.dueDate}
                   onChange={(v) => updateCostRow(index, 'dueDate', v)}
                 />
+
+                {otherCostRows.filter((r) => r.visible).length > 1 ? (
+                  <DeleteTextButton onPress={() => removeCostRow(row.id)} />
+                ) : null}
               </View>
             </AnimatedRow>
             </ScrollFocusAnchor>
             );
           })}
 
-          <AddAnotherButton
-            label={t('onboarding.housing.ownershipCosts.addAnother')}
-            onPress={addCostRow}
-            style={{ marginTop: 16 }}
-          />
+          <AddAnotherButton onPress={addCostRow} style={{ marginTop: 8 }} />
         </RevealAfterToggle>
       </QuestionScreen>
     );
@@ -1186,7 +1197,7 @@ export default function HousingScreen() {
       >
         <YesNoToggle
           value={contributesToFamily}
-          onChange={setContributesToFamily}
+          onChange={handleContributesToFamilyChange}
           yesLabel={t('onboarding.housing.familyHousing.yes')}
           noLabel={t('onboarding.housing.familyHousing.no')}
         />
@@ -1209,29 +1220,17 @@ export default function HousingScreen() {
                 borderRadius: R.card,
                 padding: S.cardPad,
               }}>
-                {/* Amount + remove */}
-                <Text style={{ ...T.fieldLabel, color: C.muted, marginBottom: S.labelGap }}>
-                  {t('onboarding.housing.familyHousing.amountLabel')}
-                </Text>
-                <View style={{ flexDirection: 'row', gap: 4, alignItems: 'center', marginBottom: 10, width: '100%' }}>
-                  <View style={{ flex: 1, minWidth: 0 }}>
-                    <LabeledInput
-                      value={row.amount}
-                      onChangeText={(v) => updateFamilyRow(index, 'amount', v)}
-                      numeric
-                      placeholder={t('onboarding.housing.familyHousing.amountPlaceholder')}
-                      accessibilityLabel={t('onboarding.housing.familyHousing.amountLabel')}
-                      large
-                      containerStyle={{ marginBottom: 0, width: '100%' }}
-                      currency={currency}
-                    />
-                  </View>
-                  {familyContributionRows.filter((r) => r.visible).length > 1 ? (
-                    <RemoveButton onPress={() => removeFamilyRow(row.id)} />
-                  ) : null}
-                </View>
+                <LabeledInput
+                  label={t('onboarding.housing.familyHousing.amountLabel')}
+                  value={row.amount}
+                  onChangeText={(v) => updateFamilyRow(index, 'amount', v)}
+                  numeric
+                  placeholder={t('onboarding.housing.familyHousing.amountPlaceholder')}
+                  large
+                  containerStyle={{ marginBottom: 10, width: '100%' }}
+                  currency={currency}
+                />
 
-                {/* Description */}
                 <LabeledInput
                   label={t('onboarding.housing.familyHousing.descriptionLabel')}
                   required
@@ -1242,7 +1241,6 @@ export default function HousingScreen() {
                   containerStyle={{ marginBottom: 10 }}
                 />
 
-                {/* Due date */}
                 <Text style={{ ...T.fieldLabel, color: C.muted, marginBottom: S.labelGap }}>
                   {t('onboarding.housing.familyHousing.dueDateLabel')}
                 </Text>
@@ -1250,17 +1248,17 @@ export default function HousingScreen() {
                   value={row.dueDate}
                   onChange={(v) => updateFamilyRow(index, 'dueDate', v)}
                 />
+
+                {familyContributionRows.filter((r) => r.visible).length > 1 ? (
+                  <DeleteTextButton onPress={() => removeFamilyRow(row.id)} />
+                ) : null}
               </View>
             </AnimatedRow>
             </ScrollFocusAnchor>
             );
           })}
 
-          <AddAnotherButton
-            label={t('onboarding.housing.familyHousing.addAnother')}
-            onPress={addFamilyRow}
-            style={{ marginTop: 16 }}
-          />
+          <AddAnotherButton onPress={addFamilyRow} style={{ marginTop: 8 }} />
         </RevealAfterToggle>
       </QuestionScreen>
     );
@@ -1388,7 +1386,7 @@ export default function HousingScreen() {
               if (!item.visible) finalizeRemoveTaxItem(item.id);
             }}
           >
-            <CostCard>
+            <CostCard onRemove={() => removeCustomTaxItem(item.id)}>
               <LabeledInput
                 label={t('onboarding.housing.govtTaxes.customPlaceholder')}
                 value={item.name}
@@ -1397,22 +1395,16 @@ export default function HousingScreen() {
                 inCard
                 containerStyle={{ marginBottom: 10 }}
               />
-              <Text style={{ ...T.fieldLabel, marginBottom: S.labelGap }}>
-                {t('onboarding.housing.govtTaxes.customAmountLabel')}
-              </Text>
-              <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center', marginBottom: 10 }}>
-                <LabeledInput
-                  value={item.amount}
-                  onChangeText={(v) => updateCustomTaxItem(index, 'amount', v)}
-                  numeric
-                  placeholder={t('onboarding.housing.govtTaxes.customAmountPlaceholder')}
-                  accessibilityLabel={t('onboarding.housing.govtTaxes.customAmountLabel')}
-                  inCard
-                  currency={currency}
-                  containerStyle={{ flex: 1, marginBottom: 0 }}
-                />
-                <RemoveButton onPress={() => removeCustomTaxItem(item.id)} />
-              </View>
+              <LabeledInput
+                label={t('onboarding.housing.govtTaxes.customAmountLabel')}
+                value={item.amount}
+                onChangeText={(v) => updateCustomTaxItem(index, 'amount', v)}
+                numeric
+                placeholder={t('onboarding.housing.govtTaxes.customAmountPlaceholder')}
+                inCard
+                currency={currency}
+                containerStyle={{ marginBottom: 10, width: '100%' }}
+              />
 
               <FrequencyPills
                 options={['monthly', 'annual']}

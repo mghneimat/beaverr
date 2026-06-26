@@ -27,6 +27,120 @@
       "estimateWarning": "Čísla jsou odhady, dokud nedokončíte celý dotazník."
     }
   },
+  "auth": {
+    "welcome": {
+      "title": "Vítejte v Beaverr",
+      "body": "Vytvořte si účet, abyste mohli bezpečně ukládat domácí rozpočet a přistupovat k němu z jakéhokoli zařízení.",
+      "continueWithEmail": "Pokračovat e-mailem",
+      "switchPrompt": "Již máte účet?",
+      "switchLink": "Přihlaste se",
+      "goToLogin": "Již máte účet? Přihlaste se"
+    },
+    "social": {
+      "google": "Pokračovat přes Google",
+      "facebook": "Pokračovat přes Facebook",
+      "apple": "Pokračovat přes Apple",
+      "divider": "nebo",
+      "comingSoon": "Již brzy"
+    },
+    "completeProfile": {
+      "title": "Dokončete svůj účet",
+      "submit": "Pokračovat",
+      "sectionAccount": "Váš účet",
+      "helper": "Poslední krok — zvolte uživatelské jméno a předvolby pro dokončení účtu.",
+      "switchPrompt": "Špatný účet?",
+      "switchGoogleLink": "Použít jiný účet Google",
+      "switchGoogleA11y": "Odstranit tento účet a přihlásit se jiným účtem Google",
+      "switchOAuthLink": "Přihlásit se jiným účtem",
+      "switchOAuthA11y": "Odstranit tento účet a přihlásit se znovu jiným účtem",
+      "deleteIncompleteLink": "Smazat účet a vrátit se",
+      "deleteIncompleteA11y": "Smazat tento účet a vrátit se na uvítací obrazovku",
+      "deleteIncompleteConfirmTitle": "Smazat tento účet?",
+      "deleteIncompleteConfirmMessage": "Ještě jste nedokončili nastavení. Tímto trvale odstraníte tento účet Beaverr a vrátíte se na uvítací obrazovku.",
+      "deleteIncompleteConfirmButton": "Smazat účet"
+    },
+    "login": {
+      "title": "Přihlášení",
+      "helper": "Použijte e-mail a heslo k vašemu účtu Beaverr.",
+      "submit": "Přihlásit se",
+      "switchPrompt": "Nemáte účet?",
+      "switchLink": "Vytvořte si ho",
+      "goToSignUp": "Nemáte účet? Vytvořte si ho"
+    },
+    "signup": {
+      "title": "Vytvořit účet",
+      "submit": "Vytvořit účet",
+      "switchPrompt": "Už máte účet?",
+      "switchLink": "Přihlaste se",
+      "goToLogin": "Už máte účet? Přihlaste se",
+      "sectionPreferences": "Předvolby",
+      "sectionLocation": "Předvolby",
+      "sectionAccount": "Váš účet",
+      "consentLabel": "Souhlasím se zpracováním údajů v souladu s GDPR.",
+      "consentLink": "Přečíst podrobnosti o ochraně soukromí"
+    },
+    "fields": {
+      "name": "Jméno",
+      "firstNamePlaceholder": "Křestní jméno",
+      "lastNamePlaceholder": "Příjmení (volitelné)",
+      "country": "Země",
+      "countryPlaceholder": "Vyberte zemi",
+      "language": "Jazyk",
+      "languagePlaceholder": "Vyberte jazyk",
+      "languageEn": "English",
+      "languageCs": "Čeština",
+      "currency": "Měna",
+      "currencyPlaceholder": "Vyberte měnu",
+      "email": "E-mail",
+      "emailPlaceholder": "E-mail",
+      "emailValid": "E-mail vypadá v pořádku",
+      "password": "Heslo",
+      "passwordPlaceholder": "Heslo",
+      "passwordHintMinLength": "Alespoň 8 znaků",
+      "passwordHintLetter": "Alespoň jedno písmeno",
+      "passwordHintNumber": "Alespoň jedna číslice",
+      "passwordValid": "Heslo splňuje požadavky",
+      "showPassword": "Zobrazit heslo",
+      "hidePassword": "Skrýt heslo",
+      "confirmPassword": "Potvrzení hesla",
+      "confirmPasswordPlaceholder": "Potvrzení hesla",
+      "confirmPasswordMatch": "Hesla se shodují",
+      "username": "Uživatelské jméno",
+      "usernamePlaceholder": "Uživatelské jméno",
+      "usernameChecking": "Kontrola dostupnosti…",
+      "usernameAvailable": "Uživatelské jméno je volné"
+    },
+    "errors": {
+      "required": "Vyplňte prosím všechna povinná pole.",
+      "currencyRequired": "Vyberte prosím měnu.",
+      "consentRequired": "Pro pokračování prosím přijměte podmínky ochrany soukromí.",
+      "passwordTooShort": "Heslo musí mít alespoň 8 znaků.",
+      "passwordWeak": "Heslo musí mít alespoň 8 znaků a obsahovat písmeno i číslici.",
+      "passwordMismatch": "Hesla se neshodují.",
+      "emailInvalid": "Zadejte platnou e-mailovou adresu.",
+      "usernameRequired": "Zvolte prosím uživatelské jméno.",
+      "usernameInvalid": "Použijte 3–20 znaků: písmena, číslice a podtržítka.",
+      "usernameTaken": "Toto uživatelské jméno je již obsazené.",
+      "usernameCheckFailed": "Toto uživatelské jméno se nepodařilo ověřit. Zkuste to prosím znovu.",
+      "signInFailed": "Přihlášení se nezdařilo. Zkontrolujte e-mail a heslo.",
+      "socialSignInFailed": "Přihlášení přes sociální síť se nezdařilo. Zkuste to prosím znovu.",
+      "signUpFailed": "Účet se nepodařilo vytvořit. Zkuste to prosím znovu.",
+      "emailAlreadyRegistered": "Účet s tímto e-mailem již existuje. Přihlaste se prosím.",
+      "confirmEmail": "Potvrďte účet přes e-mail a poté se přihlaste.",
+      "oauthCancelled": "Přihlášení bylo zrušeno.",
+      "oauthLocalhostMobile": "Přihlášení přes Google na telefonu nemůže používat localhost. Na počítači spusťte Expo v režimu LAN (npx expo start --lan), na telefonu otevřete aplikaci na adrese http://IP-VASEHO-PC:8081 a tuto callback URL přidejte v Supabase → Authentication → Redirect URLs.",
+      "oauthRedirectOriginPlaceholder": "EXPO_PUBLIC_AUTH_REDIRECT_ORIGIN je stále zástupný text (např. 192.168.x.x). Nastavte skutečnou LAN IP počítače v .env.local, restartujte Expo a přidejte http://VASE-IP:8081/auth/callback do Supabase Redirect URLs.",
+      "oauthPkceMismatch": "Callback přihlášení neodpovídá adrese, ze které jste začali (např. localhost vs. LAN IP). Otevřete aplikaci jen na jedné adrese, na notebooku odstraňte EXPO_PUBLIC_AUTH_REDIRECT_ORIGIN a zkuste Google znovu.",
+      "accountExists": "Účet s tímto e-mailem již existuje. Přihlaste se prosím e-mailem a heslem.",
+      "misconfigured": "Služby účtu jsou dočasně nedostupné. Zkuste to prosím později."
+    },
+    "notice": {
+      "confirmEmail": "Účet byl vytvořen. Potvrďte ho přes e-mail a poté se přihlaste zde."
+    },
+    "signOut": "Odhlásit se",
+    "signOutHelper": "Odhlásí vás na tomto zařízení. Data zůstanou uložena ve vašem účtu.",
+    "signedInAs": "Přihlášen jako {{email}}"
+  },
   "common": {
     "continue": "Pokračovat",
     "back": "Zpět",
@@ -99,16 +213,19 @@
   },
   "onboarding": {
     "welcome": {
-      "heading": "Vítejte v Beaverr",
-      "description": "Beaverr vás provede domácími financemi krok za krokem — příjmy, fixní náklady a to, co zbývá na běžné výdaje. Srozumitelně, v jednom jasném měsíčním přehledu.",
-      "illustrationA11y": "Ilustrace přátelské postavy",
+      "heading": "Pojďme nastavit váš rozpočet",
+      "description": "Abychom vám mohli nabídnout přesné přehledy a měsíční statistiky, položíme pár otázek o vašich příjmech, nákladech a běžných výdajích — nebude to trvat dlouho. Spěcháte? Zvolte rychlé nastavení a doplníte zbytek později, až se vám to hodí.",
+      "illustrationA11y": "Ilustrace osoby plánující čas s hodinami a přesýpacími hodinami",
       "title": "Beaver",
       "subtitle": "Ne bohatí. Jen připraveni.",
-      "cta": "Začněte hned"
+      "cta": "Pokračovat"
     },
     "consent": {
       "title": "Vaše soukromí",
-      "body": "V alfa a beta verzích Beaverr ukládá vaše rozpočtová data lokálně v této aplikaci. Vaše data nikdy neprodáváme ani je nesdílíme s třetími stranami pro marketing. Vše můžete kdykoli smazat v Nastavení. Vaše údaje zpracováváme v souladu s nařízením GDPR. Pokud později přidáme volitelnou cloudovou synchronizaci, znovu vás požádáme o souhlas.",
+      "bodyIntro": "Beaverr ukládá váš domácí rozpočet do vašeho účtu na zabezpečené cloudové infrastruktuře hostované v EU. Po přihlášení se data synchronizují, abyste mohli pokračovat na jiném zařízení.",
+      "bodyRights": "Vaše data neprodáváme ani je nepoužíváme pro reklamu třetích stran. Můžete se kdykoli odhlásit, odvolat souhlas a smazat svá data v Nastavení účtu.",
+      "bodyLegal": "Vaše osobní údaje zpracováváme v souladu s nařízením GDPR (Obecné nařízení o ochraně osobních údajů) za účelem poskytování rozpočtové služby, pro kterou jste se zaregistrovali.",
+      "body": "Beaverr ukládá váš domácí rozpočet do vašeho účtu na zabezpečené cloudové infrastruktuře hostované v EU. Po přihlášení se data synchronizují, abyste mohli pokračovat na jiném zařízení. Vaše data neprodáváme ani je nepoužíváme pro reklamu třetích stran. Můžete se kdykoli odhlásit, odvolat souhlas a smazat svá data v Nastavení účtu. Vaše osobní údaje zpracováváme v souladu s nařízením GDPR (Obecné nařízení o ochraně osobních údajů) za účelem poskytování rozpočtové služby, pro kterou jste se zaregistrovali.",
       "checkbox": "Souhlasím se zpracováním údajů podle GDPR a chci pokračovat",
       "illustrationA11y": "Ilustrace osoby držící štít soukromí a vlajku GDPR"
     },
@@ -139,6 +256,11 @@
       "discardMessageQuickSetup": "Postup v plném dotazníku bude vymazán. Údaje z rychlého nastavení zůstanou v přehledu, dokud nedokončíte celý dotazník.",
       "discardMessageReturning": "Rozpracované změny budou zahozeny. Obnoví se váš naposledy odeslaný dotazník.",
       "discardConfirm": "Zahodit"
+    },
+    "leave": {
+      "title": "Opustit dotazník?",
+      "message": "Vrátíte se na přehled. Váš postup je uložen a můžete pokračovat později.",
+      "confirm": "Zpět na přehled"
     },
     "quickSetup": {
       "chapter": "Rychlé nastavení",
@@ -230,6 +352,12 @@
       "heading": "Kde žijete a co děláte",
       "body": "Zeptáme se na zemi, město a měnu, občanství a pracovní situaci každého dospělého. Pokud někdo potřebuje vízum nebo povolení k pobytu, zaznamenáme jeho typ a náklady na obnovu, aby se promítly do vašeho plánu.",
       "illustrationA11y": "Ilustrace osoby se zeměkoulí"
+    },
+    "splashResidence": {
+      "chapter": "Pobyt a práce",
+      "heading": "Občanství a zaměstnání",
+      "body": "Ověříme občanství každého dospělého a dítěte a tam, kde je potřeba, doplníme údaje o vízu nebo povolení k pobytu. Poté přejdeme k zaměstnání, aby plán odpovídal tomu, kdo pracuje a jak.",
+      "illustrationA11y": "Ilustrace osoby držící občanský průkaz"
     },
     "location": {
       "chapter": "Lokace a práce",
@@ -1484,9 +1612,9 @@
       "income": "Příjmy domácnosti a spořicí cíle — částky upravíte přímo v tabulce.",
       "expenses": "Fixní náklady a splátky dluhů, které jsou každý měsíc zavázané.",
       "budget": "Kolik zbývá na běžné výdaje po odečtení závazků.",
-      "profile": "Váš účet, preference a odhlášení.",
+      "profile": "Jméno a uživatelské jméno z registrace.",
       "subscriptions": "Váš tarif, fakturace a funkce PRO.",
-      "accountSettings": "Soukromí, data a ovládání účtu.",
+      "accountSettings": "Země, jazyk, měna a smazání účtu.",
       "helpFeedback": "Nápověda a zpětná vazba pro tým Beaverr.",
       "summary": "Úplná kniha s metrikami zdraví rozpočtu a analýzou po sekcích."
     },
@@ -1496,7 +1624,9 @@
     "accountSettingsScreen": {
       "helper": "Spravujte preference účtu a data.",
       "privacyTitle": "Soukromí a data",
-      "revokeHelper": "Odvoláním souhlasu smažete všechna lokální data. Budete muset Beaverr nastavit znovu."
+      "deleteAccountHelper": "Trvale smaže váš účet Beaverr, cloudová data i vše uložené na tomto zařízení.",
+      "preferencesHelper": "Upravte zemi, jazyk a měnu z registrace.",
+      "saveSuccess": "Preference uloženy."
     },
     "appearance": {
       "title": "Vzhled",
@@ -1512,6 +1642,10 @@
     "profileScreen": {
       "accountTitle": "Účet",
       "helper": "Zde spravujete svůj profil a preference v Beaverr.",
+      "accountHelper": "Upravte jméno a uživatelské jméno z registrace.",
+      "saveSuccess": "Údaje účtu uloženy.",
+      "fieldFirstName": "Jméno",
+      "fieldLastName": "Příjmení",
       "preferencesTitle": "Preference"
     },
     "headerToolbar": {
@@ -1523,6 +1657,8 @@
       "defaultDisplayName": "Jan Smile",
       "accountSettings": "Nastavení účtu",
       "appearance": "Vzhled",
+      "appearanceSwitchToDark": "Přepnout na tmavý režim",
+      "appearanceSwitchToLight": "Přepnout na světlý režim",
       "subscription": "Předplatné",
       "proBadge": "PRO",
       "proBadgeA11y": "Pro předplatné",
@@ -2067,6 +2203,23 @@
           "summary": "Tato kategorie tvoří {{pct}} % vašeho měsíčního příjmu."
         }
       }
+    },
+    "advice": {
+      "title": "Personalizované rady",
+      "loading": "Generujeme personalizované rady…",
+      "disclaimer": "Obsah vytvořený umělou inteligencí slouží pouze ke vzdělávání — není to finanční, právní ani daňové poradenství.",
+      "error": "Personalizované rady se nepodařilo načíst. Zkuste to později.",
+      "notConfigured": "Cloudové rady nejsou v této sestavě nakonfigurovány.",
+      "consentLabel": "Odeslat anonymizované domácí součty do Google Cloud pro personalizovaná vysvětlení",
+      "consentHelper": "Google zpracovává data jako subdodavatel podle svých cloudových podmínek. Neodesílají se jména ani čísla účtů.",
+      "enableButton": "Zapnout AI rady",
+      "signInTitle": "Přihlaste se pro personalizované rady",
+      "signInHelper": "Účet propojí rady s vámi a umožní bezpečný přístup.",
+      "emailPlaceholder": "E-mail",
+      "passwordPlaceholder": "Heslo",
+      "signInButton": "Přihlásit se",
+      "signInError": "Přihlášení se nezdařilo. Zkontrolujte e-mail a heslo.",
+      "refresh": "Obnovit rady"
     },
     "summaryScreen": {
       "intro": "Úplná domácí účetní kniha s poznámkami ke každé sekci. Klepnutím na Upravit aktualizujete danou oblast.",
@@ -3165,7 +3318,15 @@
       },
       "reminderOn": "Zap.",
       "reminderOff": "Vyp.",
+      "expandAll": "Rozbalit vše",
+      "collapseAll": "Sbalit vše",
       "editReminderA11y": "Upravit připomínku pro {{name}}",
+      "a11y": {
+        "expandRow": "Rozbalit {{label}}",
+        "collapseRow": "Sbalit {{label}}",
+        "expandAll": "Rozbalit všechny připomínky",
+        "collapseAll": "Sbalit všechny připomínky"
+      },
       "dateTypes": {
         "renewal": "Obnovení",
         "due": "Splatnost",
@@ -3373,10 +3534,12 @@
   "settings": {
     "title": "Nastavení",
     "redoSetup": "Znovu nastavit",
-    "revokeConsent": "Odvolat souhlas",
-    "revokeConsentConfirmTitle": "Jste si jisti?",
-    "revokeConsentConfirmMessage": "Tímto smažete všechna svá data a postup. Budete muset znovu vyplnit dotazník.",
-    "revokeConsentConfirmButton": "Odvolat",
+    "deleteAccount": "Smazat účet a data",
+    "deleteAccountConfirmTitle": "Smazat účet?",
+    "deleteAccountConfirmMessage": "Tímto trvale smažete účet Beaverr, cloudová data i veškerý postup na tomto zařízení. Akci nelze vrátit.",
+    "deleteAccountConfirmButton": "Smazat účet",
+    "deleteAccountFailed": "Účet se nepodařilo smazat. Zkuste to prosím znovu.",
+    "deleteAccountNotConfigured": "Mazání účtu na serveru zatím není povoleno. Spusťte migraci delete-account nebo nasaďte Edge Function delete-account.",
     "language": "Jazyk",
     "theme": "Téma",
     "currency": "Měna"
