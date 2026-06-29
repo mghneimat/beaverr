@@ -235,7 +235,7 @@ export default function MetricExplainCard({
       : toneStyle
         ? toneStyle.borderColor
         : hovered || pressed
-          ? C.chipSelectedBorder
+          ? C.accent
           : C.border;
 
   const backgroundColor = isDimmed
@@ -254,7 +254,7 @@ export default function MetricExplainCard({
     ? C.muted
     : isGlass
       ? GLASS_ON_MESH.value
-      : (toneStyle?.valueColor || C.primary);
+      : (toneStyle?.valueColor || C.text);
 
   const labelColor = isDimmed ? C.muted : (isGlass ? GLASS_ON_MESH.label : C.text);
 

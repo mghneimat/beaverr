@@ -66,15 +66,52 @@ export default function StrategyScreen() {
   const [savingsMonthlyTarget, setSavingsMonthlyTarget] = useState('');
 
   const [validationError, setValidationError] = useState('');
-  const [goalFieldErrors, setGoalFieldErrors] = useState({ amount: '', date: '', ongoing: '' });
+  const [goalFieldErrors, setGoalFieldErrors] = useState({ name: '', amount: '', date: '', ongoing: '' });
 
-  const clearGoalFieldErrors = () => setGoalFieldErrors({ amount: '', date: '', ongoing: '' });
+  const clearGoalFieldErrors = () => setGoalFieldErrors({ name: '', amount: '', date: '', ongoing: '' });
+
+  const validateGoalDetails = () => {
+    if (saveMode === SAVE_MODES.TARGET) {
+      if (!goalDescription.trim()) {
+        setGoalFieldErrors((prev) => ({
+          ...prev,
+          name: t('onboarding.strategy.goalDetails.validationGoalName'),
+        }));
+        return false;
+      }
+      if (!goalAmount) {
+        setGoalFieldErrors((prev) => ({
+          ...prev,
+          amount: t('onboarding.strategy.goalDetails.validationTargetAmount'),
+        }));
+        return false;
+      }
+      if (!goalDate) {
+        setGoalFieldErrors((prev) => ({
+          ...prev,
+          date: t('onboarding.strategy.goalDetails.validationTargetDate'),
+        }));
+        return false;
+      }
+      return true;
+    }
+
+    if (!savingsMonthlyTarget) {
+      setGoalFieldErrors((prev) => ({
+        ...prev,
+        ongoing: t('onboarding.strategy.goalDetails.validationOngoingAmount'),
+      }));
+      return false;
+    }
+    return true;
+  };
 
   const handleContinue = async () => {
     setValidationError('');
     clearGoalFieldErrors();
 
     if (isEditMode) {
+      if (step === 'goalDetails' && !validateGoalDetails()) return;
       await saveAll();
       return;
     }
@@ -96,28 +133,7 @@ export default function StrategyScreen() {
       }
       setStep('goalDetails');
     } else if (step === 'goalDetails') {
-      if (saveMode === SAVE_MODES.TARGET) {
-        if (!goalAmount) {
-          setGoalFieldErrors((prev) => ({
-            ...prev,
-            amount: t('onboarding.strategy.goalDetails.validationTargetAmount'),
-          }));
-          return;
-        }
-        if (!goalDate) {
-          setGoalFieldErrors((prev) => ({
-            ...prev,
-            date: t('onboarding.strategy.goalDetails.validationTargetDate'),
-          }));
-          return;
-        }
-      } else if (!savingsMonthlyTarget) {
-        setGoalFieldErrors((prev) => ({
-          ...prev,
-          ongoing: t('onboarding.strategy.goalDetails.validationOngoingAmount'),
-        }));
-        return;
-      }
+      if (!validateGoalDetails()) return;
       await saveAll();
     }
   };
@@ -131,7 +147,7 @@ export default function StrategyScreen() {
         saveMode,
         savingsBalance,
         savingsMonthlyTarget,
-        goalDescription,
+        goalDescription: goalDescription.trim(),
         goalAmount,
         goalDate,
       }),
@@ -248,16 +264,28 @@ export default function StrategyScreen() {
       >
         {isTarget ? (
           <>
-            <InputGroup label={t('onboarding.strategy.goalDetails.descriptionLabel')} optional>
+            <InputGroup
+              label={t('onboarding.strategy.goalDetails.nameLabel')}
+              errorText={goalFieldErrors.name || undefined}
+            >
               <LabeledInput
                 value={goalDescription}
-                onChangeText={setGoalDescription}
-                placeholder={t('onboarding.strategy.goalDetails.descriptionPlaceholder')}
+                onChangeText={(v) => {
+                  setGoalDescription(v);
+                  if (goalFieldErrors.name) {
+                    setGoalFieldErrors((prev) => ({ ...prev, name: '' }));
+                  }
+                }}
+                errorText={goalFieldErrors.name || undefined}
+                placeholder={t('onboarding.strategy.goalDetails.namePlaceholder')}
                 inGroup
               />
             </InputGroup>
 
-            <InputGroup label={t('onboarding.strategy.goalDetails.amountLabel')}>
+            <InputGroup
+              label={t('onboarding.strategy.goalDetails.amountLabel')}
+              errorText={goalFieldErrors.amount || undefined}
+            >
               <LabeledInput
                 value={goalAmount}
                 onChangeText={(v) => {
@@ -278,7 +306,6 @@ export default function StrategyScreen() {
             <InputGroup
               label={t('onboarding.strategy.goalDetails.dateLabel')}
               errorText={goalFieldErrors.date || undefined}
-              showErrorMessage={false}
             >
               <SplitDateFields
                 value={goalDate}
@@ -295,7 +322,10 @@ export default function StrategyScreen() {
             </InputGroup>
           </>
         ) : (
-          <InputGroup label={t('onboarding.strategy.goalDetails.monthlyTargetLabel')}>
+          <InputGroup
+            label={t('onboarding.strategy.goalDetails.monthlyTargetLabel')}
+            errorText={goalFieldErrors.ongoing || undefined}
+          >
             <LabeledInput
               value={savingsMonthlyTarget}
               onChangeText={(v) => {

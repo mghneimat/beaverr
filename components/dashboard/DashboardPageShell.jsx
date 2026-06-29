@@ -15,7 +15,8 @@ import { webScrollBottomPadding } from '../../lib/safeAreaWeb';
 import PrimaryButton from '../ui/PrimaryButton';
 import AppScreenShell from '../app/AppScreenShell';
 import SaveFeedbackBanner from './SaveFeedbackBanner';
-import PillSnackbar from './PillSnackbar';
+import DashboardPageLoadingSkeleton from './DashboardPageLoadingSkeleton';
+import ContentReveal from '../ui/ContentReveal';
 
 const MAX_WIDTH = 900;
 
@@ -70,20 +71,22 @@ export default function DashboardPageShell({ titleKey, roleHintKey, subheader, c
 
   useEffect(() => subscribeDashboardRefresh(load), [load]);
 
-  const viewKey = loading ? 'loading' : error ? 'error' : 'content';
-
   return (
-    <AppScreenShell variant="tab" settleKey={viewKey}>
+    <AppScreenShell variant="tab">
         {loading ? (
-          <View style={{ flex: 1, backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center', padding: S.pagePadH }}>
-            <Text style={{ ...T.helper }}>{t('dashboard.home.loading')}</Text>
-          </View>
+          <DashboardPageLoadingSkeleton
+            showTitle={Boolean(titleKey)}
+            showSubtitle={Boolean(roleHintKey)}
+          />
         ) : error ? (
-          <View style={{ flex: 1, backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center', padding: S.pagePadH }}>
-            <Text style={{ ...T.helper, textAlign: 'center', marginBottom: 24, color: C.danger }}>{error}</Text>
-            <PrimaryButton onPress={load}>{t('common.retry')}</PrimaryButton>
-          </View>
+          <ContentReveal style={{ flex: 1 }}>
+            <View style={{ flex: 1, backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center', padding: S.pagePadH }}>
+              <Text style={{ ...T.helper, textAlign: 'center', marginBottom: 24, color: C.danger }}>{error}</Text>
+              <PrimaryButton onPress={load}>{t('common.retry')}</PrimaryButton>
+            </View>
+          </ContentReveal>
         ) : (
+          <ContentReveal style={{ flex: 1 }}>
           <DashboardScrollContext.Provider value={scrollContextValue}>
             <View style={{ flex: 1 }}>
               <ScrollView
@@ -124,9 +127,9 @@ export default function DashboardPageShell({ titleKey, roleHintKey, subheader, c
                   {children(bundle)}
                 </View>
               </ScrollView>
-              <PillSnackbar />
             </View>
           </DashboardScrollContext.Provider>
+          </ContentReveal>
         )}
     </AppScreenShell>
   );

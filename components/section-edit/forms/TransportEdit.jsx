@@ -24,6 +24,7 @@ function toDraft(saved) {
     vehicles: (s.vehicles || []).map((v, i) => ({
       id: v.id || `vehicle_${i}`,
       category: v.category || '',
+      displayName: v.displayName || '',
       fuelCost: amountToString(v.fuelCost),
       fuelEndDate: v.fuelEndDate || '',
       fuelDueDate: v.fuelDueDate || '',
@@ -47,6 +48,7 @@ function toPayload(draft) {
     return {
       ...origV,
       category: v.category || origV.category,
+      displayName: v.displayName?.trim() || null,
       fuelCost: parseAmount(v.fuelCost),
       fuelEndDate: v.fuelEndDate || null,
       fuelDueDate: v.fuelDueDate || null,
@@ -141,6 +143,18 @@ export default function TransportEdit() {
                 <Text style={{ fontSize: 15, fontWeight: '600', color: C.primary, marginBottom: 12 }}>
                   {t('sectionEdit.transport.vehicle', { n: idx + 1 })}
                 </Text>
+                <InputGroup label={t('sectionEdit.transport.displayName')}>
+                  <LabeledInput
+                    value={vehicle.displayName || ''}
+                    onChangeText={(v) => {
+                      const vehicles = [...data.vehicles];
+                      vehicles[idx] = { ...vehicles[idx], displayName: v };
+                      update({ vehicles });
+                    }}
+                    placeholder={t('sectionEdit.transport.displayNamePlaceholder')}
+                    inGroup
+                  />
+                </InputGroup>
                 <InputGroup label={t('sectionEdit.transport.fuel')}>
                   <LabeledInput
                     value={vehicle.fuelCost}

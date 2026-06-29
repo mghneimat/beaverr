@@ -5,6 +5,7 @@ import AuthUsernameInput from '../auth/AuthUsernameInput';
 import PrimaryButton from '../ui/PrimaryButton';
 import TextLinkButton from '../ui/TextLinkButton';
 import FormActionFooter from './FormActionFooter';
+import FormFieldSkeleton from '../ui/FormFieldSkeleton';
 import { useI18n } from '../../lib/i18n';
 import { useAuth } from '../../lib/auth/AuthProvider';
 import { authInputStyle } from '../../lib/auth/authFieldStyles';
@@ -17,7 +18,7 @@ import {
   loadAccountRegistrationFields,
   saveAccountRegistrationFields,
 } from '../../lib/account/registrationProfile';
-import { C, T } from '../../constants/onboarding-theme';
+import { C, T, S } from '../../constants/onboarding-theme';
 
 /** @typedef {'idle' | 'checking' | 'available' | 'taken' | 'invalid' | 'checkFailed'} UsernameStatus */
 
@@ -163,9 +164,9 @@ export default function ProfileAccountForm() {
 
   if (loading) {
     return (
-      <Text style={{ ...T.helper, color: C.muted }}>
-        {t('common.loading')}
-      </Text>
+      <View accessibilityRole="progressbar" accessibilityLabel={t('common.loading')}>
+        <FormFieldSkeleton rows={3} />
+      </View>
     );
   }
 
@@ -178,6 +179,9 @@ export default function ProfileAccountForm() {
       <View style={{ gap: 12, width: '100%' }}>
         <View style={{ flexDirection: 'row', width: '100%', gap: 8 }}>
           <View style={{ flex: 1, minWidth: 0 }}>
+            <Text style={{ ...T.fieldLabel, marginBottom: S.labelGap }}>
+              {t('dashboard.profileScreen.fieldFirstName')}
+            </Text>
             <TextInput
               value={firstName}
               onChangeText={setFirstName}
@@ -185,7 +189,7 @@ export default function ProfileAccountForm() {
               placeholder={t('auth.fields.firstNamePlaceholder')}
               placeholderTextColor={C.muted}
               autoCapitalize="words"
-              accessibilityLabel={t('auth.fields.firstNamePlaceholder')}
+              accessibilityLabel={t('dashboard.profileScreen.fieldFirstName')}
               style={[
                 authInputStyle('filled', { inRow: true }),
                 !editing ? disabledInputStyle : null,
@@ -193,6 +197,9 @@ export default function ProfileAccountForm() {
             />
           </View>
           <View style={{ flex: 1, minWidth: 0 }}>
+            <Text style={{ ...T.fieldLabel, marginBottom: S.labelGap }}>
+              {t('dashboard.profileScreen.fieldLastName')}
+            </Text>
             <TextInput
               value={lastName}
               onChangeText={setLastName}
@@ -200,7 +207,7 @@ export default function ProfileAccountForm() {
               placeholder={t('auth.fields.lastNamePlaceholder')}
               placeholderTextColor={C.muted}
               autoCapitalize="words"
-              accessibilityLabel={t('auth.fields.lastNamePlaceholder')}
+              accessibilityLabel={t('dashboard.profileScreen.fieldLastName')}
               style={[
                 authInputStyle('filled', { inRow: true }),
                 !editing ? disabledInputStyle : null,
@@ -209,12 +216,17 @@ export default function ProfileAccountForm() {
           </View>
         </View>
 
-        <AuthUsernameInput
-          value={username}
-          onChangeText={setUsername}
-          status={usernameStatus}
-          editable={editing}
-        />
+        <View style={{ width: '100%' }}>
+          <Text style={{ ...T.fieldLabel, marginBottom: S.labelGap }}>
+            {t('auth.fields.username')}
+          </Text>
+          <AuthUsernameInput
+            value={username}
+            onChangeText={setUsername}
+            status={usernameStatus}
+            editable={editing}
+          />
+        </View>
       </View>
 
       {error ? (
@@ -239,7 +251,7 @@ export default function ProfileAccountForm() {
         </>
       ) : (
         <FormActionFooter>
-          <TextLinkButton label={t('common.edit')} onPress={handleEdit} centered />
+          <TextLinkButton label={t('common.edit')} onPress={handleEdit} centered color={C.text} />
         </FormActionFooter>
       )}
     </View>

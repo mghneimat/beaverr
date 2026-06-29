@@ -128,7 +128,7 @@ export default function ReminderAlertEditPanel({ row, onDone, onCancel }) {
       )}
 
       <View style={{ flexDirection: 'row', gap: 12, justifyContent: 'flex-end' }}>
-        <OutlineButton onPress={onCancel} disabled={saving}>
+        <OutlineButton onPress={onCancel} disabled={saving} destructive>
           {t('common.cancel')}
         </OutlineButton>
         <PrimaryButton onPress={handleSave} disabled={saving || !hasDate}>

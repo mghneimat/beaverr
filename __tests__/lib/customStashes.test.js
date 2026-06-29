@@ -80,13 +80,38 @@ describe('buildJarLines custom stashes', () => {
 describe('buildSavingsStashLines', () => {
   it('keeps piggy bank and savings on the primary row with custom tabs below', () => {
     const { budget } = addCustomStash({ looseMoneyBalance: 12000 }, 'Holiday');
-    const { primary, custom } = buildSavingsStashLines({
+    const { primary, savedCustom, commitmentCustom, custom } = buildSavingsStashLines({
       budget,
       income: { savingsBalance: 500 },
     });
     expect(primary.map((line) => line.id)).toEqual(['looseCash', 'savings']);
+    expect(savedCustom).toHaveLength(1);
+    expect(savedCustom[0].labelParams.name).toBe('Holiday');
+    expect(commitmentCustom).toHaveLength(0);
     expect(custom).toHaveLength(1);
-    expect(custom[0].labelParams.name).toBe('Holiday');
+  });
+
+  it('routes sinking-fund tabs to the commitments group', () => {
+    const { primary, savedCustom, commitmentCustom } = buildSavingsStashLines({
+      budget: {
+        looseMoneyBalance: 0,
+        customStashes: [{
+          id: 'sf1',
+          name: 'TV licence',
+          balance: 0,
+          sinkingSourceKey: 'tv_licence',
+          sinkingTargetAmount: 4800,
+          sinkingDueDate: '01/12/2026',
+          sinkingSuggestedMonthly: 400,
+          autoCreated: true,
+        }],
+      },
+      income: { savingsBalance: 0 },
+    });
+    expect(primary).toHaveLength(2);
+    expect(savedCustom).toHaveLength(0);
+    expect(commitmentCustom).toHaveLength(1);
+    expect(commitmentCustom[0].labelParams.name).toBe('TV licence');
   });
 
   it('getTotalStashBalance sums piggy bank, savings, and custom tabs', () => {

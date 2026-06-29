@@ -127,7 +127,7 @@ export default function ExpenseItemEditPanel({
 
       <View style={{ flexDirection: 'row', gap: 10 }}>
 
-        <OutlineButton onPress={onCancel} style={{ flex: 1 }} disabled={saving}>
+        <OutlineButton onPress={onCancel} style={{ flex: 1 }} disabled={saving} destructive>
 
           {t('common.cancel')}
 

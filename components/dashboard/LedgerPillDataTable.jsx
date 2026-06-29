@@ -8,7 +8,7 @@ import { ledgerColumnMinWidth, useBreakdownTableColumns } from '../../lib/dashbo
 import { runInlineSave } from '../../lib/inlineSaveImpact';
 import { emitSaveFeedback } from '../../lib/dashboardSaveFeedback';
 import { emitDashboardToast } from '../../lib/dashboardToast';
-import { C, R, T, tabularNums } from '../../constants/onboarding-theme';
+import { C, R, S, T, tabularNums } from '../../constants/onboarding-theme';
 import InCardSectionHeader from './InCardSectionHeader';
 import SurfaceCard from '../ui/SurfaceCard';
 import ConfirmDialog from '../ui/ConfirmDialog';
@@ -20,7 +20,9 @@ import {
   BreakdownRow,
   LedgerCardRow,
   usePillRowSelectMotion,
+  ledgerValueCellColor,
 } from './BreakdownTablePrimitives';
+import DashboardSectionEmptyMessage from './DashboardSectionEmptyMessage';
 
 const CHEVRON_SLOT = 28;
 
@@ -38,18 +40,19 @@ function pillRowColors({ index, selected, pressed, hovered }) {
   return { bg, label: C.text, meta: C.muted };
 }
 
-function LedgerPillColumnHeaders({ columns, narrow }) {
+function LedgerPillColumnHeaders({ columns, narrow, columnGap = 10 }) {
   return (
-    <BreakdownRow style={{ paddingHorizontal: 14, marginBottom: 8, gap: 10 }}>
+    <BreakdownRow style={{ paddingHorizontal: 14, marginBottom: 8, gap: columnGap }}>
       <View style={{ width: 36, flexShrink: 0 }} />
       {columns.map((col) => {
-        const minW = ledgerColumnMinWidth(col.key, narrow);
+        const minW = col.minWidth ?? ledgerColumnMinWidth(col.key, narrow);
+        const align = col.align || (col.key === 'name' ? 'left' : 'right');
         return (
           <BreakdownCell
             key={col.key}
-            flex={col.key === 'name' ? 1 : undefined}
+            flex={col.flex ?? (col.key === 'name' ? 1 : undefined)}
             minWidth={minW}
-            align={col.align || (col.key === 'name' ? 'left' : 'right')}
+            align={align}
           >
             <Text style={{
               fontSize: 11,
@@ -57,7 +60,8 @@ function LedgerPillColumnHeaders({ columns, narrow }) {
               color: C.muted,
               textTransform: 'uppercase',
               letterSpacing: 0.4,
-              textAlign: col.align === 'center' ? 'center' : col.key === 'name' ? 'left' : 'right',
+              textAlign: align === 'center' ? 'center' : col.key === 'name' ? 'left' : 'right',
+              width: '100%',
             }}
             numberOfLines={1}
             >
@@ -81,6 +85,7 @@ function LedgerPillRow({
   iconSectionKey,
   iconScope,
   narrow,
+  columnGap = 10,
 }) {
   const rowAnimStyle = usePillRowSelectMotion(selected);
 
@@ -101,7 +106,7 @@ function LedgerPillRow({
         return {
           flexDirection: 'row',
           alignItems: 'center',
-          gap: 10,
+          gap: columnGap,
           paddingVertical: 10,
           paddingHorizontal: 14,
           minHeight: 52,
@@ -128,24 +133,30 @@ function LedgerPillRow({
               selected={selected}
             />
             {columns.map((col) => {
-              const minW = ledgerColumnMinWidth(col.key, narrow);
+              const minW = col.minWidth ?? ledgerColumnMinWidth(col.key, narrow);
               const isName = col.key === 'name';
+              const align = col.align || (isName ? 'left' : 'right');
               return (
                 <BreakdownCell
                   key={col.key}
-                  flex={isName ? 1 : undefined}
+                  flex={col.flex ?? (isName ? 1 : undefined)}
                   minWidth={minW}
-                  align={col.align || (isName ? 'left' : 'right')}
+                  align={align}
                 >
                   <Text style={{
                     fontSize: isName ? 15 : 14,
                     fontWeight: isName ? '600' : col.key === 'amount' ? '700' : '500',
                     color: isName
                       ? c.label
-                      : col.key === 'amount'
-                        ? (selected ? c.label : C.primary)
-                        : c.meta,
-                    textAlign: col.align === 'center' ? 'center' : isName ? 'left' : 'right',
+                      : ledgerValueCellColor({
+                        colKey: col.key,
+                        selected,
+                        labelColor: c.label,
+                        metaColor: c.meta,
+                        tone: row.cellTones?.[col.key],
+                      }),
+                    textAlign: align === 'center' ? 'center' : isName ? 'left' : 'right',
+                    width: '100%',
                     ...(!isName ? tabularNums : {}),
                   }}
                   numberOfLines={isName ? 2 : 1}
@@ -171,6 +182,7 @@ export default function LedgerPillDataTable({
   title,
   titleTrailing,
   headerBelow,
+  headerStyle,
   footer,
   footerAlign = 'center',
   columns,
@@ -183,6 +195,8 @@ export default function LedgerPillDataTable({
   canDeleteRow,
   onDeleteRow,
   initialEditingRowId,
+  selectOpensEdit = false,
+  columnGap = 10,
 }) {
   const { t } = useI18n();
   const { narrow, tableLayout } = useBreakdownTableColumns();
@@ -221,9 +235,14 @@ export default function LedgerPillDataTable({
   }, [rows.map((r) => r.id).join('|'), initialEditingRowId]);
 
   const handleSelect = useCallback((row) => {
+    if (selectOpensEdit && renderEditPanel) {
+      setSelectedId(null);
+      setEditingId((prev) => (prev === row.id ? null : row.id));
+      return;
+    }
     if (editingId === row.id) return;
     setSelectedId((prev) => (prev === row.id ? null : row.id));
-  }, [editingId]);
+  }, [editingId, renderEditPanel, selectOpensEdit]);
 
   const handleEdit = useCallback((row) => {
     setSelectedId(null);
@@ -260,18 +279,23 @@ export default function LedgerPillDataTable({
   return (
     <SurfaceCard style={{ overflow: 'visible' }}>
       {title ? (
-        <InCardSectionHeader title={title} trailing={titleTrailing} />
+        <InCardSectionHeader
+          title={title}
+          trailing={titleTrailing}
+          style={[
+            !headerBelow ? { marginBottom: S.sectionGap + 8 } : null,
+            headerStyle,
+          ]}
+        />
       ) : null}
 
       {headerBelow ?? null}
 
       {visibleRows.length === 0 ? (
-        <Text style={{ ...T.helper, textAlign: 'center', paddingVertical: 24, paddingHorizontal: 16 }}>
-          {emptyLabel}
-        </Text>
+        <DashboardSectionEmptyMessage message={emptyLabel} variant="centered" />
       ) : (
         <View style={{ gap: 8, width: '100%', alignSelf: 'stretch', overflow: 'visible' }}>
-          {!cardMode ? <LedgerPillColumnHeaders columns={columns} narrow={narrow} /> : null}
+          {!cardMode ? <LedgerPillColumnHeaders columns={columns} narrow={narrow} columnGap={columnGap} /> : null}
           {visibleRows.map((row, index) => {
             const selected = selectedId === row.id;
             const editing = editingId === row.id;
@@ -302,6 +326,7 @@ export default function LedgerPillDataTable({
                   <LedgerCardRow
                     columns={columns}
                     cells={row.cells}
+                    cellTones={row.cellTones}
                     index={index}
                     selected={selected || editing}
                     onPress={() => handleSelect(row)}
@@ -325,6 +350,7 @@ export default function LedgerPillDataTable({
                     iconSectionKey={iconSectionKey}
                     iconScope={iconScope}
                     narrow={narrow}
+                    columnGap={columnGap}
                   />
                 )}
                 {renderEditPanel ? (

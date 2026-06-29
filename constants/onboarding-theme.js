@@ -266,8 +266,9 @@ export const SVG = {
 /**
  * Apply light/dark palette to mutable C, typography colors, shadows, and web DOM.
  * @param {'light' | 'dark'} mode
+ * @param {{ skipRootBackground?: boolean }} [options]
  */
-export function applyActiveTheme(mode) {
+export function applyActiveTheme(mode, options = {}) {
   syncThemeTokens(mode, {
     T,
     SHADOW,
@@ -276,5 +277,5 @@ export function applyActiveTheme(mode) {
     inputCard,
     sansType,
     wordmarkTextStyle,
-  });
+  }, options);
 }

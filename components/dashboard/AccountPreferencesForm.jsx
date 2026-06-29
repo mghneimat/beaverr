@@ -5,6 +5,7 @@ import SignUpLocationFields from '../auth/SignUpLocationFields';
 import PrimaryButton from '../ui/PrimaryButton';
 import TextLinkButton from '../ui/TextLinkButton';
 import FormActionFooter from './FormActionFooter';
+import FormFieldSkeleton from '../ui/FormFieldSkeleton';
 import { useI18n } from '../../lib/i18n';
 import { useAuth } from '../../lib/auth/AuthProvider';
 import {
@@ -102,9 +103,9 @@ export default function AccountPreferencesForm() {
 
   if (loading) {
     return (
-      <Text style={{ ...T.helper, color: C.muted }}>
-        {t('common.loading')}
-      </Text>
+      <View accessibilityRole="progressbar" accessibilityLabel={t('common.loading')}>
+        <FormFieldSkeleton rows={3} />
+      </View>
     );
   }
 
@@ -146,7 +147,7 @@ export default function AccountPreferencesForm() {
         </>
       ) : (
         <FormActionFooter>
-          <TextLinkButton label={t('common.edit')} onPress={handleEdit} centered />
+          <TextLinkButton label={t('common.edit')} onPress={handleEdit} centered color={C.text} />
         </FormActionFooter>
       )}
     </View>

@@ -2,15 +2,22 @@ import { View } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
 import { C, R, T } from '../../constants/onboarding-theme';
 
-const VARIANTS = {
-  positive: { bg: '#D1FAE5', text: C.positive, border: C.positive },
-  danger: { bg: C.dangerBg, text: C.danger, border: C.danger },
-  muted: { bg: C.infoWashBg, text: C.muted, border: C.border },
-  info: { bg: C.infoBg, text: C.infoText, border: C.infoText },
-};
+/** Resolve at render time so theme tokens stay in sync with dark/light mode. */
+function chipColors(variant) {
+  switch (variant) {
+    case 'positive':
+      return { bg: C.positiveBg, text: C.positive, border: C.positiveBorder };
+    case 'danger':
+      return { bg: C.dangerBg, text: C.danger, border: C.dangerBorder };
+    case 'info':
+      return { bg: C.infoBg, text: C.infoText, border: C.infoBorder };
+    default:
+      return { bg: C.surfaceTint, text: C.muted, border: C.border };
+  }
+}
 
 export default function StatusChip({ label, variant = 'muted', style }) {
-  const colors = VARIANTS[variant] || VARIANTS.muted;
+  const colors = chipColors(variant);
 
   return (
     <View style={[{
@@ -23,8 +30,9 @@ export default function StatusChip({ label, variant = 'muted', style }) {
       borderColor: colors.border,
       marginTop: 8,
       marginBottom: 4,
-    }, style]}>
-      <Text style={{ ...T.caption, fontWeight: '600', color: colors.text }}>{label}</Text>
+    }, style]}
+    >
+      <Text style={{ ...T.caption, fontWeight: '500', color: colors.text }}>{label}</Text>
     </View>
   );
 }

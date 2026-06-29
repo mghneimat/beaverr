@@ -6,6 +6,7 @@ import { formatCurrency, toMonthly } from '../../lib/finance';
 import { categoryMonthlyTotal, EDIT_SECTION_ROUTES } from '../../lib/householdBudget';
 import { C, R, T, tabularNums } from '../../constants/onboarding-theme';
 import ExpandableCategoryRow from './ExpandableCategoryRow';
+import DashboardSectionEmptyMessage from './DashboardSectionEmptyMessage';
 import { subscriptionDisplayName } from '../../lib/subscriptionCatalog';
 
 const FILTERS = ['all', 'subscriptions', 'insurance', 'housing', 'transport', 'other'];
@@ -76,9 +77,10 @@ export default function ExpensesBreakdown({
       </ScrollView>
 
       {filteredCategories.length === 0 ? (
-        <Text style={{ ...T.helper, textAlign: 'center', paddingVertical: 24 }}>
-          {t('dashboard.expensesScreen.empty')}
-        </Text>
+        <DashboardSectionEmptyMessage
+          message={t('dashboard.expensesScreen.empty')}
+          variant="centered"
+        />
       ) : (
         filteredCategories.map((cat) => {
           const monthly = categoryMonthlyTotal(cat);

@@ -1,51 +1,16 @@
-import { View } from 'react-native';
-import { Text } from '@gluestack-ui/themed';
-import { useI18n } from '../../lib/i18n';
-import { C, T, tabularNums } from '../../constants/onboarding-theme';
+import { Text } from '@gluestack-ui/themed';import { useI18n } from '../../lib/i18n';
+import { formatMonthEndDestination } from '../../lib/monthEndLabels';
+import { C, T } from '../../constants/onboarding-theme';
 import SurfaceCard from '../ui/SurfaceCard';
 import AnimatedCollapse from './AnimatedCollapse';
-import SpendingPaceStatusLine from './SpendingPaceStatusLine';
-import { formatCurrency } from '../../lib/finance';
-
-const STATUS_COLORS = {
-  under: C.positive,
-  on_track: C.primary,
-  over: C.danger,
-};
-
-function destinationLabel(t, monthlyPreview, currency) {
-  const { route, strategy, resetDestination, otherGoalNote } = monthlyPreview;
-  if (strategy === 'free' || strategy === 'capped') {
-    return t('dashboard.trackerScreen.monthly.route.rolloverFree');
-  }
-  if (resetDestination === 'savings') {
-    return t('dashboard.trackerScreen.monthly.route.savings');
-  }
-  if (resetDestination === 'otherGoal') {
-    return t('dashboard.trackerScreen.monthly.route.otherGoal', {
-      name: otherGoalNote || t('dashboard.savingsScreen.otherGoalFallback'),
-    });
-  }
-  return t('dashboard.trackerScreen.monthly.route.looseMoney');
-}
-
-function MetricRow({ label, value, currency, emphasize }) {
-  return (
-    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-      <Text style={{ ...T.helper, flex: 1, paddingRight: 8 }}>{label}</Text>
-      <Text
-        style={{
-          ...T.helper,
-          fontWeight: emphasize ? '700' : '600',
-          fontSize: emphasize ? 18 : 14,
-          ...tabularNums,
-        }}
-      >
-        {formatCurrency(value, currency)}
-      </Text>
-    </View>
-  );
-}
+import TrackerRouteNotice from './TrackerRouteNotice';
+import {
+  TrackerHeroMetric,
+  TrackerMetricRow,
+  TrackerMetricsPanel,
+  TrackerPaceFooter,
+  TrackerPeriodHeader,
+} from './TrackerPeriodSection';
 
 /**
  * @param {'daily'|'weekly'|'monthly'} period
@@ -56,131 +21,82 @@ export default function TrackerPeriodCard({ period, previews, currency }) {
 
   if (period === 'monthly') {
     const preview = previews.monthly;
-    const routeLabel = destinationLabel(t, preview, currency);
+    const routeLabel = formatMonthEndDestination(t, preview, currency);
 
     return (
       <SurfaceCard>
-        <Text style={{ ...T.cardTitle }}>{t(`${prefix}.title`)}</Text>
-        <Text style={{ ...T.caption, color: C.muted, marginTop: 4 }}>
-          {t(`${prefix}.helper`)}
-        </Text>
-
-        <View style={{ marginTop: 16, gap: 10 }}>
-          <MetricRow
+        <TrackerPeriodHeader
+          title={t(`${prefix}.title`)}
+          helper={t(`${prefix}.helper`)}
+        />
+        <TrackerHeroMetric
+          label={t(`${prefix}.projectedLeftover`)}
+          amount={preview.projectedLeftover}
+          currency={currency}
+          tone={preview.projectedLeftover > 0 ? 'under' : 'neutral'}
+        />
+        <TrackerMetricsPanel>
+          <TrackerMetricRow
             label={t(`${prefix}.spentSoFar`)}
             value={preview.spentSoFar}
             currency={currency}
+            isLast
           />
-          <MetricRow
-            label={t(`${prefix}.projectedLeftover`)}
-            value={preview.projectedLeftover}
-            currency={currency}
-            emphasize
-          />
-        </View>
+        </TrackerMetricsPanel>
 
-        <AnimatedCollapse visible={preview.projectedLeftover > 0} fallbackHeight={72}>
-          <View
-            style={{
-              marginTop: 16,
-              padding: 12,
-              borderRadius: 8,
-              backgroundColor: C.infoWashBg,
-            }}
-          >
-            <Text style={{ ...T.caption, color: C.muted }}>{t(`${prefix}.goesTo`)}</Text>
-            <Text style={{ ...T.helper, fontWeight: '600', color: C.primary, marginTop: 4 }}>
-              {routeLabel}
-            </Text>
-          </View>
+        <AnimatedCollapse visible={preview.projectedLeftover > 0} fallbackHeight={56}>
+          <TrackerRouteNotice
+            eyebrow={t(`${prefix}.goesTo`)}
+            destinationLabel={routeLabel}
+            style={{ marginTop: 14 }}
+          />
         </AnimatedCollapse>
         <AnimatedCollapse visible={preview.projectedLeftover <= 0} fallbackHeight={24}>
-          <Text style={{ ...T.helper, color: C.muted, marginTop: 16 }}>
+          <Text style={{ ...T.caption, color: C.muted, marginTop: 14, lineHeight: 18 }}>
             {t(`${prefix}.noLeftover`)}
           </Text>
         </AnimatedCollapse>
-        {preview.spendingPace ? (
-          <View style={{ marginTop: 16 }}>
-            <SpendingPaceStatusLine
-              level={preview.paceLevel}
-              color={preview.paceColor}
-              timeRatio={preview.spendingPace.timeRatio}
-              spentRatio={preview.spendingPace.spentRatio}
-              style={{ marginTop: 0 }}
-            />
-          </View>
-        ) : null}
+
+        <TrackerPaceFooter
+          spendingPace={preview.spendingPace}
+          paceLevel={preview.paceLevel}
+        />
       </SurfaceCard>
     );
   }
 
   const data = previews[period];
-  const statusColor = STATUS_COLORS[data.status] || C.primary;
 
   return (
     <SurfaceCard>
-      <Text style={{ ...T.cardTitle }}>{t(`${prefix}.title`)}</Text>
-      <Text style={{ ...T.caption, color: C.muted, marginTop: 4 }}>
-        {t(`${prefix}.helper`)}
-      </Text>
-
-      <View style={{ marginTop: 16, gap: 10 }}>
-        <MetricRow
+      <TrackerPeriodHeader
+        title={t(`${prefix}.title`)}
+        helper={t(`${prefix}.helper`)}
+      />
+      <TrackerMetricsPanel>
+        <TrackerMetricRow
           label={t(`${prefix}.allowance`)}
           value={data.allowance}
           currency={currency}
         />
-        <MetricRow
+        <TrackerMetricRow
           label={t(`${prefix}.spent`)}
           value={data.spent}
           currency={currency}
         />
-        <AnimatedCollapse visible={data.over > 0} fallbackHeight={28}>
-          <MetricRow
-            label={t(`${prefix}.over`)}
-            value={data.over}
-            currency={currency}
-            emphasize
-          />
-        </AnimatedCollapse>
-        <AnimatedCollapse visible={data.over <= 0} fallbackHeight={28}>
-          <MetricRow
-            label={t(`${prefix}.remaining`)}
-            value={data.remaining}
-            currency={currency}
-            emphasize
-          />
-        </AnimatedCollapse>
-      </View>
-
-      <View
-        style={{
-          marginTop: 16,
-          padding: 12,
-          borderRadius: 8,
-          backgroundColor: C.infoWashBg,
-        }}
-      >
-        {data.spendingPace ? (
-          <SpendingPaceStatusLine
-            level={data.paceLevel}
-            color={data.paceColor}
-            timeRatio={data.spendingPace.timeRatio}
-            spentRatio={data.spendingPace.spentRatio}
-            style={{ marginTop: 0 }}
-          />
-        ) : (
-          <Text style={{ ...T.helper, fontWeight: '600', color: statusColor }}>
-            {t(`${prefix}.status.${data.status}`)}
-          </Text>
-        )}
-      </View>
-
-      <AnimatedCollapse visible={!data.hasLogs} fallbackHeight={20}>
-        <Text style={{ ...T.caption, color: C.muted, marginTop: 12 }}>
-          {t('dashboard.trackerScreen.noSpendLogged')}
-        </Text>
-      </AnimatedCollapse>
+        <TrackerMetricRow
+          label={data.over > 0 ? t(`${prefix}.over`) : t(`${prefix}.remaining`)}
+          value={data.over > 0 ? data.over : data.remaining}
+          currency={currency}
+          isLast
+        />
+      </TrackerMetricsPanel>
+      <TrackerPaceFooter
+        spendingPace={data.spendingPace}
+        paceLevel={data.paceLevel}
+        statusKey={`${prefix}.status.${data.status}`}
+        status={data.status}
+      />
     </SurfaceCard>
   );
 }

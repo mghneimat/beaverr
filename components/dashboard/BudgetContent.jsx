@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useI18n } from '../../lib/i18n';
 import { getCurrencySymbol } from '../../lib/currency';
 import { effectiveSpendingBudget, formatCurrency } from '../../lib/finance';
@@ -26,10 +26,22 @@ import { resolveDailySpendingDestination } from '../../lib/dailySpendingStrategy
 import RolloverStrategyOverview from './RolloverStrategyOverview';
 import DailySpendingStrategyOverview from './DailySpendingStrategyOverview';
 import TabSectionStack from './TabSectionStack';
+import JarFocusGlowOutline from './JarFocusGlowOutline';
+import { useSectionFocusHighlight } from './useSectionFocusHighlight';
 
 export default function BudgetContent({ bundle, frequency = 'monthly', setFrequency }) {
   const { t } = useI18n();
   const router = useRouter();
+  const params = useLocalSearchParams();
+  const focusSection = Array.isArray(params.focusSection)
+    ? params.focusSection[0]
+    : params.focusSection;
+  const rolloverAnchorRef = useRef(null);
+  const { glowToken, onGlowComplete } = useSectionFocusHighlight(
+    focusSection,
+    'rollover',
+    rolloverAnchorRef,
+  );
 
   const currency = getCurrencySymbol(bundle.financials.currencyCode);
   const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
@@ -269,12 +281,22 @@ export default function BudgetContent({ bundle, frequency = 'monthly', setFreque
         </SurfaceCard>
       ) : null}
 
+      <View ref={rolloverAnchorRef} collapsable={false}>
+        <JarFocusGlowOutline
+          glowToken={glowToken}
+          onComplete={onGlowComplete}
+          variant="surface"
+        >
+          <SurfaceCard>
+            <RolloverStrategyOverview
+              budget={jarsBudget}
+              onStrategyChange={handleRolloverStrategyChange}
+            />
+          </SurfaceCard>
+        </JarFocusGlowOutline>
+      </View>
+
       <SurfaceCard>
-        <RolloverStrategyOverview
-          budget={jarsBudget}
-          onStrategyChange={handleRolloverStrategyChange}
-        />
-        <View style={{ height: 1, backgroundColor: C.border, marginVertical: 20 }} />
         <DailySpendingStrategyOverview
           budget={jarsBudget}
           onStrategyChange={handleDailySpendingChange}

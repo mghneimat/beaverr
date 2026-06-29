@@ -1,8 +1,10 @@
+import { useMemo } from 'react';
 import { View } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
 import { useI18n } from '../../lib/i18n';
 import { getCurrencySymbol } from '../../lib/currency';
 import { formatCurrency } from '../../lib/finance';
+import { buildStashHistoryChartData } from '../../lib/savingsProjection';
 import { buildSavingsStashLines, getJarTitle } from '../../lib/jarRouting';
 import {
   buildStashGoalLinkItems,
@@ -19,6 +21,7 @@ import TabBackLink from './TabBackLink';
 import StashBurnRateCard from './StashBurnRateCard';
 import StashMovementHistoryList from './StashMovementHistoryList';
 import StashGoalLinkageList from './StashGoalLinkageList';
+import SavingsProjectionChart from './SavingsProjectionChart';
 
 function stashDescription(line, t) {
   if (line.helperText) return line.helperText;
@@ -43,6 +46,14 @@ export default function SavingsStashDetailContent({ bundle, stashId }) {
   const { total: totalBalance, reserved: reservedBalance, available: availableBalance } =
     computeStashBalanceBreakdown(balance, goals, stashRef, movements);
   const description = line ? stashDescription(line, t) : '';
+  const historyChartData = useMemo(
+    () => buildStashHistoryChartData({
+      budget,
+      stashRef,
+      currentBalance: balance,
+    }),
+    [budget, stashRef, balance],
+  );
 
   if (!line) {
     return (
@@ -116,6 +127,18 @@ export default function SavingsStashDetailContent({ bundle, stashId }) {
         currency={currency}
         emptyKey="dashboard.savingsScreen.detail.noMovements"
       />
+
+      <SurfaceCard>
+        <InCardSectionHeader
+          title={t('dashboard.savingsScreen.detail.historyChart.title')}
+          style={{ marginBottom: 20 }}
+        />
+        <SavingsProjectionChart
+          chartData={historyChartData}
+          currency={currency}
+          variant="historical"
+        />
+      </SurfaceCard>
     </TabSectionStack>
   );
 }

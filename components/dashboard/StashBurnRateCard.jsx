@@ -9,6 +9,7 @@ import { navigateToGoalDetail } from '../../lib/screenTransition';
 import { C, T } from '../../constants/onboarding-theme';
 import SurfaceCard from '../ui/SurfaceCard';
 import InCardSectionHeader from './InCardSectionHeader';
+import DashboardSectionEmptyMessage from './DashboardSectionEmptyMessage';
 import {
   BurnRateBar,
   BurnRateHorizontalLegend,
@@ -57,9 +58,7 @@ export default function StashBurnRateCard({
     return (
       <SurfaceCard>
         <InCardSectionHeader title={t('dashboard.savingsScreen.detail.burnRate.title')} />
-        <Text style={{ ...T.helper, color: C.muted }}>
-          {t('dashboard.savingsScreen.detail.burnRate.empty')}
-        </Text>
+        <DashboardSectionEmptyMessage message={t('dashboard.savingsScreen.detail.burnRate.empty')} />
       </SurfaceCard>
     );
   }

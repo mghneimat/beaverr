@@ -2,6 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Instant light/dark swap — no gradual color morph (see syncThemeTokens.js) */
+html.theme-switch-instant,
+html.theme-switch-instant * {
+  transition-duration: 0s !important;
+  animation-duration: 0s !important;
+}
+
 :root {
   --color-bg: #EFF4FB;
   --color-surface: #F8FAFF;
@@ -40,6 +47,12 @@
   --color-divider: #2A3650;
   --color-chip-active: rgba(129,140,248,0.15);
   --color-chip-active-border: #818CF8;
+}
+
+html.dark,
+html.dark body,
+html.dark #root {
+  background-color: #0B1220;
 }
 
 body {

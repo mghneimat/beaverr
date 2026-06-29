@@ -40,9 +40,29 @@ export function getDashboardCardTones() {
       border: C.border,
       borderActive: C.primary,
       accent: C.primary,
-      valueColor: C.primary,
+      valueColor: C.text,
       iconColor: C.primary,
     },
+  };
+}
+
+/**
+ * Hero card on Income / Expenses tabs — matches Budget summary metric tint (left accent only).
+ * @param {'income'|'expense'} tone
+ */
+export function getHeroTabCardTone(tone) {
+  if (tone !== 'income' && tone !== 'expense') return null;
+  const palette = getDashboardCardTones()[tone];
+  return {
+    cardStyle: {
+      backgroundColor: palette.bg,
+      borderWidth: 1,
+      borderColor: palette.border,
+      borderLeftWidth: 3,
+      borderLeftColor: palette.accent,
+    },
+    valueColor: palette.valueColor,
+    accent: palette.accent,
   };
 }
 

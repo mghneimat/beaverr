@@ -4,7 +4,7 @@ import { formatCurrency, toMonthly, totalMonthlyCosts } from '../../lib/finance'
 import { formatSharePct } from '../../lib/formatSharePct';
 import { asArray } from '../../lib/asArray';
 import { useBreakdownTableColumns, useDashboardLayout } from '../../lib/dashboardLayout';
-import { C, R, tabularNums } from '../../constants/onboarding-theme';
+import { C, tabularNums } from '../../constants/onboarding-theme';
 import InCardSectionHeader from '../dashboard/InCardSectionHeader';
 import DashboardTableExportActions from '../dashboard/DashboardTableExportActions';
 import AnimatedCollapse from '../dashboard/AnimatedCollapse';
@@ -16,6 +16,7 @@ import {
   BreakdownPillColumnHeaders,
   BreakdownPillRow,
   BreakdownPillSubRow,
+  BreakdownPillTotalRow,
   BREAKDOWN_CONTENT_INDENT,
   LedgerCardRow,
   MaytechTableFrame,
@@ -376,41 +377,14 @@ export default function BudgetSetupSummaryTable({
             }}
           />
         ) : (
-        <View style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          gap: 10,
-          paddingVertical: 12,
-          paddingHorizontal: 14,
-          minHeight: 52,
-          borderRadius: R.pill,
-          backgroundColor: C.bg,
-          width: '100%',
-        }}>
-          <View style={{ width: 36, flexShrink: 0 }} />
-          <View style={{ flex: 1, minWidth: 0 }}>
-            <Text style={{ fontSize: 15, fontWeight: '700', color: C.primary }} numberOfLines={2}>
-              {t('onboarding.budget.budgetSplit.budgetLabel')}
-            </Text>
-          </View>
-          <View style={{ minWidth: amountColMinW, alignItems: 'flex-end', justifyContent: 'center' }}>
-            <Text style={{
-              fontSize: 15,
-              fontWeight: '700',
-              color: budgetAmountColor,
-              textAlign: 'right',
-              ...tabularNums,
-            }} numberOfLines={1}>
-              {formatSignedMonthly(totalBudget, currency)}
-            </Text>
-          </View>
-          <View style={{ minWidth: shareColMinW, alignItems: 'center', justifyContent: 'center' }}>
-            <Text style={{ fontSize: 13, fontWeight: '500', color: C.muted, ...tabularNums }} numberOfLines={1}>
-              {formatSharePct(Math.max(totalBudget, 0), shareBase)}
-            </Text>
-          </View>
-          <View style={{ width: 28, flexShrink: 0 }} />
-        </View>
+          <BreakdownPillTotalRow
+            label={t('onboarding.budget.budgetSplit.budgetLabel')}
+            amount={formatSignedMonthly(totalBudget, currency)}
+            share={formatSharePct(Math.max(totalBudget, 0), shareBase)}
+            amountColMinW={amountColMinW}
+            shareColMinW={shareColMinW}
+            amountColor={budgetAmountColor}
+          />
         )}
       </View>
     </MaytechTableFrame>

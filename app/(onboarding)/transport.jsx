@@ -15,7 +15,6 @@ import CarDrivingPanaIllustration from '../../components/onboarding/CarDrivingPa
 import OnTheWayIllustration from '../../components/onboarding/OnTheWayIllustration';
 import RideABicycleIllustration from '../../components/onboarding/RideABicycleIllustration';
 import BusStopBroIllustration from '../../components/onboarding/BusStopBroIllustration';
-import PillToggle from '../../components/onboarding/PillToggle';
 import SplitDateFields from '../../components/onboarding/SplitDateFields';
 import { addYearsToStoredDate } from '../../lib/datePicker';
 import { calcMotNextDateFromExpiry, stkIntervalYearsForCategory } from '../../lib/vehicleMot';
@@ -23,6 +22,7 @@ import InsuranceContractFields from '../../components/onboarding/InsuranceContra
 import RevealAfterToggle from '../../components/onboarding/RevealAfterToggle';
 import AnimatedRow from '../../components/onboarding/AnimatedRow';
 import DeleteTextButton from '../../components/onboarding/DeleteTextButton';
+import ExpandableChipSelect from '../../components/onboarding/ExpandableChipSelect';
 import LabeledInput from '../../components/onboarding/LabeledInput';
 import YesNoToggle from '../../components/onboarding/YesNoToggle';
 import FrequencyPills from '../../components/onboarding/FrequencyPills';
@@ -430,6 +430,24 @@ export default function TransportScreen() {
 
   // ─── Render: vehicleFuel ──────────────────
 
+  const renderVehicleNameField = (localePrefix) => {
+    if (!currentVehicle) return null;
+    const v = currentVehicle;
+    return (
+      <InputGroup label={t(`onboarding.transport.${localePrefix}.displayNameLabel`)} style={{ marginBottom: 20 }}>
+        <LabeledInput
+          value={v.displayName || ''}
+          onChangeText={(val) => updateVehicle('displayName', val)}
+          placeholder={t(`onboarding.transport.${localePrefix}.displayNamePlaceholder`)}
+          inGroup
+        />
+        <Text style={{ ...T.caption, color: C.muted, marginTop: 8 }}>
+          {t(`onboarding.transport.${localePrefix}.displayNameHelper`)}
+        </Text>
+      </InputGroup>
+    );
+  };
+
   const renderVehicleFuel = () => {
     if (!currentVehicle) return null;
     const v = currentVehicle;
@@ -438,26 +456,18 @@ export default function TransportScreen() {
     return (
       <View>
         {renderVehicleHeader()}
+        {renderVehicleNameField('vehicleFuel')}
         <Text style={{ ...T.helper, color: C.muted, marginBottom: 16 }}>
           {t('onboarding.transport.vehicleFuel.helper')}
         </Text>
-        {/* Fuel type pills */}
-        <Text style={{ ...T.fieldLabel, color: C.muted, marginBottom: 10 }}>
-          {t('onboarding.transport.vehicleFuel.fuelLabel')}
-        </Text>
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', borderRadius: R.input, borderWidth: 1, borderColor: C.border, overflow: 'hidden', marginBottom: 20 }}>
-          {FUEL_TYPES.map(type => (
-            <PillToggle
-              key={type}
-              label={t(`onboarding.transport.vehicleFuel.${type}`)}
-              selected={v.fuelType === type}
-              onPress={() => { updateVehicle('fuelType', type); setValidationError(''); }}
-              paddingVertical={12}
-              fontSize={13}
-              fontWeight="500"
-            />
-          ))}
-        </View>
+        <ExpandableChipSelect
+          label={t('onboarding.transport.vehicleFuel.fuelLabel')}
+          value={v.fuelType}
+          options={FUEL_TYPES}
+          getOptionLabel={(type) => t(`onboarding.transport.vehicleFuel.${type}`)}
+          onChange={(type) => { updateVehicle('fuelType', type); setValidationError(''); }}
+          placeholder={t('onboarding.transport.vehicleFuel.fuelPlaceholder')}
+        />
         <InputGroup label={v.fuelType === 'electric' ? t('onboarding.transport.vehicleFuel.costLabelElectric') : t('onboarding.transport.vehicleFuel.costLabel')}>
           <LabeledInput
             value={v.fuelCost}
@@ -490,6 +500,7 @@ export default function TransportScreen() {
     return (
       <View>
         {renderVehicleHeader()}
+        {v.category === 'bicycle' ? renderVehicleNameField('vehicleInsurance') : null}
         <Text style={{ ...T.helper, color: C.muted, marginBottom: 16 }}>
           {insuranceMandatory
             ? t('onboarding.transport.vehicleInsurance.helperMandatory')
@@ -754,18 +765,58 @@ export default function TransportScreen() {
             })}
           </Text>
         </InputGroup>
+        {v.category === 'passenger' || v.category === 'motorcycle' ? (
+          <>
+            <Text style={{ fontSize: 14, color: C.primary, marginBottom: 12, marginTop: 4, fontWeight: '500' }}>
+              {t('onboarding.transport.vehicleService.vignetteLabel')}
+            </Text>
+            <YesNoToggle
+              value={v.hasVignette}
+              onChange={(val) => { updateVehicle('hasVignette', val); setValidationError(''); }}
+              yesLabel={t('common.yes')}
+              noLabel={t('common.no')}
+            />
+            <RevealAfterToggle show={v.hasVignette === true}>
+              <InputGroup label={t('onboarding.transport.vehicleService.vignetteAmountLabel')}>
+                <LabeledInput
+                  value={v.vignetteAmount}
+                  onChangeText={(val) => updateVehicle('vignetteAmount', val)}
+                  numeric
+                  placeholder={t('onboarding.transport.vehicleService.vignetteAmountPlaceholder')}
+                  large
+                  inGroup
+                  currency={currency}
+                />
+              </InputGroup>
+              <InputGroup label={t('onboarding.transport.vehicleService.vignetteValidUntilLabel')}>
+                <SplitDateFields
+                  value={v.vignetteValidUntil || ''}
+                  onChange={(val) => updateVehicle('vignetteValidUntil', val)}
+                  showDay
+                  inGroup
+                  yearEnd={new Date().getFullYear() + 2}
+                />
+                <Text style={{ ...T.caption, color: C.muted, marginTop: 8 }}>
+                  {t('onboarding.transport.vehicleService.vignetteHelper')}
+                </Text>
+              </InputGroup>
+            </RevealAfterToggle>
+          </>
+        ) : null}
         {/* Planned maintenance toggle */}
-        <Text style={{ fontSize: 14, color: C.primary, marginBottom: 12, fontWeight: '500' }}>
-          {t('onboarding.transport.vehicleService.maintenanceLabel')}
-        </Text>
-        <YesNoToggle
-          value={v.hasPlannedMaintenance}
-          onChange={handlePlannedMaintenanceChange}
-          containerStyle={{ marginBottom: 16 }}
-        />
-        <RevealAfterToggle show={v.hasPlannedMaintenance === true}>
-          {renderMaintenanceItemsList('vehicle-summary')}
-        </RevealAfterToggle>
+        <View style={{ marginTop: S.fieldGap }}>
+          <Text style={{ fontSize: 14, color: C.primary, marginBottom: 12, fontWeight: '500' }}>
+            {t('onboarding.transport.vehicleService.maintenanceLabel')}
+          </Text>
+          <YesNoToggle
+            value={v.hasPlannedMaintenance}
+            onChange={handlePlannedMaintenanceChange}
+            containerStyle={{ marginBottom: 16 }}
+          />
+          <RevealAfterToggle show={v.hasPlannedMaintenance === true}>
+            {renderMaintenanceItemsList('vehicle-summary')}
+          </RevealAfterToggle>
+        </View>
       </View>
     );
   };

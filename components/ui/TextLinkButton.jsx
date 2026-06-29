@@ -10,7 +10,9 @@ export default function TextLinkButton({
   onPress,
   disabled = false,
   centered = false,
+  compact = false,
   destructive = false,
+  color,
   accessibilityLabel,
 }) {
   return (
@@ -19,20 +21,27 @@ export default function TextLinkButton({
       disabled={disabled}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel ?? label}
-      hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
+      hitSlop={compact ? { top: 4, bottom: 4, left: 4, right: 4 } : { top: 8, bottom: 8, left: 4, right: 4 }}
       style={({ pressed, hovered }) => ({
-        alignSelf: centered ? 'center' : 'flex-start',
-        minHeight: 44,
+        alignSelf: centered ? 'center' : compact ? 'center' : 'flex-start',
+        flexShrink: compact ? 0 : undefined,
+        minHeight: compact ? undefined : 44,
         justifyContent: 'center',
-        paddingVertical: 4,
-        opacity: disabled ? 0.45 : pressed ? 0.72 : hovered && Platform.OS === 'web' ? 0.85 : 1,
+        paddingVertical: compact ? 2 : 4,
+        paddingHorizontal: compact ? 6 : 0,
+        borderRadius: compact ? 6 : 0,
+        opacity: disabled ? 0.45 : pressed ? 0.72 : 1,
+        ...(hovered && Platform.OS === 'web'
+          ? { backgroundColor: compact ? C.navSelectedBg : undefined, opacity: disabled ? 0.45 : pressed ? 0.72 : 0.85 }
+          : {}),
         ...(Platform.OS === 'web' ? { cursor: disabled ? 'default' : 'pointer' } : {}),
       })}
     >
       <Text style={{
-        fontSize: 15,
+        fontSize: compact ? 13 : 15,
         fontWeight: '600',
-        color: destructive ? C.danger : C.accent,
+        lineHeight: compact ? 18 : undefined,
+        color: destructive ? C.danger : (color ?? C.accent),
       }}>
         {label}
       </Text>

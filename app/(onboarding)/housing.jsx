@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { View, Text, Pressable, ScrollView } from 'react-native';
 import OnboardingPressable from '../../components/onboarding/OnboardingPressable';
-import { washBg, listRowBg } from '../../components/onboarding/pressableFeedback';
+import { washBg } from '../../components/onboarding/pressableFeedback';
 import SkipButton from '../../components/onboarding/SkipButton';
 import { useRouter } from 'expo-router';
 import { useI18n } from '../../lib/i18n';
@@ -46,6 +46,7 @@ import OptionalPaymentDatesFields from '../../components/onboarding/OptionalPaym
 import LabeledInput from '../../components/onboarding/LabeledInput';
 import YesNoToggle from '../../components/onboarding/YesNoToggle';
 import FrequencyPills from '../../components/onboarding/FrequencyPills';
+import OnboardingFillItemList from '../../components/onboarding/OnboardingFillItemList';
 import CardHeaderActionButton from '../../components/dashboard/CardHeaderActionButton';
 import CostCard from '../../components/onboarding/CostCard';
 import InputGroup from '../../components/onboarding/InputGroup';
@@ -878,52 +879,20 @@ export default function HousingScreen() {
           </>
         ) : (
           <>
-            {utilitySelections.length > 1 ? (
-              <Text style={{ ...T.helper, color: C.muted, marginBottom: 16 }}>
-                {t('onboarding.housing.rentUtilities.fillProgress', {
-                  current: activeUtilityIdx + 1,
-                  total: utilitySelections.length,
-                })}
-              </Text>
-            ) : null}
-
             {showUtilityTabs ? (
-              <View style={{
-                flexDirection: 'row',
-                borderRadius: R.input,
-                borderWidth: 1,
-                borderColor: C.border,
-                overflow: 'hidden',
-                marginBottom: 20,
-              }}>
-                {utilitySelections.map((item, idx) => (
-                  <OnboardingPressable
-                    key={item.id}
-                    onPress={() => {
-                      setActiveUtilityIdx(idx);
-                      setUtilityFieldErrors({});
-                    }}
-                    style={({ pressed, hovered }) => ({
-                      flex: 1,
-                      paddingVertical: 10,
-                      paddingHorizontal: 8,
-                      backgroundColor: listRowBg({ pressed, hovered, selected: activeUtilityIdx === idx }),
-                      alignItems: 'center',
-                    })}
-                  >
-                    <Text
-                      numberOfLines={1}
-                      style={{
-                        fontSize: 13,
-                        fontWeight: '500',
-                        color: activeUtilityIdx === idx ? C.primary : C.muted,
-                      }}
-                    >
-                      {utilityDisplayName(item, t)}
-                    </Text>
-                  </OnboardingPressable>
-                ))}
-              </View>
+              <OnboardingFillItemList
+                label={t('common.fillSectionItemsLabel')}
+                items={utilitySelections}
+                getItemKey={(item) => item.id}
+                getItemLabel={(item) => utilityDisplayName(item, t)}
+                activeIndex={activeUtilityIdx}
+                onSelectIndex={(idx) => {
+                  setActiveUtilityIdx(idx);
+                  setUtilityFieldErrors({});
+                }}
+                getItemComplete={(item) => parseFloat(item.amount) > 0}
+                getItemHasError={(item) => Object.keys(utilityItemErrors(item.id)).length > 0}
+              />
             ) : null}
 
             {activeUtility ? renderUtilityFillForm(activeUtility) : null}
@@ -986,6 +955,7 @@ export default function HousingScreen() {
           onChange={setHasInternet}
           yesLabel={t('onboarding.housing.housingUtilities.yes')}
           noLabel={t('onboarding.housing.housingUtilities.no')}
+          variant="segment"
         />
 
         <RevealAfterToggle show={hasInternet === true}>
@@ -1050,6 +1020,7 @@ export default function HousingScreen() {
           onChange={setHasMortgage}
           yesLabel={t('onboarding.housing.mortgageStatus.yes')}
           noLabel={t('onboarding.housing.mortgageStatus.no')}
+          variant="segment"
         />
       </QuestionScreen>
     );
@@ -1114,6 +1085,7 @@ export default function HousingScreen() {
           onChange={handleHasOtherCostsChange}
           yesLabel={t('onboarding.housing.ownershipCosts.yes')}
           noLabel={t('onboarding.housing.ownershipCosts.no')}
+          variant="segment"
         />
 
         <RevealAfterToggle show={hasOtherCosts === true}>
@@ -1200,6 +1172,7 @@ export default function HousingScreen() {
           onChange={handleContributesToFamilyChange}
           yesLabel={t('onboarding.housing.familyHousing.yes')}
           noLabel={t('onboarding.housing.familyHousing.no')}
+          variant="segment"
         />
 
         <RevealAfterToggle show={contributesToFamily === true}>

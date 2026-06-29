@@ -122,7 +122,7 @@ export default function SetGoalDeadlineSheet({ visible, goal, onClose }) {
         ) : null}
         <View style={{ flexDirection: 'row', gap: 12 }}>
           <View style={{ flex: 1 }}>
-            <OutlineButton onPress={onClose} disabled={saving}>
+            <OutlineButton onPress={onClose} disabled={saving} destructive>
               {t('common.cancel')}
             </OutlineButton>
           </View>

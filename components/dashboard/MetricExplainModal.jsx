@@ -1,6 +1,8 @@
-import { View, Modal, Pressable, ScrollView, Platform } from 'react-native';
+import { View, Pressable, Platform } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
-import { C, R, S, T, tabularNums } from '../../constants/onboarding-theme';
+import { C, R, T, tabularNums } from '../../constants/onboarding-theme';
+import { useDashboardLayout } from '../../lib/dashboardLayout';
+import DashboardScrollSheet from './DashboardScrollSheet';
 
 /**
  * @typedef {{ label: string, value: string, emphasis?: boolean }} CalculationRow
@@ -19,96 +21,62 @@ export default function MetricExplainModal({
   gotItLabel,
   accessibilityLabel,
 }) {
+  const { isPhone, pagePadH } = useDashboardLayout();
+  const valueFontSize = isPhone ? 28 : 32;
+  const valueLineHeight = isPhone ? 34 : 38;
+
   return (
-    <Modal
+    <DashboardScrollSheet
       visible={visible}
-      transparent
-      animationType="fade"
-      onRequestClose={onClose}
-      statusBarTranslucent
+      onClose={onClose}
+      closeA11yLabel={accessibilityLabel}
+      maxHeight={isPhone ? '92%' : '85%'}
+      overlayPadding={pagePadH}
     >
-      <View
-        style={{
-          flex: 1,
-          justifyContent: 'center',
-          alignItems: 'center',
-          padding: S.pagePadH,
-        }}
-      >
-        <Pressable
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(30,58,95,0.35)',
-          }}
-          onPress={onClose}
-          accessibilityRole="button"
-          accessibilityLabel={accessibilityLabel}
-        />
-        <View
-          style={{
-            width: '100%',
-            maxWidth: 440,
-            maxHeight: '85%',
-            backgroundColor: C.surface,
-            borderRadius: R.card,
-            borderWidth: 1,
-            borderColor: C.border,
-            overflow: 'hidden',
-            ...(Platform.OS === 'web' ? { cursor: 'default' } : {}),
-          }}
-        >
-          <ScrollView
-            contentContainerStyle={{ padding: 20 }}
-            bounces={false}
-          >
-            <Text style={{ fontSize: 13, fontWeight: '600', color: C.muted, marginBottom: 6 }}>
-              {title}
-            </Text>
-            <Text style={{
-              fontSize: 32,
-              lineHeight: 38,
-              fontWeight: '700',
-              color: C.primary,
-              marginBottom: 16,
-              ...tabularNums,
-            }}>
-              {value}
-            </Text>
+      <Text style={{ fontSize: 13, fontWeight: '600', color: C.muted, marginBottom: 6 }} numberOfLines={2}>
+        {title}
+      </Text>
+      <Text style={{
+        fontSize: valueFontSize,
+        lineHeight: valueLineHeight,
+        fontWeight: '700',
+        color: C.primary,
+        marginBottom: 16,
+        ...tabularNums,
+      }} numberOfLines={2} adjustsFontSizeToFit={Platform.OS === 'ios'} minimumFontScale={0.75}>
+        {value}
+      </Text>
 
-            {meaning?.title ? (
-              <Text style={{ fontSize: 13, fontWeight: '600', color: C.primary, marginBottom: 6 }}>
-                {meaning.title}
-              </Text>
-            ) : null}
-            {meaning?.body ? (
-              <Text style={{ ...T.body, color: C.text, marginBottom: 20 }}>
-                {meaning.body}
-              </Text>
-            ) : null}
+      {meaning?.title ? (
+        <Text style={{ fontSize: 13, fontWeight: '600', color: C.primary, marginBottom: 6 }}>
+          {meaning.title}
+        </Text>
+      ) : null}
+      {meaning?.body ? (
+        <Text style={{ ...T.body, color: C.text, marginBottom: 20 }}>
+          {meaning.body}
+        </Text>
+      ) : null}
 
-            {warning ? (
-              <View style={{
-                padding: 12,
-                borderRadius: R.input,
-                backgroundColor: C.dangerBg,
-                borderWidth: 1,
-                borderColor: C.dangerBorder,
-                marginBottom: 20,
-              }}>
-                <Text style={{ fontSize: 14, lineHeight: 20, color: C.danger }}>{warning}</Text>
-              </View>
-            ) : null}
+      {warning ? (
+        <View style={{
+          padding: 12,
+          borderRadius: R.input,
+          backgroundColor: C.dangerBg,
+          borderWidth: 1,
+          borderColor: C.dangerBorder,
+          marginBottom: 20,
+        }}>
+          <Text style={{ fontSize: 14, lineHeight: 20, color: C.danger }}>{warning}</Text>
+        </View>
+      ) : null}
 
-            {rows.length > 0 || formula ? (
-              <>
-            <Text style={{ fontSize: 13, fontWeight: '600', color: C.primary, marginBottom: 10 }}>
-              {calculationTitle}
-            </Text>
-            {rows.length > 0 ? (
+      {rows.length > 0 || formula ? (
+        <>
+          <Text style={{ fontSize: 13, fontWeight: '600', color: C.primary, marginBottom: 10 }}>
+            {calculationTitle}
+          </Text>
+          {rows.length > 0 ? (
             <View style={{
               borderRadius: R.input,
               borderWidth: 1,
@@ -122,10 +90,10 @@ export default function MetricExplainModal({
                   style={{
                     flexDirection: 'row',
                     justifyContent: 'space-between',
-                    alignItems: 'center',
+                    alignItems: isPhone ? 'flex-start' : 'center',
                     gap: 12,
                     paddingVertical: 10,
-                    paddingHorizontal: 14,
+                    paddingHorizontal: isPhone ? 12 : 14,
                     borderTopWidth: idx > 0 ? 1 : 0,
                     borderTopColor: C.divider,
                     backgroundColor: row.emphasis ? C.infoWashBg : C.surface,
@@ -133,51 +101,52 @@ export default function MetricExplainModal({
                 >
                   <Text style={{
                     flex: 1,
+                    flexShrink: 1,
                     fontSize: 14,
                     color: row.emphasis ? C.primary : C.muted,
                     fontWeight: row.emphasis ? '600' : '400',
-                  }} numberOfLines={2}>
+                  }} numberOfLines={3}>
                     {row.label}
                   </Text>
                   <Text style={{
+                    flexShrink: 0,
                     fontSize: 14,
                     fontWeight: row.emphasis ? '700' : '600',
                     color: C.primary,
+                    textAlign: 'right',
+                    maxWidth: isPhone ? '46%' : '42%',
                     ...tabularNums,
-                  }}>
+                  }} numberOfLines={2} adjustsFontSizeToFit={Platform.OS === 'ios'} minimumFontScale={0.8}>
                     {row.value}
                   </Text>
                 </View>
               ))}
             </View>
-            ) : null}
+          ) : null}
 
-            {formula ? (
-              <Text style={{ ...T.caption, color: C.muted, marginBottom: 20, fontStyle: 'italic' }}>
-                {formula}
-              </Text>
-            ) : null}
-              </>
-            ) : null}
+          {formula ? (
+            <Text style={{ ...T.caption, color: C.muted, marginBottom: 20, fontStyle: 'italic' }}>
+              {formula}
+            </Text>
+          ) : null}
+        </>
+      ) : null}
 
-            <Pressable
-              onPress={onClose}
-              accessibilityRole="button"
-              accessibilityLabel={gotItLabel}
-              style={({ pressed }) => ({
-                paddingVertical: 14,
-                borderRadius: R.button,
-                backgroundColor: pressed ? C.accentPressed : C.accent,
-                alignItems: 'center',
-                minHeight: 44,
-                justifyContent: 'center',
-              })}
-            >
-              <Text style={{ fontSize: 15, fontWeight: '600', color: '#FFFFFF' }}>{gotItLabel}</Text>
-            </Pressable>
-          </ScrollView>
-        </View>
-      </View>
-    </Modal>
+      <Pressable
+        onPress={onClose}
+        accessibilityRole="button"
+        accessibilityLabel={gotItLabel}
+        style={({ pressed }) => ({
+          paddingVertical: 14,
+          borderRadius: R.button,
+          backgroundColor: pressed ? C.accentPressed : C.accent,
+          alignItems: 'center',
+          minHeight: 44,
+          justifyContent: 'center',
+        })}
+      >
+        <Text style={{ fontSize: 15, fontWeight: '600', color: '#FFFFFF' }}>{gotItLabel}</Text>
+      </Pressable>
+    </DashboardScrollSheet>
   );
 }

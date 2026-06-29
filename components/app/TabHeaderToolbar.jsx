@@ -11,7 +11,9 @@ import { Text } from '@gluestack-ui/themed';
 import { useRouter, useSegments } from 'expo-router';
 import { useTheme } from '../../lib/theme';
 import { useI18n } from '../../lib/i18n';
-import { resolveProfileDisplayName } from '../../lib/profileDisplay';
+import { resolveProfileMenuName } from '../../lib/profileDisplay';
+import { loadAccountRegistrationFields } from '../../lib/account/registrationProfile';
+import { getData } from '../../lib/storage';
 import { useAuth } from '../../lib/auth/AuthProvider';
 import { clearScheduledCloudPush } from '../../lib/cloud/syncHousehold';
 import { navigateAppTab } from '../../lib/screenTransition';
@@ -34,6 +36,7 @@ import ConfirmDialog from '../ui/ConfirmDialog';
 
 const MENU_WIDTH = 280;
 const MENU_ITEM_RADIUS = 12;
+const MENU_ITEM_GAP = 2;
 const MENU_DROPDOWN_ICON_SIZE = 18;
 const WIDE_BREAKPOINT = 768;
 
@@ -112,7 +115,13 @@ function ProfileMenuOption({
   const [hovered, setHovered] = useState(false);
   const [pressed, setPressed] = useState(false);
   const active = pressed || hovered;
-  const iconColor = destructive ? C.danger : C.primary;
+  const iconColor = destructive ? C.danger : C.text;
+
+  const highlightBg = selected
+    ? C.navSelectedBg
+    : active
+      ? C.overlayHover
+      : 'transparent';
 
   return (
     <Pressable
@@ -125,34 +134,36 @@ function ProfileMenuOption({
       onHoverIn={() => setHovered(true)}
       onHoverOut={() => setHovered(false)}
       style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        minHeight: 44,
-        paddingHorizontal: 10,
-        paddingVertical: 8,
-        borderRadius: MENU_ITEM_RADIUS,
-        marginHorizontal: 6,
-        gap: 10,
-        backgroundColor: selected
-          ? C.navSelectedBg
-          : active
-            ? C.overlayHover
-            : 'transparent',
+        paddingHorizontal: 6,
+        paddingVertical: MENU_ITEM_GAP,
         ...(Platform.OS === 'web' ? { cursor: 'pointer' } : {}),
       }}
     >
-      <View style={{ width: MENU_DROPDOWN_ICON_SIZE, alignItems: 'center' }}>
-        <Icon color={iconColor} size={MENU_DROPDOWN_ICON_SIZE} />
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          minHeight: 44,
+          paddingHorizontal: 10,
+          paddingVertical: 8,
+          borderRadius: MENU_ITEM_RADIUS,
+          gap: 10,
+          backgroundColor: highlightBg,
+        }}
+      >
+        <View style={{ width: MENU_DROPDOWN_ICON_SIZE, alignItems: 'center' }}>
+          <Icon color={iconColor} size={MENU_DROPDOWN_ICON_SIZE} />
+        </View>
+        <Text style={{
+          flex: 1,
+          fontSize: 14,
+          fontWeight: '600',
+          color: destructive ? C.danger : C.text,
+        }}>
+          {label}
+        </Text>
+        {trailing}
       </View>
-      <Text style={{
-        flex: 1,
-        fontSize: 14,
-        fontWeight: '600',
-        color: destructive ? C.danger : C.text,
-      }}>
-        {label}
-      </Text>
-      {trailing}
     </Pressable>
   );
 }
@@ -160,7 +171,7 @@ function ProfileMenuOption({
 /**
  * Alerts + profile pill for tab headers — notifications left, profile right.
  */
-export default function TabHeaderToolbar({ alertCount = 0, household = null }) {
+export default function TabHeaderToolbar({ alertCount = 0, household = null, accountFields = null, onRefresh }) {
   const { signOut, user, configured } = useAuth();
   const { t } = useI18n();
   const { toggleMode, isDark } = useTheme();
@@ -179,25 +190,44 @@ export default function TabHeaderToolbar({ alertCount = 0, household = null }) {
 
   const [profileOpen, setProfileOpen] = useState(false);
   const [profileAnchor, setProfileAnchor] = useState(null);
+  const [menuName, setMenuName] = useState('');
   const [logOutDialogOpen, setLogOutDialogOpen] = useState(false);
   const profileTriggerRef = useRef(null);
 
-  const displayName = resolveProfileDisplayName(household, t, user);
+  const profileMenuName = menuName || resolveProfileMenuName(household, t, user, accountFields);
   const isProfileRoute = currentRoute === 'profile';
 
   const closeProfileMenu = () => {
     setProfileOpen(false);
     setProfileAnchor(null);
+    setMenuName('');
   };
 
-  const openProfileMenu = () => {
+  const openProfileMenu = async () => {
+    let fields = accountFields;
+    let householdData = household;
+    try {
+      [fields, householdData] = await Promise.all([
+        loadAccountRegistrationFields(user?.id),
+        getData('beaverr_household'),
+      ]);
+    } catch {
+      fields = accountFields;
+      householdData = household;
+    }
+
+    const resolvedName = resolveProfileMenuName(householdData || null, t, user, fields);
+    void onRefresh?.();
+
     const node = profileTriggerRef.current;
     if (!node?.measureInWindow) {
+      setMenuName(resolvedName);
       setProfileOpen(true);
       return;
     }
     node.measureInWindow((x, y, width, height) => {
       setProfileAnchor({ x, y, width, height });
+      setMenuName(resolvedName);
       setProfileOpen(true);
     });
   };
@@ -262,7 +292,7 @@ export default function TabHeaderToolbar({ alertCount = 0, household = null }) {
           hitSlop={comfortable ? { top: 4, bottom: 4, left: 4, right: 4 } : undefined}
           style={{ width: alertsHit, height: alertsHit, minWidth: alertsHit, minHeight: alertsHit, position: 'relative' }}
         >
-          <AlertsIcon color={C.primary} size={menuIconSize} />
+          <AlertsIcon color={C.text} size={menuIconSize} />
           {alertCount > 0 ? (
             <View style={{
               position: 'absolute',
@@ -319,9 +349,9 @@ export default function TabHeaderToolbar({ alertCount = 0, household = null }) {
               borderWidth: 1,
               borderColor: C.border,
             }}>
-              <ProfileIcon color={C.primary} size={menuIconSize} />
+              <ProfileIcon color={C.text} size={menuIconSize} />
             </View>
-            <CardHeaderChevron expanded={profileOpen} color={C.muted} active={profileOpen} />
+            <CardHeaderChevron expanded={profileOpen} color={C.text} active={false} />
           </ToolbarSegment>
         </View>
       </View>
@@ -351,7 +381,7 @@ export default function TabHeaderToolbar({ alertCount = 0, household = null }) {
                 width: MENU_WIDTH,
                 backgroundColor: C.surface,
                 borderRadius: R.card,
-                paddingTop: 14,
+                paddingTop: 10,
                 paddingBottom: 10,
                 borderWidth: 1,
                 borderColor: C.border,
@@ -359,19 +389,12 @@ export default function TabHeaderToolbar({ alertCount = 0, household = null }) {
                 ...(Platform.OS === 'web' ? { zIndex: 9999 } : {}),
               }}
             >
-              <View style={{ paddingHorizontal: 16, paddingBottom: 12 }}>
-                <Text style={{ ...T.cardTitle, fontSize: 15, color: C.primary }} numberOfLines={1}>
-                  {displayName}
-                </Text>
-              </View>
-
-              <View style={{ height: 1, backgroundColor: C.border, marginHorizontal: 12, marginBottom: 6 }} />
-
               <ProfileMenuOption
-                label={t('dashboard.headerToolbar.profileLabel')}
+                label={profileMenuName}
                 icon={UserIcon}
                 onPress={handleOpenProfile}
                 selected={isProfileRoute}
+                accessibilityLabel={t('dashboard.headerToolbar.openProfileA11y', { name: profileMenuName })}
               />
               <ProfileMenuOption
                 label={t('dashboard.headerToolbar.subscription')}

@@ -1,26 +1,23 @@
-import { Text } from '@gluestack-ui/themed';
 import { useI18n } from '../../lib/i18n';
 import {
-  formatSpendingPacePercent,
+  buildSpendingPaceMessages,
   spendingPaceMessageKey,
-  spendingPaceDisplaySpentRatio,
 } from '../../lib/spendingPace';
-import { T } from '../../constants/onboarding-theme';
+import SpendingPaceNotice from './SpendingPaceNotice';
 
 /**
- * Cycle / period spending pace status line with optional detail.
+ * Pace status block — wraps SpendingPaceNotice for ratio-based copy.
  * @param {{
  *   level?: import('../../lib/spendingPace').SpendingPaceLevel|null,
- *   color: string,
+ *   color?: string,
  *   timeRatio?: number,
  *   spentRatio?: number,
  *   displaySpentRatio?: number,
- *   style?: object,
+ *   style?: import('react-native').StyleProp<import('react-native').ViewStyle>,
  * }} props
  */
 export default function SpendingPaceStatusLine({
   level,
-  color,
   timeRatio,
   spentRatio,
   displaySpentRatio,
@@ -28,21 +25,15 @@ export default function SpendingPaceStatusLine({
 }) {
   const { t } = useI18n();
   const messageKey = spendingPaceMessageKey(level);
-  const spentPct = spendingPaceDisplaySpentRatio({ spentRatio, displaySpentRatio });
+  const { lineMessage } = buildSpendingPaceMessages(t, {
+    messageKey,
+  });
 
   return (
-    <>
-      <Text style={{ ...T.caption, color, marginTop: 4, fontWeight: '600', ...style }}>
-        {t(`dashboard.spendingPace.${messageKey}`)}
-      </Text>
-      {timeRatio != null && (spentRatio != null || displaySpentRatio != null) ? (
-        <Text style={{ ...T.caption, color, marginTop: 4, opacity: 0.85 }}>
-          {t('dashboard.spendingPace.detail', {
-            spentPct: formatSpendingPacePercent(spentPct),
-            timePct: formatSpendingPacePercent(timeRatio),
-          })}
-        </Text>
-      ) : null}
-    </>
+    <SpendingPaceNotice
+      status={level || 'good'}
+      message={lineMessage}
+      style={style}
+    />
   );
 }

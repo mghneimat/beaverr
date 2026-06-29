@@ -139,6 +139,19 @@ describe('aggregateHouseholdCosts', () => {
     expect(allCosts).toEqual([]);
   });
 
+  it('splits groceries from other everyday costs in budget categories', () => {
+    const { byCategory } = aggregateHouseholdCosts({
+      otherCosts: [
+        { name: 'groceries', amount: 6000, frequency: 'monthly' },
+        { name: 'hairSalon', amount: 300, frequency: 'monthly' },
+      ],
+      household: {},
+    }, t);
+
+    expect(byCategory.find((c) => c.category === 'groceries')?.items).toHaveLength(1);
+    expect(byCategory.find((c) => c.category === 'other')?.items).toHaveLength(1);
+  });
+
   it('aggregates children costs from Czech-formatted amount strings with translated labels', () => {
     const tFull = (key) => {
       if (key === 'onboarding.childrenCosts.childrenCosts.sources.schoolSupplies') return 'School supplies';

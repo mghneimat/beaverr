@@ -169,6 +169,8 @@
     "quarterly": "Quarterly",
     "annual": "Annual",
     "frequency": "Frequency",
+    "sectionOfTotal": "Section {{current}} of {{total}}",
+    "fillSectionItemsLabel": "In this section",
     "custom": "Custom",
     "optional": "optional",
     "datePicker": {
@@ -252,9 +254,9 @@
       "discard": "Discard progress",
       "discardShort": "Discard",
       "discardTitle": "Discard this progress?",
-      "discardMessageFirstTime": "Your answers so far will be deleted. You will return to the dashboard with limited access until you complete setup.",
-      "discardMessageQuickSetup": "Your full questionnaire progress will be cleared. Your quick setup details stay on the dashboard until you finish the full questionnaire.",
-      "discardMessageReturning": "Your in-progress changes will be discarded. Your last submitted questionnaire will be restored.",
+      "discardMessageFirstTime": "Your saved progress and answers will be deleted. You will return to the dashboard.",
+      "discardMessageQuickSetup": "Your saved progress and answers will be deleted. You will return to the dashboard.",
+      "discardMessageReturning": "Your in-progress changes will be discarded and your previous questionnaire will be restored.",
       "discardConfirm": "Discard"
     },
     "leave": {
@@ -378,7 +380,7 @@
     "citizenship": {
       "title": "Are you a citizen of the Czech Republic?",
       "helper": "This helps us show the right employment and residency context for your household.",
-      "allTitle": "Knowing the citizenship status",
+      "allTitle": "Knowing your citizenship status in {{country}}",
       "allHelper": "This helps us show the right employment and residency context for your household.",
       "memberWithAge": "{{name}} · {{age}}",
       "validationAll": "Please answer for everyone listed",
@@ -448,7 +450,7 @@
       },
       "goalIntents": {
         "title": "What do you want Beaverr to help with?",
-        "helper": "Select all that apply.",
+        "helper": "Select all that apply. (You may select more than one option)",
         "illustrationA11y": "Illustration of a person setting personal financial goals",
         "intentClarity": "Get clarity",
         "intentClarityDesc": "Understand where my money goes",
@@ -474,6 +476,8 @@
         "ongoingTitle": "Your monthly saving",
         "ongoingHelper": "How much do you want to set aside each month?",
         "descriptionLabel": "Goal description",
+        "nameLabel": "Goal name",
+        "namePlaceholder": "e.g. Emergency fund",
         "descriptionPlaceholder": "e.g. Car purchase",
         "amountLabel": "Target amount",
         "amountPlaceholder": "0",
@@ -482,6 +486,7 @@
         "monthlyTargetPlaceholder": "0",
         "validationTargetAmount": "Please enter your target amount",
         "validationTargetDate": "Please select a target date",
+        "validationGoalName": "Please enter a goal name",
         "validationOngoingAmount": "Please enter your monthly savings target"
       }
     },
@@ -515,7 +520,7 @@
         "validation": "Please enter {{name}}'s income"
       },
       "otherIncome": {
-        "title": "Any other sources of income?",
+        "title": "Any extra sources of income?",
         "helper": "Rental income, dividends, financial support — anything regular.",
         "selectHelper": "Browse categories and tap the income sources you receive. You will enter amounts on the next step.",
         "fillTitle": "Other income details",
@@ -531,7 +536,7 @@
         "clearAll": "Clear all",
         "addCustomSource": "+ Other",
         "otherSourceLabel": "Other income",
-        "skip": "Skip — no other income",
+        "skip": "No extra income",
         "helperRequired": "Neither you nor your partner has employment income recorded. Add at least one regular income source so we can build your budget.",
         "helperRequiredSolo": "You don't have employment income recorded. Add at least one regular income source so we can build your budget.",
         "requiredNote": "At least one income source is required to continue.",
@@ -590,7 +595,8 @@
         "helper": "Your balance shows how many months of expenses you have covered.",
         "illustrationA11y": "Illustration of a person saving coins into a piggy bank",
         "balanceLabel": "Current savings balance",
-        "balancePlaceholder": "0"
+        "balancePlaceholder": "0",
+        "skip": "No savings"
       }
     },
     "s4": {
@@ -612,7 +618,7 @@
       },
       "rentDetails": {
         "title": "How much is your monthly rent?",
-        "helper": "If utilities are included in your rent and you know the amount, enter base rent only — you'll enter utilities separately next. If you don't know the split (dorm, all-inclusive, etc.), just enter the total and skip utilities.",
+        "helper": "Enter base rent only — As long as the utilities amount is known, you'll enter them separately next. If you don't know the utilities amount (dorm, all-inclusive, etc.), just enter the total and skip utilities in the next section.",
         "amountLabel": "Monthly rent",
         "validation": "Please enter your monthly rent"
       },
@@ -631,7 +637,7 @@
         "suggestionCount": "{{count}} suggestions",
         "selectPrompt": "Tap the utilities you pay for separately.",
         "addedSoFar": "Added so far ({{count}})",
-        "skip": "Skip — I don't know or it's included",
+        "skip": "Included with rent or amount not known",
         "modeTotal": "One combined total",
         "modeItemized": "Break down by utility",
         "modeLabel": "How would you like to enter utilities?",
@@ -817,7 +823,11 @@
         "title": "Fuel and running costs",
         "helper": "What type of fuel does your vehicle use, and roughly how much do you spend per month?",
         "vehicleLabel": "Vehicle {{n}} of {{total}} — {{category}}",
+        "displayNameLabel": "Vehicle name",
+        "displayNamePlaceholder": "e.g. Hyundai i30",
+        "displayNameHelper": "Optional — shown in your commitments list.",
         "fuelLabel": "Fuel type",
+        "fuelPlaceholder": "Select fuel type",
         "petrol": "Petrol",
         "diesel": "Diesel",
         "electric": "Electric",
@@ -834,6 +844,9 @@
         "helper": "Enter your insurance details — skip if you don't have separate vehicle insurance.",
         "helperMandatory": "Enter your insurance details — liability insurance is mandatory for passenger vehicles.",
         "vehicleLabel": "Vehicle {{n}} of {{total}} — {{category}}",
+        "displayNameLabel": "Vehicle name",
+        "displayNamePlaceholder": "e.g. City bike",
+        "displayNameHelper": "Optional — shown in your commitments list.",
         "coverageTypeLabel": "Coverage type",
         "coverageTpl": "Third-Party Liability insurance",
         "coverageComprehensive": "Comprehensive",
@@ -882,7 +895,12 @@
         "maintenanceDateLabel": "Date",
         "maintenanceDatePlaceholder": "Date (optional)",
         "addItem": "Add item",
-        "skip": "Skip — no upcoming maintenance"
+        "skip": "Skip — no upcoming maintenance",
+        "vignetteLabel": "Highway vignette (dálniční známka)",
+        "vignetteAmountLabel": "Vignette cost",
+        "vignetteAmountPlaceholder": "0",
+        "vignetteValidUntilLabel": "Valid until",
+        "vignetteHelper": "We will open a savings tab so you can set money aside before it expires."
       }
     },
     "s6": {
@@ -1187,7 +1205,6 @@
           "foodDelivery": "Food & delivery",
           "travelTransport": "Travel & transport",
           "familyKids": "Family & kids",
-          "personalCare": "Personal care",
           "telecomsUtilities": "Telecoms & utilities",
           "homeGarden": "Home & gardening",
           "legalItems": "Legal items"
@@ -1214,26 +1231,52 @@
           "alzaPlus": "Alza Plus",
           "coursera": "Coursera",
           "udemy": "Udemy",
+          "duolingo": "Duolingo",
+          "linkedinLearning": "LinkedIn Learning",
           "languageApp": "Language learning app",
           "dropbox": "Dropbox",
           "github": "GitHub",
+          "aiAssistant": "AI assistant subscription",
           "chatgpt": "ChatGPT Plus",
           "notion": "Notion",
+          "todoist": "Todoist",
+          "trello": "Trello",
+          "1password": "1Password",
           "gym": "Gym / fitness",
           "lifeInsurance": "Life insurance",
           "meditationApp": "Meditation app",
+          "multisport": "Multisport card",
           "nytimes": "NY Times",
           "theEconomist": "The Economist",
           "medium": "Medium",
-          "groceries": "Groceries",
+          "denikN": "Deník N",
+          "respekt": "Respekt",
+          "idnesPremium": "iDNES Premium",
+          "hn": "Hospodářské noviny (HN.cz)",
+          "echoPrime": "Echo Prime",
           "mealKit": "Meal kit",
           "foodDeliveryApp": "Food delivery app",
+          "rohlikXtra": "Rohlík Xtra",
+          "groceries": "Groceries",
           "transitPass": "Transit pass",
+          "pidLitacka": "PID Lítačka",
           "parkingPass": "Parking pass",
           "kidsStreaming": "Kids streaming",
           "hairSalon": "Hair salon",
           "mobilePhone": "Mobile phone",
+          "o2": "O2",
+          "tMobile": "T-Mobile",
+          "vodafone": "Vodafone",
+          "tescoMobile": "Tesco Mobile",
           "homeSecurity": "Home security",
+          "jablotronMonitoring": "Jablotron monitoring",
+          "oneplay": "Oneplay",
+          "seduo": "Seduo",
+          "skillmea": "Skillmea",
+          "rbPremium": "Raiffeisenbank premium account",
+          "kbPackage": "Komerční banka package account",
+          "mbankPremium": "mBank premium account",
+          "dataMailboxOrEsig": "Data mailbox / e-signature renewal",
           "osvcSocial": "OSVČ — Social insurance",
           "osvcHealth": "OSVČ — Health insurance",
           "homeInsurance": "Home insurance",
@@ -1249,15 +1292,15 @@
       }
     },
     "s10": {
-      "eyebrow": "Section 10 — Other Costs",
-      "heading": "Other Regular Costs",
-      "body": "Groceries, mobile phone bills, personal insurance, and other regular spending that doesn't fit earlier sections belong here. Use this catch-all so your household ledger covers everything you pay each month."
+      "eyebrow": "Section 10 — Everyday spending",
+      "heading": "Everyday / variable spending",
+      "body": "Groceries, hair salon, laundry, and other regular spending that varies month to month belong here — enter your average monthly amount, not individual purchases. Subscriptions and fixed bills are captured in earlier sections."
     },
     "otherCosts": {
-      "chapter": "Other Regular Costs",
+      "chapter": "Everyday / variable spending",
       "costSelection": {
-        "title": "What other regular costs do you have?",
-        "helper": "Tap to add common costs, or enter custom ones below.",
+        "title": "What everyday or variable costs do you have?",
+        "helper": "Tap common items you pay regularly, or add custom ones below. Enter your typical monthly average.",
         "quickAdd": "Quick add",
         "customAdd": "Add custom cost",
         "customLabel": "Cost name",
@@ -1372,7 +1415,8 @@
           "children": "Children",
           "pets": "Pets",
           "subscriptions": "Subscriptions",
-          "other": "Other"
+          "groceries": "Groceries",
+          "other": "Everyday / variable spending"
         },
         "placeholder": "e.g. 15 000",
         "validation": "Please enter your flexible budget amount",
@@ -1526,7 +1570,7 @@
           "childrenCosts": "Children's Expenses",
           "pets": "Pets",
           "subscriptions": "Subscriptions",
-          "otherCosts": "Other Regular Costs",
+          "otherCosts": "Everyday / variable spending",
           "debts": "Debts & Loans",
           "budget": "Setup Budget"
         },
@@ -1626,7 +1670,12 @@
     "accountSettingsScreen": {
       "helper": "Manage your account preferences and data.",
       "privacyTitle": "Privacy & data",
-      "deleteAccountHelper": "Permanently delete your Beaverr account, cloud data, and everything stored on this device.",
+      "privacyHelper": "Clear household data from this device and the cloud, or permanently delete your Beaverr account.",
+      "clearSavedData": "Clear saved data",
+      "clearSavedDataConfirmTitle": "Clear saved data?",
+      "clearSavedDataConfirmMessage": "This removes your household progress on this device and in the cloud. Your Beaverr account stays active.",
+      "clearSavedDataConfirmButton": "Clear data",
+      "clearSavedDataFailed": "Could not clear saved data. Please try again.",
       "preferencesHelper": "Update country, language, and currency from when you signed up.",
       "saveSuccess": "Preferences saved."
     },
@@ -1656,7 +1705,7 @@
       "alertsA11y": "Open alerts",
       "alertsCountA11y": "{{count}} active alerts",
       "profileLabel": "Profile",
-      "defaultDisplayName": "Jan Smile",
+      "defaultDisplayName": "Account",
       "accountSettings": "Account settings",
       "appearance": "Appearance",
       "appearanceSwitchToDark": "Switch to dark mode",
@@ -1716,13 +1765,18 @@
       "reminderUpdated": "Reminder updated",
       "cycleCalendarLocked": "Day logging unlocks during an active pay cycle",
       "cycleStartUpdated": "Cycle start updated",
+      "cycleDatesUpdated": "Cycle dates updated",
       "spendingSaved": "Spending saved",
       "adjustmentSaved": "Adjustment added",
       "stashCreated": "Stash created",
       "stashDeleted": "Stash deleted",
       "stashTransferred": "Money moved",
       "stashTransferEmpty": "Nothing to move — balance is zero",
-      "stashRenamed": "Tab renamed"
+      "stashRenamed": "Tab renamed",
+      "commitmentRenewed": "Commitment reset for the next due date",
+      "commitmentDeleted": "Commitment removed",
+      "questionnaireProgressSaved": "Progress saved",
+      "questionnaireProgressDeleted": "Progress deleted"
     },
     "ledgerTable": {
       "selectRowA11y": "Select {{label}}",
@@ -1869,6 +1923,7 @@
       "backfillPendingNote": "Finish logging past days for a fully accurate pace.",
       "backfillPendingA11y": "Finish logging past days for an accurate spending pace.",
       "detail": "{{spentPct}} of cycle budget spent · {{timePct}} of period elapsed",
+      "line": "{{summary}} · {{spentPct}} of cycle budget spent · {{timePct}} of period elapsed",
       "scope": {
         "cycle": "Pay cycle",
         "month": "Month",
@@ -2160,7 +2215,7 @@
           "renewalsSoon": "{{count}} renewals coming up in the next 30 days."
         },
         "other": {
-          "empty": "No other regular costs recorded."
+          "empty": "No everyday or variable spending recorded."
         },
         "debts": {
           "empty": "No debts recorded.",
@@ -2229,7 +2284,55 @@
       "edit": "Edit",
       "tableNote": "Monthly amounts in {{currency}}",
       "risksTitle": "Financial risks",
-      "risksNote": "Exposure amounts — not included in monthly budget"
+      "risksNote": "Exposure amounts — not included in monthly budget",
+      "cycleOverview": {
+        "title": "Pay cycles",
+        "helper": "How many spending periods you have tracked and how closed ones ended.",
+        "elapsedLabel": "Elapsed cycles",
+        "totalCycles": "Total cycles",
+        "cycleCount": "{{count}} cycles",
+        "cycleCount_one": "{{count}} cycle",
+        "activeRange": "Current cycle: {{range}}",
+        "activeBudget": "Cycle budget",
+        "activeSpent": "Spent so far",
+        "activeRemaining": "Remaining",
+        "asPlanned": "As planned",
+        "savedMoney": "Saved money",
+        "deficit": "Deficit",
+        "inProgress": "Current cycle",
+        "empty": "No pay cycles yet. When you start a pay cycle, it will count here.",
+        "cyclesDisabled": "Pay cycles are off. Turn them on in Budget to track spending periods."
+      },
+      "cycleHistory": {
+        "title": "Historic cycles",
+        "empty": "No closed cycles yet. When you end a pay cycle, it will appear here.",
+        "cyclesDisabled": "Pay cycles are off — no cycle history to show yet.",
+        "columnPeriod": "Period",
+        "columnBudget": "Budget",
+        "columnSpent": "Spent",
+        "columnSaved": "Saved",
+        "columnDeficit": "Deficit",
+        "editDates": "Edit dates",
+        "editDatesA11y": "Edit dates for cycle {{period}}"
+      },
+      "dailySpend": {
+        "title": "Daily spending",
+        "helper": "Each column is one day. Navy is spent; grey is saved on past days or remaining today; red extends above budget when over.",
+        "monthA11y": "Choose month",
+        "empty": "No days in this month yet.",
+        "dayA11y": "Day {{day}} — spent {{spent}}",
+        "tooltipDay": "Day {{day}}",
+        "tooltipDate": "{{day}}-{{month}}-{{year}}",
+        "tooltipSpent": "Spent {{amount}}",
+        "tooltipRemaining": "Remaining today {{amount}}",
+        "tooltipSaved": "Saved {{amount}}",
+        "tooltipDeficit": "Deficit {{amount}}",
+        "legendSpent": "Spent",
+        "legendSaved": "Saved",
+        "legendRemaining": "Remaining today",
+        "legendDeficit": "Deficit",
+        "legendNotLogged": "Not logged"
+      }
     },
     "risks": {
       "vehicleTplLiability": "{{category}} — third-party liability limit",
@@ -2377,11 +2480,28 @@
     },
     "goalsScreen": {
       "empty": "You have not set a financial goal yet.",
+      "hero": {
+        "onTrackTitle": "Goals on track",
+        "onTrackValue": "{{onTrack}} of {{total}}",
+        "onTrackAll": "All saving goals on track",
+        "behindPace": "{{count}} behind pace",
+        "onHold": "{{count}} on hold",
+        "noSavingGoalsValue": "—",
+        "noSavingGoalsHelper": "No saving goals yet",
+        "noPaceValue": "—",
+        "noPaceHelper": "Set a deadline to track pace",
+        "debtRemainingTitle": "Debt remaining",
+        "debtCount": "Across {{count}} debts",
+        "noDebtGoalsHelper": "No debt payoff goals",
+        "a11y": "Goals on track {{onTrack}}, debt remaining {{debt}}"
+      },
       "emptyActive": "No active goals yet. Add a goal or complete onboarding to see auto-created ones.",
       "emptyArchived": "No archived goals.",
       "setGoal": "Set a goal",
       "addGoal": "Add goal",
       "addGoalA11y": "Add a new goal",
+      "addDebt": "Add debt",
+      "addDebtA11y": "Add a debt payoff goal",
       "gridCardA11y": "{{name}}, {{amount}}",
       "gridCardA11yOnHold": "{{name}}, on hold",
       "gridCardA11yWithTarget": "{{name}}, {{current}} of {{target}}",
@@ -2389,6 +2509,7 @@
       "editA11y": "Edit {{name}}",
       "sections": {
         "goals": "Goals",
+        "goalsEmpty": "No goals were created.",
         "savings": "Saving goals",
         "debt": "Debt payoff goals",
         "reduceCosts": "Reduce costs"
@@ -2454,6 +2575,7 @@
       },
       "create": {
         "title": "New goal",
+        "debtTitle": "Pay off debt",
         "kindPrompt": "What are you working toward?",
         "savingsHelper": "Set a target amount and optional deadline.",
         "debtHelper": "Pick a debt from your plan or add a new one to track.",
@@ -2489,7 +2611,8 @@
         "validationName": "Enter a goal name.",
         "validationTarget": "Enter a target amount greater than zero.",
         "saveError": "Could not save goal. Try again.",
-        "closeA11y": "Close new goal"
+        "closeA11y": "Close new goal",
+        "closeDebtA11y": "Close add debt"
       },
       "edit": {
         "title": "Edit goal",
@@ -2602,7 +2725,34 @@
     },
     "savingsScreen": {
       "totalBalance": "Total money saved",
-      "balanceHelper": "Sum of all {{count}} tabs in Your money stash",
+      "balanceHelper": "Today",
+      "totalBalanceExplain": {
+        "infoA11y": "How total money saved is calculated",
+        "meaningTitle": "What this shows",
+        "meaningBody": "The combined balance across every tab in Your money stash — piggy bank, savings, and any custom tabs you have created.",
+        "calculationTitle": "How we calculated this",
+        "formula": "Each tab balance added together = total saved today.",
+        "rows": {
+          "total": "Total saved today"
+        }
+      },
+      "expectedSavings": "Expected savings",
+      "expectedSavingsHelper": "At end of {{year}}",
+      "expectedSavingsExplain": {
+        "infoA11y": "How expected savings is calculated",
+        "meaningTitle": "What this shows",
+        "meaningBody": "Your projected total across all money stash tabs at 31 December {{year}}, assuming you keep saving at your planned monthly rate from your budget split and savings goal.",
+        "calculationTitle": "How we calculated this",
+        "formula": "Current total + (planned monthly savings × {{months}} months remaining) = expected year-end total. Month-end rollover to savings is not included because it depends on actual spending.",
+        "noPlanWarning": "No monthly savings are planned yet — set a budget split or savings goal to see a meaningful projection.",
+        "cappedAtGoalWarning": "Projection stops at your savings goal target — you may reach it before year end.",
+        "rows": {
+          "currentTotal": "Current total saved",
+          "monthlyPlan": "Planned monthly savings",
+          "monthsRemaining": "Months left in {{year}}",
+          "expectedTotal": "Expected total at year end"
+        }
+      },
       "detail": {
         "back": "Back to savings",
         "notFound": "Tab not found.",
@@ -2626,10 +2776,33 @@
           "empty": "Add a balance or record a movement to see where money goes.",
           "plannedNote": "Planned monthly outflow to linked goals: {{amount}} — nothing has left this tab yet.",
           "openGoal": "Open goal {{name}}"
+        },
+        "historyChart": {
+          "title": "Balance history",
+          "series": "Balance",
+          "noHistory": "No history",
+          "tooltipA11y": "{{month}}. Balance: {{balance}}",
+          "headlineA11y": "Current balance {{balance}}"
         }
       },
+      "commitments": {
+        "dueDate": "Due {{date}}",
+        "renewA11y": "Start saving for the next {{name}} due date",
+        "deleteA11y": "Delete {{name}} commitment",
+        "deleteTitle": "Delete commitment?",
+        "deleteBody": "Deleting {{name}} removes its linked expense from your Expenses tab and updates your budget. This cannot be undone.",
+        "renewToast": "{{name}} reset for the next due date",
+        "deleteToast": "{{name}} removed"
+      },
       "monthlyPlan": "Planned monthly savings",
-      "monthlyPlanHelper": "From your budget split, savings goal, and rollover settings.",
+      "monthlyPlanHelper": "From your budget split and savings goal.",
+      "monthlyPlanRolloverBanner": {
+        "title": "+ Month rollover",
+        "body": "Unspent budget may add at month end depending on spending — not included above.",
+        "link": "View rollover strategy",
+        "linkA11y": "Open Budget tab and highlight your month-end rollover strategy",
+        "a11y": "Month-end rollover may add variable savings"
+      },
       "noInflows": "No monthly savings planned yet — adjust your budget or set a savings goal.",
       "variable": "Varies with spending",
       "resetPolicy": "Unspent budget policy",
@@ -2640,9 +2813,7 @@
       "looseMoneyHelper": "Set-aside money from months when you underspent your flexible budget.",
       "otherGoalHelper": "Money set aside at month end for this goal.",
       "otherGoalFallback": "Another goal",
-      "projectionTitle": "Anticipated savings",
-      "projectionHelper": "Projected balance if you keep your planned monthly savings for the next year.",
-      "projectionGoalHelper": "Projection toward {{target}} by {{date}}, based on your planned monthly savings.",
+      "projectionTitle": "Projected savings",
       "inflow": {
         "budgetShift": "Budget split to savings",
         "goalReserve": "Savings goal reservation",
@@ -2655,7 +2826,48 @@
         "now": "Now",
         "monthsAhead": "{{months}} months ahead",
         "goalMonth": "Goal in {{months}} months",
-        "projected": "Projected: {{amount}}"
+        "projected": "Projected: {{amount}}",
+        "legendActual": "Actual savings",
+        "legendProjected": "Projected savings growth",
+        "legendGoal": "Savings goal",
+        "goalReached": "Goal reached {{date}} · {{amount}}",
+        "projectedEnd": "Projected balance: {{amount}}",
+        "tooltipActual": "Actual savings",
+        "tooltipProjected": "Projected savings growth",
+        "tooltipGoalReached": "Goal reached",
+        "tooltipA11y": "{{month}}. Actual: {{actual}}. Projected: {{projected}}",
+        "seriesActual": "Actual",
+        "seriesProjected": "Projected",
+        "headlineA11y": "Saved now {{actual}}. Projected {{projected}}."
+      },
+      "sinkingFund": {
+        "helper": "Target {{target}} by {{due}} · suggested {{monthly}}/mo",
+        "jarHelper": "Target {{target}} · suggested {{monthly}}/mo",
+        "vehicleLabel": "{{category}} {{index}}",
+        "vehicleInsurance": "{{vehicle}} insurance",
+        "vehicleMot": "{{vehicle}} MOT/STK",
+        "vehicleParking": "{{vehicle}} parking",
+        "vehicleVignette": "{{vehicle}} vignette",
+        "vehicleMaintenance": "{{vehicle}} — {{item}}",
+        "maintenanceFallback": "Maintenance",
+        "healthInsuranceYou": "Your health insurance",
+        "healthInsuranceNamed": "{{name}}'s health insurance",
+        "healthInsurancePartnerFallback": "Partner's health insurance",
+        "healthInsuranceChildFallback": "Child {{index}}'s health insurance",
+        "petInsurance": "{{pet}} insurance",
+        "petFallback": "Pet {{index}}",
+        "subscription": "{{service}} renewal",
+        "residencePermit": "{{holder}} — {{renewal}}",
+        "residencePermitRenewal": "Residence permit renewal",
+        "holderUser": "You",
+        "holderPartner": "Partner",
+        "holderChild": "Child {{index}}",
+        "wasteTax": "Waste tax",
+        "tvLicence": "TV licence",
+        "radioLicence": "Radio licence",
+        "customTax": "Tax {{index}}",
+        "housingOther": "Home cost {{index}}",
+        "childCost": "{{child}} — {{cost}}"
       }
     },
     "trackerScreen": {
@@ -2857,6 +3069,20 @@
         "closeA11y": "Close edit start date",
         "saving": "Saving…"
       },
+      "editDates": {
+        "title": "Edit cycle dates",
+        "helper": "Adjust when this pay cycle started and ended. Spent, saved, and deficit are recalculated for the new range.",
+        "startLabel": "Cycle start",
+        "endLabel": "Cycle end",
+        "validationStartDate": "Pick a valid start date.",
+        "validationStartFuture": "The start date cannot be in the future.",
+        "validationEndDate": "Pick a valid end date.",
+        "validationEndBeforeStart": "The end date must be on or after the start date.",
+        "validationEndFuture": "The end date cannot be in the future.",
+        "saveError": "Could not update cycle dates. Try again.",
+        "closeA11y": "Close edit cycle dates",
+        "saving": "Saving…"
+      },
       "spendLog": {
         "title": "Log spending",
         "inputLabel": "Amount spent",
@@ -2921,6 +3147,11 @@
         "validationNext": "Enter the next start date and budget.",
         "finish": "Close cycle",
         "finishHelper": "Start your next cycle manually when you are ready.",
+        "endDateLabel": "End this cycle on",
+        "endDateHelper": "For backfilled cycles, pick when the period ended — not today's date.",
+        "validationEndDate": "Pick a valid end date.",
+        "validationEndBeforeStart": "The end date must be on or after the start date.",
+        "validationEndFuture": "The end date cannot be in the future.",
         "saveError": "Could not close cycle. Try again.",
         "closeA11y": "Close cycle wizard",
         "saving": "Closing…"
@@ -3115,6 +3346,8 @@
       },
       "jars": {
         "sectionTitle": "Your money stash",
+        "savedMoneyGroup": "Saved money",
+        "commitmentsGroup": "Commitments",
         "sectionSubtitle": "Filled at period end",
         "footerNote": "Jars fill at the end of each period once your budget is tracked.",
         "addNewTab": "Add new tab",
@@ -3420,7 +3653,7 @@
       "savingsMonthly": "Monthly savings target",
       "goalType": "What do you want Beaverr to help with?",
       "saveMode": "How do you want to save?",
-      "goalDescription": "Goal description",
+      "goalDescription": "Goal name",
       "goalAmount": "Target amount",
       "goalDate": "Target date",
       "validation": {
@@ -3456,8 +3689,8 @@
       "validation": "Each subscription needs a cost amount"
     },
     "otherCosts": {
-      "helper": "Update other recurring costs and how often they are paid.",
-      "empty": "No other costs recorded.",
+      "helper": "Update everyday and variable spending — enter your typical monthly average for each item.",
+      "empty": "No everyday or variable spending recorded.",
       "unnamed": "Other cost",
       "validation": "Each cost needs an amount"
     },
@@ -3483,6 +3716,8 @@
       "helper": "Update transport costs. Other vehicle details from setup are preserved.",
       "publicTransport": "Public transport pass",
       "vehicle": "Vehicle {{n}}",
+      "displayName": "Vehicle name",
+      "displayNamePlaceholder": "e.g. Hyundai i30",
       "fuel": "Fuel / charging",
       "insurance": "Insurance",
       "parking": "Parking",
@@ -3525,7 +3760,7 @@
       "children": "Edit children costs",
       "pets": "Edit pets",
       "subscriptions": "Edit subscriptions",
-      "other": "Edit other costs",
+      "other": "Edit everyday spending",
       "debts": "Edit debts",
       "budget": "Edit budget"
     }
@@ -3533,9 +3768,9 @@
   "settings": {
     "title": "Settings",
     "redoSetup": "Redo Setup",
-    "deleteAccount": "Delete account and data",
+    "deleteAccount": "Delete account",
     "deleteAccountConfirmTitle": "Delete your account?",
-    "deleteAccountConfirmMessage": "This permanently deletes your Beaverr account, cloud data, and all progress on this device. You cannot undo this.",
+    "deleteAccountConfirmMessage": "This permanently deletes your Beaverr account, cloud data, and everything stored on this device. You cannot undo this.",
     "deleteAccountConfirmButton": "Delete account",
     "deleteAccountFailed": "Could not delete your account. Please try again.",
     "deleteAccountNotConfigured": "Account deletion is not enabled on the server yet. Run the delete-account migration or deploy the delete-account Edge Function.",

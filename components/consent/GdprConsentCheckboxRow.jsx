@@ -1,8 +1,15 @@
-import { View, Text as RNText } from 'react-native';
+import { View, Text as RNText, Platform } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
 import OnboardingPressable from '../onboarding/OnboardingPressable';
 import { useI18n } from '../../lib/i18n';
 import { C, R, INPUT_FIELD } from '../../constants/onboarding-theme';
+
+/** Web: keep TextInput focused on first tap so the press still toggles consent. */
+function preventWebInputBlur(event) {
+  if (Platform.OS === 'web') {
+    event?.preventDefault?.();
+  }
+}
 
 function ConsentCheckmark({ checked }) {
   return (
@@ -53,6 +60,7 @@ export default function GdprConsentCheckboxRow({
     >
       <OnboardingPressable
         onPress={() => onCheckedChange(!checked)}
+        onPressIn={preventWebInputBlur}
         accessibilityRole="checkbox"
         accessibilityState={{ checked }}
         accessibilityLabel={t('auth.signup.consentLabel')}
@@ -64,36 +72,43 @@ export default function GdprConsentCheckboxRow({
         <ConsentCheckmark checked={checked} />
       </OnboardingPressable>
 
-      <RNText
-        style={{
-          flex: 1,
-          flexShrink: 1,
-          fontSize: 15,
-          lineHeight: 22,
-        }}
-      >
-        <RNText
+      <View style={{ flex: 1, flexShrink: 1 }}>
+        <OnboardingPressable
           onPress={() => onCheckedChange(!checked)}
+          onPressIn={preventWebInputBlur}
           accessibilityRole="checkbox"
           accessibilityState={{ checked }}
-          style={{ color: labelColor }}
         >
-          {t('auth.signup.consentLabel')}
-        </RNText>
-        {'\n'}
-        <RNText
+          <RNText
+            style={{
+              fontSize: 15,
+              lineHeight: 22,
+              color: labelColor,
+            }}
+          >
+            {t('auth.signup.consentLabel')}
+          </RNText>
+        </OnboardingPressable>
+        <OnboardingPressable
           onPress={onOpenDetails}
+          onPressIn={preventWebInputBlur}
           accessibilityRole="link"
           accessibilityLabel={t('auth.signup.consentLink')}
-          style={{
-            color: C.accent,
-            fontWeight: '600',
-            textDecorationLine: 'underline',
-          }}
+          style={{ marginTop: 2 }}
         >
-          {t('auth.signup.consentLink')}
-        </RNText>
-      </RNText>
+          <RNText
+            style={{
+              color: C.accent,
+              fontWeight: '600',
+              fontSize: 15,
+              lineHeight: 22,
+              textDecorationLine: 'underline',
+            }}
+          >
+            {t('auth.signup.consentLink')}
+          </RNText>
+        </OnboardingPressable>
+      </View>
     </View>
   );
 }

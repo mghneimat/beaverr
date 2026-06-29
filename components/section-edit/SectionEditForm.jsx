@@ -10,6 +10,7 @@ import { C, S, T } from '../../constants/onboarding-theme';
 import { OnboardingValidationClearContext } from '../../lib/onboardingValidationClear';
 import PrimaryButton from '../ui/PrimaryButton';
 import { OutlineButton } from '../ui/OutlineButton';
+import FormFieldSkeleton from '../ui/FormFieldSkeleton';
 
 /**
  * Loads section data, renders inline editor, saves to storage and refreshes dashboard.
@@ -80,8 +81,12 @@ export default function SectionEditForm({
 
   if (loading) {
     return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: S.pagePadH }}>
-        <Text style={{ ...T.helper }}>{t('sectionEdit.loading')}</Text>
+      <View
+        accessibilityRole="progressbar"
+        accessibilityLabel={t('sectionEdit.loading')}
+        style={{ flex: 1, padding: S.pagePadH, justifyContent: 'center' }}
+      >
+        <FormFieldSkeleton rows={4} />
       </View>
     );
   }
@@ -118,7 +123,7 @@ export default function SectionEditForm({
         backgroundColor: C.bg,
       }}>
         <View style={{ flex: 1 }}>
-          <OutlineButton onPress={handleCancel} disabled={saving}>
+          <OutlineButton onPress={handleCancel} disabled={saving} destructive>
             {t('common.cancel')}
           </OutlineButton>
         </View>

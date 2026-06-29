@@ -12,6 +12,7 @@ import { formatSignedCurrency } from '../../lib/finance';
 import InCardSectionHeader from './InCardSectionHeader';
 import DashboardTablePagination from './DashboardTablePagination';
 import { BreakdownCell, BreakdownRow, LedgerCardRow } from './BreakdownTablePrimitives';
+import DashboardSectionEmptyMessage from './DashboardSectionEmptyMessage';
 
 const MOVEMENT_TABLE_GAP = 10;
 
@@ -163,9 +164,7 @@ export default function StashMovementHistoryList({
     <SurfaceCard style={{ overflow: 'visible', zIndex: pageSizeMenuOpen ? 8 : 1 }}>
       <InCardSectionHeader title={t(titleKey)} />
       {movements.length === 0 ? (
-        <Text style={{ ...T.helper, color: C.muted }}>
-          {t(emptyKey)}
-        </Text>
+        <DashboardSectionEmptyMessage message={t(emptyKey)} />
       ) : (
         <View style={{ gap: 8, width: '100%', alignSelf: 'stretch', overflow: 'visible' }}>
           {!cardMode ? (

@@ -20,6 +20,7 @@ import AddStashSheet from './AddStashSheet';
 import EditStashSheet from './EditStashSheet';
 import TransferStashSheet from './TransferStashSheet';
 import DeleteStashSheet from './DeleteStashSheet';
+import CommitmentProgressList from './CommitmentProgressList';
 import { useDashboardScroll } from '../../lib/dashboardScroll';
 import { useDashboardLayout } from '../../lib/dashboardLayout';
 
@@ -29,10 +30,7 @@ const ICON_SIZE = 16;
 const TAB_PLUS_SIZE = 16;
 const ACTION_HIT = 40;
 const CARD_ACTION_INSET = 12;
-const TAB_INACTIVE_TEXT = C.primary;
 const DELETE_ICON_COLOR = '#D14040';
-const MOVE_ICON_COLOR = C.primary;
-const MOVE_ICON_DISABLED_COLOR = C.muted;
 
 function TabPlusIcon({ color }) {
   return (
@@ -72,8 +70,8 @@ function AddNewTabChip({ label, accessibilityLabel, onPress }) {
         ...(Platform.OS === 'web' ? { cursor: 'pointer' } : {}),
       })}
     >
-      <TabPlusIcon color={TAB_INACTIVE_TEXT} />
-      <Text style={{ ...T.pillLabel, fontSize: 13, fontWeight: '600', color: TAB_INACTIVE_TEXT }}>
+      <TabPlusIcon color={C.text} />
+      <Text style={{ ...T.pillLabel, fontSize: 13, fontWeight: '600', color: C.text }}>
         {label}
       </Text>
     </Pressable>
@@ -116,8 +114,6 @@ function DeleteStashButton({ onPress, accessibilityLabel }) {
   );
 }
 
-const EDIT_ICON_COLOR = C.primary;
-
 function EditStashButton({ onPress, accessibilityLabel }) {
   const [hovered, setHovered] = useState(false);
   const [pressed, setPressed] = useState(false);
@@ -149,7 +145,7 @@ function EditStashButton({ onPress, accessibilityLabel }) {
         ...(Platform.OS === 'web' ? { cursor: 'pointer' } : {}),
       }}
     >
-      <SquarePenIcon color={EDIT_ICON_COLOR} size={16} />
+      <SquarePenIcon color={C.text} size={16} />
     </Pressable>
   );
 }
@@ -196,7 +192,7 @@ function MoveStashButton({
         ...(Platform.OS === 'web' ? { cursor: 'pointer' } : {}),
       }}
     >
-      <ArrowRightLeftIcon color={isEmpty ? MOVE_ICON_DISABLED_COLOR : MOVE_ICON_COLOR} size={16} />
+      <ArrowRightLeftIcon color={isEmpty ? C.muted : C.primary} size={16} />
     </Pressable>
   );
 }
@@ -381,10 +377,28 @@ function renderJarCell({
   );
 }
 
+function StashGroupHeader({ title, style }) {
+  return (
+    <Text
+      accessibilityRole="header"
+      style={{
+        ...T.cardTitle,
+        fontSize: 15,
+        marginBottom: 12,
+        ...(style || {}),
+      }}
+    >
+      {title}
+    </Text>
+  );
+}
+
 export default function JarsBudgetGrid({
   jarLines,
   primaryJarLines,
   customJarLines,
+  savedCustomJarLines,
+  commitmentCustomJarLines,
   layout = 'grid',
   currency,
   animationKey = 'free',
@@ -394,6 +408,8 @@ export default function JarsBudgetGrid({
   onStashPress,
   onTransferStash,
   onUpdateStash,
+  onRenewCommitment,
+  onDeleteCommitment,
   budget,
   income,
   focusJarId,
@@ -432,8 +448,11 @@ export default function JarsBudgetGrid({
   );
 
   const primaryLines = primaryJarLines || [];
-  const customLines = customJarLines || [];
-  const hasCustomTabs = customLines.length > 0;
+  const savedCustomLines = savedCustomJarLines ?? customJarLines ?? [];
+  const commitmentLines = commitmentCustomJarLines ?? [];
+  const customLines = [...savedCustomLines, ...commitmentLines];
+  const hasSavedCustomTabs = savedCustomLines.length > 0;
+  const hasCommitmentTabs = commitmentLines.length > 0;
 
   const allFocusLines = useMemo(() => {
     if (isSavingsLayout) {
@@ -585,6 +604,43 @@ export default function JarsBudgetGrid({
     handleGlowComplete,
   };
 
+  const renderCustomStashCell = useCallback((line, index, options = {}) => {
+    const title = getJarTitle(line, t);
+    const isExiting = exitingLineId === line.id;
+    const allowEdit = options.allowEdit !== false;
+
+    return (
+      <View key={line.id} style={gridItemStyle}>
+        {renderJarCell({
+          ...sharedCellProps,
+          ...buildTransferProps(line),
+          line,
+          index,
+          cellStyle: savingsPhoneCellStyle,
+          motion: 'full',
+          outlineFill: savingsOutlineFill,
+          exiting: isExiting,
+          onExitComplete: isExiting ? handleStashExitComplete : undefined,
+          onDeletePress: () => requestDeleteStash(line),
+          deleteA11y: t('dashboard.budgetScreen.jars.deleteTabA11y', { name: title }),
+          onEditPress: allowEdit && onUpdateStash ? () => setEditTargetLine(line) : undefined,
+          editA11y: t('dashboard.budgetScreen.jars.editTabA11y', { name: title }),
+        })}
+      </View>
+    );
+  }, [
+    buildTransferProps,
+    exitingLineId,
+    gridItemStyle,
+    handleStashExitComplete,
+    onUpdateStash,
+    requestDeleteStash,
+    savingsOutlineFill,
+    savingsPhoneCellStyle,
+    sharedCellProps,
+    t,
+  ]);
+
   return (
     <>
       <SurfaceCard>
@@ -601,6 +657,7 @@ export default function JarsBudgetGrid({
 
         {isSavingsLayout ? (
           <View>
+            <StashGroupHeader title={t('dashboard.budgetScreen.jars.savedMoneyGroup')} />
             <View style={{ flexDirection: isPhone ? 'column' : 'row', gap: 12 }}>
               {primaryLines.map((line, index) => (
                 <View key={line.id} style={rowHalfItemStyle}>
@@ -617,34 +674,31 @@ export default function JarsBudgetGrid({
               ))}
             </View>
 
-            <AnimatedCollapse visible={hasCustomTabs} style={{ marginTop: hasCustomTabs ? 12 : 0 }}>
-              <View style={{ flexDirection: isPhone ? 'column' : 'row', flexWrap: isPhone ? 'nowrap' : 'wrap', gap: 12, paddingBottom: 4 }}>
-                {customLines.map((line, index) => {
-                  const title = getJarTitle(line, t);
-                  const isExiting = exitingLineId === line.id;
-
-                  return (
-                    <View key={line.id} style={gridItemStyle}>
-                      {renderJarCell({
-                        ...sharedCellProps,
-                        ...buildTransferProps(line),
-                        line,
-                        index: primaryLines.length + index,
-                        cellStyle: savingsPhoneCellStyle,
-                        motion: 'full',
-                        outlineFill: savingsOutlineFill,
-                        exiting: isExiting,
-                        onExitComplete: isExiting ? handleStashExitComplete : undefined,
-                        onDeletePress: () => requestDeleteStash(line),
-                        deleteA11y: t('dashboard.budgetScreen.jars.deleteTabA11y', { name: title }),
-                        onEditPress: onUpdateStash ? () => setEditTargetLine(line) : undefined,
-                        editA11y: t('dashboard.budgetScreen.jars.editTabA11y', { name: title }),
-                      })}
-                    </View>
-                  );
-                })}
+            <AnimatedCollapse visible={hasSavedCustomTabs} style={{ marginTop: hasSavedCustomTabs ? 12 : 0 }}>
+              <View style={{
+                flexDirection: isPhone ? 'column' : 'row',
+                flexWrap: isPhone ? 'nowrap' : 'wrap',
+                gap: 12,
+                paddingBottom: 4,
+              }}
+              >
+                {savedCustomLines.map((line, index) => (
+                  renderCustomStashCell(line, primaryLines.length + index)
+                ))}
               </View>
             </AnimatedCollapse>
+
+            {hasCommitmentTabs ? (
+              <View style={{ marginTop: 24 }}>
+                <StashGroupHeader title={t('dashboard.budgetScreen.jars.commitmentsGroup')} />
+                <CommitmentProgressList
+                  commitmentLines={commitmentLines}
+                  budget={budget}
+                  onRenewCommitment={onRenewCommitment}
+                  onDeleteCommitment={onDeleteCommitment}
+                />
+              </View>
+            ) : null}
           </View>
         ) : (
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>

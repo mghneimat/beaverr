@@ -13,6 +13,7 @@ import InCardSectionHeader from './InCardSectionHeader';
 import DashboardFrequencyDropdown from './DashboardFrequencyDropdown';
 import { formatDashboardAmount } from './formatDashboardAmount';
 import ExpandCollapseIcon from '../onboarding/ExpandCollapseIcon';
+import DashboardSectionEmptyMessage from './DashboardSectionEmptyMessage';
 
 export default function ExpensesOverviewCard({ financials, currency, daysInMonth }) {
   const { t } = useI18n();
@@ -31,7 +32,7 @@ export default function ExpensesOverviewCard({ financials, currency, daysInMonth
     return (
       <SurfaceCard>
         <InCardSectionHeader title={t('dashboard.home.chart.expensesTitle')} />
-        <Text style={{ ...T.helper }}>{t('dashboard.home.chart.empty')}</Text>
+        <DashboardSectionEmptyMessage message={t('dashboard.home.chart.empty')} />
       </SurfaceCard>
     );
   }

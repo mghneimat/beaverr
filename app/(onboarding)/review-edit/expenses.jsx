@@ -10,6 +10,7 @@ import QuestionScreen from '../../../components/onboarding/QuestionScreen';
 import ExpensesCategoryPanel from '../../../components/dashboard/ExpensesCategoryPanel';
 import { getCurrencySymbol } from '../../../lib/currency';
 import { C, T } from '../../../constants/onboarding-theme';
+import SectionCardsSkeleton from '../../../components/ui/SectionCardsSkeleton';
 import { useState } from 'react';
 
 const DEFAULT_RETURN = '/(onboarding)/review';
@@ -65,8 +66,8 @@ export default function ReviewEditExpensesScreen() {
 
   if (loading || !bundle) {
     return (
-      <View style={{ flex: 1, backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center' }}>
-        <Text style={{ ...T.helper }}>{t('common.loading')}</Text>
+      <View style={{ flex: 1, backgroundColor: C.bg, padding: 24, justifyContent: 'center' }}>
+        <SectionCardsSkeleton cards={1} accessibilityLabel={t('common.loading')} />
       </View>
     );
   }

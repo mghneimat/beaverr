@@ -1,14 +1,18 @@
-import Svg, { Circle } from 'react-native-svg';
+import Svg, { Circle, G } from 'react-native-svg';
 import { View } from 'react-native';
 import { C } from '../../constants/onboarding-theme';
 
-const SIZE = 22;
-const STROKE = 3;
+const SIZE = 18;
+const STROKE = 2;
+/** Extra viewBox inset so stroke + round caps are not clipped at edges */
+const BLEED = STROKE;
 const RADIUS = (SIZE - STROKE) / 2;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+const CENTER = SIZE / 2;
+const VIEW_BOX = `${-BLEED} ${-BLEED} ${SIZE + BLEED * 2} ${SIZE + BLEED * 2}`;
 
 /**
- * Compact circular progress for sidebar questionnaire continue row.
+ * Compact circular progress for sidebar questionnaire rows (empty track at 0%).
  * @param {{ percent: number }} props
  */
 export default function QuestionnaireProgressRing({ percent }) {
@@ -19,30 +23,32 @@ export default function QuestionnaireProgressRing({ percent }) {
     <View
       accessibilityRole="progressbar"
       accessibilityValue={{ min: 0, max: 100, now: clamped }}
-      style={{ width: SIZE, height: SIZE }}
+      style={{ width: SIZE, height: SIZE, overflow: 'visible' }}
     >
-      <Svg width={SIZE} height={SIZE}>
+      <Svg width={SIZE} height={SIZE} viewBox={VIEW_BOX}>
         <Circle
-          cx={SIZE / 2}
-          cy={SIZE / 2}
+          cx={CENTER}
+          cy={CENTER}
           r={RADIUS}
           stroke={C.border}
           strokeWidth={STROKE}
           fill="none"
         />
-        <Circle
-          cx={SIZE / 2}
-          cy={SIZE / 2}
-          r={RADIUS}
-          stroke={C.progressFill}
-          strokeWidth={STROKE}
-          fill="none"
-          strokeDasharray={`${CIRCUMFERENCE} ${CIRCUMFERENCE}`}
-          strokeDashoffset={offset}
-          strokeLinecap="round"
-          rotation={-90}
-          origin={`${SIZE / 2}, ${SIZE / 2}`}
-        />
+        {clamped > 0 ? (
+          <G transform={`rotate(-90 ${CENTER} ${CENTER})`}>
+            <Circle
+              cx={CENTER}
+              cy={CENTER}
+              r={RADIUS}
+              stroke={C.progressFill}
+              strokeWidth={STROKE}
+              fill="none"
+              strokeDasharray={`${CIRCUMFERENCE} ${CIRCUMFERENCE}`}
+              strokeDashoffset={offset}
+              strokeLinecap="round"
+            />
+          </G>
+        ) : null}
       </Svg>
     </View>
   );

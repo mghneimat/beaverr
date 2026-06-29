@@ -42,6 +42,7 @@ import {
   WALLET_CARDS_NODES,
   SPARKLES_NODES,
   SPLIT_NODES,
+  TRIANGLE_ALERT_NODES,
 } from './lucidePaths';
 
 function lucideNavIcon(nodes) {
@@ -91,6 +92,7 @@ export const ZapIcon = lucideNavIcon(ZAP_NODES);
 export const LockIcon = lucideNavIcon(LOCK_NODES);
 export const SparklesIcon = lucideNavIcon(SPARKLES_NODES);
 export const SplitIcon = lucideNavIcon(SPLIT_NODES);
+export const TriangleAlertIcon = lucideNavIcon(TRIANGLE_ALERT_NODES);
 
 /** Panel + chevron left — collapse sidebar */
 export function SidebarCollapseIcon({ color, size = 18 }) {

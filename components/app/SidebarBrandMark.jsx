@@ -79,7 +79,7 @@ export default function SidebarBrandMark({
             style={{
               fontSize: WORDMARK_FONT_SIZE,
               lineHeight: WORDMARK_LINE_HEIGHT,
-              color: C.primary,
+              color: C.text,
               letterSpacing: -0.3,
             }}
           />

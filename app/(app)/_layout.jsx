@@ -38,7 +38,7 @@ export default function AppLayout() {
         onMobileClose={() => setMobileSidebarOpen(false)}
       />
 
-      <View style={{ flex: 1 }}>
+      <View style={{ flex: 1, backgroundColor: C.bg }}>
         <AppTopNavBar
           showMobileMenu={!isWide}
           onMobileMenuOpen={() => setMobileSidebarOpen(true)}
@@ -50,6 +50,7 @@ export default function AppLayout() {
           screenOptions={{
             headerShown: false,
             animation: 'none',
+            contentStyle: { flex: 1, backgroundColor: C.bg },
           }}
         />
       </View>

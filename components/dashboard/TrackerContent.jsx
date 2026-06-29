@@ -4,7 +4,6 @@ import { buildTrackerPreviews } from '../../lib/trackerPreview';
 import { useDashboardScroll } from '../../lib/dashboardScroll';
 import { useI18n } from '../../lib/i18n';
 import { getTabInsight } from '../../lib/insights';
-import DailySpendLogCard from './DailySpendLogCard';
 import TrackerPaceSplitCard from './TrackerPaceSplitCard';
 import TrackerPeriodCard from './TrackerPeriodCard';
 import MonthEndHistoryList from './MonthEndHistoryList';
@@ -60,7 +59,6 @@ export default function TrackerContent({ bundle, currency }) {
 
   const footerSlot = !cyclesEnabled && monthPreviews ? (
     <>
-      <DailySpendLogCard financials={bundle.financials} currency={currency} />
       <TrackerPaceSplitCard previews={monthPreviews} currency={currency} detailed />
       <TrackerPeriodCard period="monthly" previews={monthPreviews} currency={currency} />
       <MonthEndHistoryList budget={budget} currency={currency} />

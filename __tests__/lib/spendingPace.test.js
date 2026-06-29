@@ -11,6 +11,7 @@ import {
   SPENDING_PACE_AHEAD_IMPORTANT,
   spendingPaceBannerTheme,
   spendingPaceDisplaySpentRatio,
+  buildSpendingPaceMessages,
 } from '../../lib/spendingPace';
 import { computeCyclePace } from '../../lib/cyclePace';
 import { buildTrackerPreviews } from '../../lib/trackerPreview';
@@ -102,6 +103,12 @@ describe('spendingPace', () => {
     expect(spendingPaceBannerTheme('good').textColor).toBe(spendingPaceColor('good'));
     expect(spendingPaceBannerTheme('backfillPending').backgroundColor).toBeDefined();
     expect(spendingPaceBannerTheme('critical').textColor).toBe(spendingPaceColor('critical'));
+  });
+
+  test('buildSpendingPaceMessages returns status summary only', () => {
+    const t = (key) => (key === 'dashboard.spendingPace.good' ? 'On plan' : key);
+    const { lineMessage } = buildSpendingPaceMessages(t, { messageKey: 'good' });
+    expect(lineMessage).toBe('On plan');
   });
 });
 

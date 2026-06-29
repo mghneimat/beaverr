@@ -12,7 +12,8 @@ import { C, S, T } from '../../constants/onboarding-theme';
 import { useDashboardLayout } from '../../lib/dashboardLayout';
 import { webScrollBottomPadding } from '../../lib/safeAreaWeb';
 import PrimaryButton from '../ui/PrimaryButton';
-import SettleCrossfade from '../ui/SettleCrossfade';
+import ContentReveal from '../ui/ContentReveal';
+import DashboardHomeLoadingSkeleton from './DashboardHomeLoadingSkeleton';
 import ActionQueuePreview from './ActionQueuePreview';
 import DashboardPlanOverview from './DashboardPlanOverview';
 import TrackerSnapshotCard from './TrackerSnapshotCard';
@@ -54,7 +55,6 @@ export default function DashboardHome() {
 
   const goTo = (route) => navigateFromDashboard(router, route);
 
-  const viewKey = loading ? 'loading' : error ? 'error' : 'content';
   const data = bundle?.financials;
   const insights = bundle?.insights;
   const currency = data ? getCurrencySymbol(data.currencyCode) : null;
@@ -63,23 +63,20 @@ export default function DashboardHome() {
     : [];
 
   return (
-    <SettleCrossfade animationKey={viewKey} style={{ flex: 1 }}>
+    <>
       {loading ? (
-        <View
-          accessibilityRole="progressbar"
-          accessibilityLabel={t('dashboard.home.loading')}
-          style={{ flex: 1, backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center', padding: S.pagePadH }}
-        >
-          <Text style={{ ...T.helper }}>{t('dashboard.home.loading')}</Text>
-        </View>
+        <DashboardHomeLoadingSkeleton />
       ) : error ? (
-        <View style={{ flex: 1, backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center', padding: S.pagePadH }}>
-          <Text style={{ ...T.helper, textAlign: 'center', marginBottom: 24, maxWidth: 320, color: C.danger }}>
-            {error}
-          </Text>
-          <PrimaryButton onPress={load}>{t('common.retry')}</PrimaryButton>
-        </View>
+        <ContentReveal style={{ flex: 1 }}>
+          <View style={{ flex: 1, backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center', padding: S.pagePadH }}>
+            <Text style={{ ...T.helper, textAlign: 'center', marginBottom: 24, maxWidth: 320, color: C.danger }}>
+              {error}
+            </Text>
+            <PrimaryButton onPress={load}>{t('common.retry')}</PrimaryButton>
+          </View>
+        </ContentReveal>
       ) : !bundle ? null : (
+        <ContentReveal style={{ flex: 1 }}>
         <ScrollView
       style={{ flex: 1, backgroundColor: C.bg, width: '100%', maxWidth: '100%' }}
       contentContainerStyle={{
@@ -128,7 +125,8 @@ export default function DashboardHome() {
         </TabSectionStack>
       </View>
     </ScrollView>
+        </ContentReveal>
       )}
-    </SettleCrossfade>
+    </>
   );
 }

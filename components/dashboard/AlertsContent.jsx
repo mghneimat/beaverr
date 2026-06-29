@@ -9,6 +9,7 @@ import { C, R, T } from '../../constants/onboarding-theme';
 import SurfaceCard from '../ui/SurfaceCard';
 import TabSectionStack from './TabSectionStack';
 import AIInsightSection from './AIInsightSection';
+import DashboardSectionEmptyMessage from './DashboardSectionEmptyMessage';
 
 const URGENCY_COLORS = {
   high: C.danger,
@@ -37,9 +38,10 @@ export default function AlertsContent({ bundle, onRefresh }) {
   if (!active.length) {
     return (
       <SurfaceCard>
-        <Text style={{ ...T.body, color: C.muted, textAlign: 'center' }}>
-          {t('dashboard.alertsScreen.empty')}
-        </Text>
+        <DashboardSectionEmptyMessage
+          message={t('dashboard.alertsScreen.empty')}
+          variant="centered"
+        />
       </SurfaceCard>
     );
   }

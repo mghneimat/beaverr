@@ -1,4 +1,4 @@
-import { isActiveHealthMemberKey, getHealthMemberLabel } from '../../lib/healthMembers';
+import { isActiveHealthMemberKey, getHealthMemberLabel, getSinkingHealthInsuranceName } from '../../lib/healthMembers';
 
 const t = (key) => key;
 
@@ -34,5 +34,17 @@ describe('getHealthMemberLabel', () => {
   it('maps partner and child keys', () => {
     expect(getHealthMemberLabel('partner', {}, t)).toBe('dashboard.recurring.healthPartner');
     expect(getHealthMemberLabel('child_0', { children: [{}] }, t)).toBe('dashboard.recurring.healthChild');
+  });
+});
+
+describe('getSinkingHealthInsuranceName', () => {
+  it('uses partner name without duplicating health insurance', () => {
+    expect(getSinkingHealthInsuranceName('partner', { partnerName: 'Jana' }, t))
+      .toBe('dashboard.savingsScreen.sinkingFund.healthInsuranceNamed');
+  });
+
+  it('uses self label for user key', () => {
+    expect(getSinkingHealthInsuranceName('user', {}, t))
+      .toBe('dashboard.savingsScreen.sinkingFund.healthInsuranceYou');
   });
 });

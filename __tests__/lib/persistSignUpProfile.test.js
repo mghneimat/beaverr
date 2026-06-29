@@ -40,7 +40,12 @@ describe('persistSignUpProfile', () => {
       city: null,
       currency: 'CZK',
     });
-    expect(mockSetData).toHaveBeenCalledWith('beaverr_settings', { language: 'cs', username: 'anna_n' });
+    expect(mockSetData).toHaveBeenCalledWith('beaverr_settings', {
+      language: 'cs',
+      username: 'anna_n',
+      accountFirstName: 'Anna',
+      accountLastName: 'Nová',
+    });
     expect(mockSetLocale).toHaveBeenCalledWith('cs');
   });
 

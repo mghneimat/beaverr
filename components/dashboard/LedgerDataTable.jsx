@@ -8,6 +8,7 @@ import { C, T, tabularNums } from '../../constants/onboarding-theme';
 import InCardSectionHeader from './InCardSectionHeader';
 import SurfaceCard from '../ui/SurfaceCard';
 import { LedgerCardRow, MaytechTableFrame, MaytechTableHeaderBand } from './BreakdownTablePrimitives';
+import DashboardSectionEmptyMessage from './DashboardSectionEmptyMessage';
 
 const ACTION_WIDTH = 52;
 const COLUMN_GAP = 12;
@@ -99,9 +100,7 @@ export default function LedgerDataTable({
         ) : null}
 
         {rows.length === 0 ? (
-          <Text style={{ ...T.helper, textAlign: 'center', paddingVertical: 24, paddingHorizontal: 16 }}>
-            {emptyLabel}
-          </Text>
+          <DashboardSectionEmptyMessage message={emptyLabel} variant="centered" />
         ) : rows.map((row, idx) => {
           const isOpen = expandedId === row.id;
           if (cardMode) {

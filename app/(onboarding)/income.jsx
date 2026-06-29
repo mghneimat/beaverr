@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { View, Text } from 'react-native';
 import OnboardingPressable from '../../components/onboarding/OnboardingPressable';
-import { listRowBg } from '../../components/onboarding/pressableFeedback';
 import { useI18n } from '../../lib/i18n';
 import { navigateBack, navigateForward } from '../../lib/onboardingNavigation';
 import { buildIncomeResumeRoute, persistIncomeDraft } from '../../lib/incomeOnboardingSave';
@@ -15,6 +14,7 @@ import LabeledInput from '../../components/onboarding/LabeledInput';
 import FrequencyPills from '../../components/onboarding/FrequencyPills';
 import InputGroup from '../../components/onboarding/InputGroup';
 import SkipButton from '../../components/onboarding/SkipButton';
+import OnboardingFillItemList from '../../components/onboarding/OnboardingFillItemList';
 import OnboardingCategoryAccordion from '../../components/onboarding/OnboardingCategoryAccordion';
 import OtherIncomeCategoryIcon from '../../components/onboarding/OtherIncomeCategoryIcon';
 import { getOnboardingState } from '../../lib/onboardingProgress';
@@ -224,9 +224,9 @@ export default function IncomeScreen() {
     savingsBalance: savingsBalance ? parseFloat(savingsBalance) : null,
   });
 
-  const saveIncomeSection = async () => {
+  const saveIncomeSection = async (patch = {}) => {
     const existing = (await getData('beaverr_income')) || {};
-    const incomeData = { ...existing, ...buildIncomePayload() };
+    const incomeData = { ...existing, ...buildIncomePayload(), ...patch };
     const quickMode = isQuickSetupMode(await getOnboardingState());
 
     await completeSection({
@@ -730,52 +730,20 @@ export default function IncomeScreen() {
           </>
         ) : (
           <>
-            {otherIncomeRows.length > 1 ? (
-              <Text style={{ ...T.helper, color: C.muted, marginBottom: 16 }}>
-                {t('onboarding.income.otherIncome.fillProgress', {
-                  current: activeOtherIdx + 1,
-                  total: otherIncomeRows.length,
-                })}
-              </Text>
-            ) : null}
-
             {showTabs ? (
-              <View style={{
-                flexDirection: 'row',
-                borderRadius: R.input,
-                borderWidth: 1,
-                borderColor: C.border,
-                overflow: 'hidden',
-                marginBottom: 20,
-              }}>
-                {otherIncomeRows.map((row, idx) => (
-                  <OnboardingPressable
-                    key={row.id}
-                    onPress={() => {
-                      setActiveOtherIdx(idx);
-                      setOtherFieldErrors({});
-                    }}
-                    style={({ pressed, hovered }) => ({
-                      flex: 1,
-                      paddingVertical: 10,
-                      paddingHorizontal: 8,
-                      backgroundColor: listRowBg({ pressed, hovered, selected: activeOtherIdx === idx }),
-                      alignItems: 'center',
-                    })}
-                  >
-                    <Text
-                      numberOfLines={1}
-                      style={{
-                        fontSize: 13,
-                        fontWeight: '500',
-                        color: activeOtherIdx === idx ? C.primary : C.muted,
-                      }}
-                    >
-                      {otherIncomeDisplayName(row, t)}
-                    </Text>
-                  </OnboardingPressable>
-                ))}
-              </View>
+              <OnboardingFillItemList
+                label={t('common.fillSectionItemsLabel')}
+                items={otherIncomeRows}
+                getItemKey={(row) => row.id}
+                getItemLabel={(row) => otherIncomeDisplayName(row, t)}
+                activeIndex={activeOtherIdx}
+                onSelectIndex={(idx) => {
+                  setActiveOtherIdx(idx);
+                  setOtherFieldErrors({});
+                }}
+                getItemComplete={(row) => getValidOtherIncomeRows([row]).length === 1}
+                getItemHasError={(row) => Object.keys(otherRowErrors(row.id)).length > 0}
+              />
             ) : null}
 
             {activeRow ? renderOtherFillForm(activeRow) : null}
@@ -813,6 +781,15 @@ export default function IncomeScreen() {
             currency={currency}
           />
         </InputGroup>
+
+        <SkipButton
+          label={t('onboarding.income.savings.skip')}
+          onPress={async () => {
+            setValidationError('');
+            setSavingsBalance('');
+            await saveIncomeSection({ savingsBalance: null });
+          }}
+        />
 
       </QuestionScreen>
     );

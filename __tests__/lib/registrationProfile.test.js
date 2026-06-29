@@ -66,6 +66,26 @@ describe('registrationProfile', () => {
     });
   });
 
+  it('merges explicit settings names with split display name when one part is missing', async () => {
+    mockGetData.mockImplementation(async (key) => {
+      if (key === 'beaverr_household') {
+        return { type: 'solo', displayName: 'Test Account 1', children: [] };
+      }
+      if (key === 'beaverr_settings') {
+        return { language: 'en', username: 'tester1', accountLastName: 'Account 1' };
+      }
+      return null;
+    });
+
+    const fields = await loadAccountRegistrationFields('user-1');
+
+    expect(fields).toEqual({
+      firstName: 'Test',
+      lastName: 'Account 1',
+      username: 'tester1',
+    });
+  });
+
   it('loads preference fields from location and settings', async () => {
     const fields = await loadPreferenceRegistrationFields();
 
@@ -86,6 +106,11 @@ describe('registrationProfile', () => {
     expect(mockClaimProfileUsername).not.toHaveBeenCalled();
     expect(mockSetData).toHaveBeenCalledWith('beaverr_household', expect.objectContaining({
       displayName: 'Anna Smith',
+    }));
+    expect(mockSetData).toHaveBeenCalledWith('beaverr_settings', expect.objectContaining({
+      username: 'anna_n',
+      accountFirstName: 'Anna',
+      accountLastName: 'Smith',
     }));
     expect(mockNotifyDashboardRefresh).toHaveBeenCalled();
   });

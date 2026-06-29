@@ -13,6 +13,7 @@ import {
 } from '../../lib/motion';
 import { useReducedMotion } from '../../lib/useReducedMotion';
 import { useTheme } from '../../lib/theme';
+import { C } from '../../constants/onboarding-theme';
 import SettleCrossfade from '../ui/SettleCrossfade';
 
 /**
@@ -80,7 +81,7 @@ export default function AppScreenShell({
   );
 
   return (
-    <Animated.View style={[{ flex: 1 }, style, animatedStyle]}>
+    <Animated.View style={[{ flex: 1, backgroundColor: C.bg }, style, animatedStyle]}>
       {inner}
     </Animated.View>
   );

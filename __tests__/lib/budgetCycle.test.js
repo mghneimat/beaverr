@@ -83,7 +83,7 @@ describe('budgetCycle', () => {
       { date: '2026-06-10', spent: 0, status: 'confirmed', cycleId: 'c1' },
     ];
     const now = new Date(2026, 5, 12);
-    const missing = missingDaysInCycle(cycle, logs, now);
+    const missing = missingDaysInCycle(cycle, logs, undefined, now);
     expect(missing).toContain('2026-06-11');
     expect(missing).not.toContain('2026-06-10');
   });

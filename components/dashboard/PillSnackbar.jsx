@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useState } from 'react';
 import { View, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from '@gluestack-ui/themed';
@@ -10,7 +10,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useI18n } from '../../lib/i18n';
 import { subscribeDashboardToast } from '../../lib/dashboardToast';
-import { C, R, T } from '../../constants/onboarding-theme';
+import { C, R } from '../../constants/onboarding-theme';
 import { DASHBOARD_MOTION_DURATION_FAST, DASHBOARD_MOTION_EASE } from '../../lib/dashboardMotion';
 import { useReducedMotion } from '../../lib/useReducedMotion';
 import { elevationShadow } from '../../lib/shadow';
@@ -31,7 +31,7 @@ export default function PillSnackbar() {
     setToast(payload);
   }), []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!toast) {
       progress.value = 0;
       return undefined;
@@ -66,35 +66,40 @@ export default function PillSnackbar() {
     ],
   }));
 
-  if (!toast) return null;
+  const label = toast ? t(`dashboard.toast.${toast.kind}`) : '';
 
-  const label = t(`dashboard.toast.${toast.kind}`);
+  if (!toast) return null;
 
   return (
     <View
+      pointerEvents="box-none"
       style={{
-        position: 'absolute',
+        position: Platform.OS === 'web' ? 'fixed' : 'absolute',
         left: 0,
         right: 0,
-        bottom: Math.max(24, insets.bottom),
+        top: 0,
+        bottom: 0,
+        justifyContent: 'flex-end',
         alignItems: 'center',
-        zIndex: 1000,
-        pointerEvents: 'box-none',
-        ...(Platform.OS === 'web' ? { position: 'fixed' } : {}),
+        paddingBottom: Math.max(24, insets.bottom),
+        zIndex: 10000,
+        ...(Platform.OS === 'web' ? { cursor: 'default' } : null),
       }}
     >
       <Animated.View
+        pointerEvents="none"
         accessibilityRole="alert"
         accessibilityLiveRegion="polite"
         style={[{
           paddingVertical: 10,
           paddingHorizontal: 22,
           borderRadius: R.pill,
-          backgroundColor: C.pillSelectedBg,
+          backgroundColor: C.selectedBg,
+          maxWidth: '92%',
           ...elevationShadow({ offsetY: 6, blur: 16, opacity: 0.16 }),
         }, animStyle]}
       >
-        <Text style={{ fontSize: 14, fontWeight: '600', color: C.pillSelectedText, lineHeight: 18 }}>
+        <Text style={{ fontSize: 14, fontWeight: '600', color: C.selectedText, lineHeight: 18 }}>
           {label}
         </Text>
       </Animated.View>

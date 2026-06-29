@@ -6,7 +6,6 @@ import { C, applyActiveTheme } from '../../constants/onboarding-theme';
 import { getUiPreferences, setUiPreferences } from '../uiPreferences';
 import { hideWebBootLoader } from '../bootLoader';
 import { createGluestackConfig } from '../../gluestack-ui.config';
-import ThemeSettleTransition from './ThemeSettleTransition';
 
 /** @typedef {'light' | 'dark'} ColorScheme */
 
@@ -28,19 +27,14 @@ export function useColors() {
 }
 
 /**
- * Subscribes to theme and renders the app shell so every toggle re-renders the tree.
+ * Subscribes to theme context so the shell re-renders on palette apply.
  */
-function ThemeShell({ mode, targetMode, onApplyMode }) {
+function ThemeShell() {
   useTheme();
   return (
-    <ThemeSettleTransition
-      targetMode={targetMode}
-      appliedMode={mode}
-      onApplyMode={onApplyMode}
-      style={{ flex: 1, backgroundColor: C.bg }}
-    >
+    <View style={{ flex: 1, backgroundColor: C.bg }}>
       <AppProviders />
-    </ThemeSettleTransition>
+    </View>
   );
 }
 
@@ -49,7 +43,6 @@ function ThemeShell({ mode, targetMode, onApplyMode }) {
  */
 export function ThemeProvider() {
   const [mode, setModeState] = useState('light');
-  const [targetMode, setTargetMode] = useState('light');
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -61,7 +54,6 @@ export function ThemeProvider() {
         const initial = prefs.colorScheme === 'dark' ? 'dark' : 'light';
         applyActiveTheme(initial);
         setModeState(initial);
-        setTargetMode(initial);
         setReady(true);
         hideWebBootLoader();
       } catch (err) {
@@ -71,17 +63,12 @@ export function ThemeProvider() {
     return () => { mounted = false; };
   }, []);
 
-  const applyMode = useCallback(async (scheme) => {
-    applyActiveTheme(scheme);
-    setModeState(scheme);
-    setTargetMode(scheme);
-    await setUiPreferences({ colorScheme: scheme });
-  }, []);
-
   const setMode = useCallback((next) => {
     const scheme = next === 'dark' ? 'dark' : 'light';
     if (scheme === mode) return;
-    setTargetMode(scheme);
+    applyActiveTheme(scheme);
+    setModeState(scheme);
+    void setUiPreferences({ colorScheme: scheme });
   }, [mode]);
 
   const toggleMode = useCallback(() => {
@@ -90,13 +77,12 @@ export function ThemeProvider() {
 
   const value = useMemo(() => ({
     mode,
-    targetMode,
     colors: C,
-    isDark: targetMode === 'dark',
+    isDark: mode === 'dark',
     setMode,
     toggleMode,
     ready,
-  }), [mode, targetMode, setMode, toggleMode, ready]);
+  }), [mode, setMode, toggleMode, ready]);
 
   const gluestackConfig = useMemo(() => createGluestackConfig(C), [mode]);
 
@@ -109,7 +95,7 @@ export function ThemeProvider() {
   return (
     <ThemeContext.Provider value={value}>
       <GluestackUIProvider config={gluestackConfig}>
-        <ThemeShell mode={mode} targetMode={targetMode} onApplyMode={applyMode} />
+        <ThemeShell />
       </GluestackUIProvider>
     </ThemeContext.Provider>
   );

@@ -252,7 +252,7 @@ export default function CycleAdjustmentSheet({
             ) : null}
 
             <View style={{ flexDirection: 'row', gap: 10, marginTop: 8 }}>
-              <OutlineButton onPress={handleClose} style={{ flex: 1 }} disabled={saving}>
+              <OutlineButton onPress={handleClose} style={{ flex: 1 }} disabled={saving} destructive>
                 {t('common.cancel')}
               </OutlineButton>
               <PrimaryButton onPress={handleSave} disabled={saving} style={{ flex: 1 }}>

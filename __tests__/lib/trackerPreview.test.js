@@ -17,7 +17,7 @@ describe('buildTrackerPreviews', () => {
       effectiveMonthlyFlexible: 30000,
       dailyLogs: [
         { date: '2026-06-08', spent: 500 },
-        { date: '2026-06-07', spent: 300 },
+        { date: '2026-06-09', spent: 300 },
       ],
       now: new Date(2026, 5, 8),
     });

@@ -27,11 +27,6 @@ import AnimatedGoalStatusChip from './AnimatedGoalStatusChip';
 const ICON_SIZE = 16;
 const ACTION_HIT = 40;
 const CARD_ACTION_INSET = 12;
-const LINKED_TAB_COLOR = C.positive;
-const UNLINKED_TAB_COLOR = C.danger;
-const COMPLETED_LINK_COLOR = C.muted;
-const EDIT_ICON_COLOR = C.primary;
-const RESET_ICON_COLOR = C.muted;
 
 function goalIconForType(type) {
   switch (type) {
@@ -344,9 +339,9 @@ export default function GoalGridTile({
                     : t('dashboard.goalsScreen.funding.setupA11y', { name: goal.name })}
                 >
                   {hasFundingRules ? (
-                    <Link2Icon color={LINKED_TAB_COLOR} size={16} />
+                    <Link2Icon color={C.positive} size={16} />
                   ) : (
-                    <Unlink2Icon color={UNLINKED_TAB_COLOR} size={16} />
+                    <Unlink2Icon color={C.danger} size={16} />
                   )}
                 </CardIconButton>
               ) : null}
@@ -356,14 +351,14 @@ export default function GoalGridTile({
                     onPress={() => onResetPress?.(goal)}
                     accessibilityLabel={t('dashboard.goalsScreen.reset.a11y', { name: goal.name })}
                   >
-                    <RotateCwIcon color={RESET_ICON_COLOR} size={16} />
+                    <RotateCwIcon color={C.muted} size={16} />
                   </CardIconButton>
                 ) : (
                   <CardIconButton
                     disabled
                     accessibilityLabel={t('dashboard.goalsScreen.reset.disabledA11y', { name: goal.name })}
                   >
-                    <RotateCwIcon color={COMPLETED_LINK_COLOR} size={16} />
+                    <RotateCwIcon color={C.muted} size={16} />
                   </CardIconButton>
                 )
               ) : null}
@@ -372,7 +367,7 @@ export default function GoalGridTile({
               disabled
               accessibilityLabel={t('dashboard.goalsScreen.funding.linkDisabledA11y', { name: goal.name })}
             >
-              <Link2OffIcon color={COMPLETED_LINK_COLOR} size={16} />
+              <Link2OffIcon color={C.muted} size={16} />
             </CardIconButton>
           ) : null}
               {showEditAction ? (
@@ -380,7 +375,7 @@ export default function GoalGridTile({
                   onPress={() => onEdit?.(goal)}
                   accessibilityLabel={t('dashboard.goalsScreen.editA11y', { name: goal.name })}
                 >
-                  <SquarePenIcon color={EDIT_ICON_COLOR} size={16} />
+                  <SquarePenIcon color={C.text} size={16} />
                 </CardIconButton>
               ) : null}
             </View>

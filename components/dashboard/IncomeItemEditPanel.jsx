@@ -90,7 +90,7 @@ export default function IncomeItemEditPanel({ row, currency, currencyCode, onDon
       ) : null}
 
       <View style={{ flexDirection: 'row', gap: 10 }}>
-        <OutlineButton onPress={onCancel} style={{ flex: 1 }} disabled={saving}>
+        <OutlineButton onPress={onCancel} style={{ flex: 1 }} disabled={saving} destructive>
           {t('common.cancel')}
         </OutlineButton>
         <View style={{ flex: 1 }}>

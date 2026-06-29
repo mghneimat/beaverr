@@ -98,7 +98,7 @@ function ChoicePill({ label, selected, onPress, stacked = false }) {
  * Yes / No choice.
  * @param {boolean|null|undefined} value — when allowUnset, null means neither selected
  * @param {boolean} [allowUnset=false] — keep pills empty until the user taps
- * @param {'default'|'segment'|'inline'} [variant='default'] — inline = compact row toggles (Yes first)
+ * @param {'default'|'segment'|'inline'} [variant='segment'] — segment = inset track (not CTA-style); default = full blue pills
  */
 export default function YesNoToggle({
   value,
@@ -107,7 +107,7 @@ export default function YesNoToggle({
   noLabel,
   containerStyle,
   allowUnset = false,
-  variant = 'default',
+  variant = 'segment',
 }) {
   const { t } = useI18n();
   const clearValidation = useClearOnboardingValidation();

@@ -44,7 +44,6 @@ import {
 
 const DELETE_ICON_COLOR = '#D14040';
 const TAB_PLUS_SIZE = 16;
-const TAB_INACTIVE_TEXT = C.primary;
 const STASH_ICON_SIZE = 18;
 
 function TabPlusIcon({ color }) {
@@ -85,8 +84,8 @@ function AddNewLinkChip({ label, accessibilityLabel, onPress }) {
         ...(Platform.OS === 'web' ? { cursor: 'pointer' } : {}),
       })}
     >
-      <TabPlusIcon color={TAB_INACTIVE_TEXT} />
-      <Text style={{ ...T.pillLabel, fontSize: 13, fontWeight: '600', color: TAB_INACTIVE_TEXT }}>
+      <TabPlusIcon color={C.text} />
+      <Text style={{ ...T.pillLabel, fontSize: 13, fontWeight: '600', color: C.text }}>
         {label}
       </Text>
     </Pressable>
@@ -637,7 +636,7 @@ export default function GoalFundingSheet({
                 ) : null}
                 <View style={{ flexDirection: 'row', gap: 12, marginTop: 8 }}>
                   <View style={{ flex: 1 }}>
-                    <OutlineButton onPress={handleCancelPress} disabled={saving}>
+                    <OutlineButton onPress={handleCancelPress} disabled={saving} destructive>
                       {t('common.cancel')}
                     </OutlineButton>
                   </View>
@@ -755,7 +754,7 @@ export default function GoalFundingSheet({
 
                 <View style={{ flexDirection: 'row', gap: 12, marginTop: 20 }}>
                   <View style={{ flex: 1 }}>
-                    <OutlineButton onPress={handleCancelPress} disabled={saving}>
+                    <OutlineButton onPress={handleCancelPress} disabled={saving} destructive>
                       {t('common.cancel')}
                     </OutlineButton>
                   </View>

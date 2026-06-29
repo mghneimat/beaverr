@@ -8,6 +8,7 @@ import {
   getDiscardConfirmMessage,
   saveOnboardingForLater,
 } from '../../lib/onboardingExit';
+import { emitDashboardToastAfterNavigation } from '../../lib/dashboardToast';
 import SkipButton from './SkipButton';
 
 /**
@@ -33,6 +34,7 @@ export default function OnboardingExitActions({
     if (disabled) return;
     await saveOnboardingForLater({ resumeRoute, patch, onSaveDraft });
     router.replace('/(app)/dashboard');
+    emitDashboardToastAfterNavigation('questionnaireProgressSaved');
   };
 
   const openDiscardDialog = async () => {
@@ -52,6 +54,7 @@ export default function OnboardingExitActions({
       await discardOnboardingProgress();
       setDiscardOpen(false);
       router.replace('/(app)/dashboard');
+      emitDashboardToastAfterNavigation('questionnaireProgressDeleted');
     } finally {
       setDiscarding(false);
     }

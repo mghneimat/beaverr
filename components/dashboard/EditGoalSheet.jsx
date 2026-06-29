@@ -171,7 +171,7 @@ export default function EditGoalSheet({ visible, goal, currency, onClose }) {
 
       <View style={[footerStyle, { flexDirection: 'row', gap: 12, marginTop: 8 }]}>
         <View style={{ flex: 1 }}>
-          <OutlineButton onPress={onClose} disabled={saving}>
+          <OutlineButton onPress={onClose} disabled={saving} destructive>
             {t('common.cancel')}
           </OutlineButton>
         </View>

@@ -7,10 +7,10 @@ import { C, R, T } from '../../constants/onboarding-theme';
 import SurfaceCard from '../ui/SurfaceCard';
 import InCardSectionHeader from './InCardSectionHeader';
 import GoalGridTile from './GoalGridTile';
+import DashboardSectionEmptyMessage from './DashboardSectionEmptyMessage';
 
 const QUAD_GRID_ITEM = { width: '47%', flexGrow: 1, flexBasis: '45%', alignSelf: 'stretch' };
 const TAB_PLUS_SIZE = 16;
-const TAB_INACTIVE_TEXT = C.primary;
 
 function TabPlusIcon({ color }) {
   return (
@@ -50,8 +50,8 @@ function AddGoalChip({ label, accessibilityLabel, onPress }) {
         ...(Platform.OS === 'web' ? { cursor: 'pointer' } : {}),
       })}
     >
-      <TabPlusIcon color={TAB_INACTIVE_TEXT} />
-      <Text style={{ ...T.pillLabel, fontSize: 13, fontWeight: '600', color: TAB_INACTIVE_TEXT }}>
+      <TabPlusIcon color={C.text} />
+      <Text style={{ ...T.pillLabel, fontSize: 13, fontWeight: '600', color: C.text }}>
         {label}
       </Text>
     </Pressable>
@@ -70,6 +70,10 @@ export default function GoalsCategorySection({
   onResetPress,
   showAddGoal,
   onAddGoal,
+  addGoalLabel,
+  addGoalA11y,
+  alwaysShow = false,
+  emptyMessage,
 }) {
   const { t } = useI18n();
   const { isPhone } = useDashboardLayout();
@@ -77,7 +81,8 @@ export default function GoalsCategorySection({
     ? { width: '100%', flexBasis: '100%', alignSelf: 'stretch' }
     : QUAD_GRID_ITEM;
 
-  if (!goals?.length) return null;
+  const hasGoals = (goals?.length || 0) > 0;
+  if (!hasGoals && !alwaysShow) return null;
 
   return (
     <SurfaceCard>
@@ -85,28 +90,32 @@ export default function GoalsCategorySection({
         title={title}
         trailing={showAddGoal ? (
           <AddGoalChip
-            label={t('dashboard.goalsScreen.addGoal')}
-            accessibilityLabel={t('dashboard.goalsScreen.addGoalA11y')}
+            label={addGoalLabel || t('dashboard.goalsScreen.addGoal')}
+            accessibilityLabel={addGoalA11y || t('dashboard.goalsScreen.addGoalA11y')}
             onPress={onAddGoal}
           />
         ) : undefined}
       />
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, paddingBottom: 4, alignItems: 'stretch' }}>
-        {goals.map((goal) => (
-          <View key={goal.id} style={gridItemStyle}>
-            <GoalGridTile
-              goal={goal}
-              currency={currency}
-              financials={financials}
-              onEdit={onEdit}
-              onSetDeadline={onSetDeadline}
-              onArchive={onArchive}
-              onFundingPress={onFundingPress}
-              onResetPress={onResetPress}
-            />
-          </View>
-        ))}
-      </View>
+      {hasGoals ? (
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, paddingBottom: 4, alignItems: 'stretch' }}>
+          {goals.map((goal) => (
+            <View key={goal.id} style={gridItemStyle}>
+              <GoalGridTile
+                goal={goal}
+                currency={currency}
+                financials={financials}
+                onEdit={onEdit}
+                onSetDeadline={onSetDeadline}
+                onArchive={onArchive}
+                onFundingPress={onFundingPress}
+                onResetPress={onResetPress}
+              />
+            </View>
+          ))}
+        </View>
+      ) : (
+        <DashboardSectionEmptyMessage message={emptyMessage} />
+      )}
     </SurfaceCard>
   );
 }

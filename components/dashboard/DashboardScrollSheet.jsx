@@ -1,5 +1,7 @@
 import { View, Modal, Pressable, ScrollView, Platform, useWindowDimensions } from 'react-native';
-import { C, R, S } from '../../constants/onboarding-theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { C, R } from '../../constants/onboarding-theme';
+import { useDashboardLayout } from '../../lib/dashboardLayout';
 import { PHONE_MAX } from '../../lib/layoutBreakpoints';
 
 const SHEET_PAD = 20;
@@ -17,10 +19,14 @@ export default function DashboardScrollSheet({
   scrollEnabled = true,
   closeA11yLabel,
   contentContainerStyle,
-  overlayPadding = S.pagePadH,
+  overlayPadding,
 }) {
   const { width } = useWindowDimensions();
+  const { pagePadH, isPhone } = useDashboardLayout();
+  const insets = useSafeAreaInsets();
   const isPhoneWeb = Platform.OS === 'web' && width < PHONE_MAX;
+  const horizontalPad = overlayPadding ?? pagePadH;
+  const verticalPad = overlayPadding ?? pagePadH;
 
   return (
     <Modal
@@ -33,9 +39,11 @@ export default function DashboardScrollSheet({
       <View
         style={{
           flex: 1,
-          justifyContent: 'center',
+          justifyContent: isPhone ? 'flex-end' : 'center',
           alignItems: 'center',
-          padding: overlayPadding,
+          paddingHorizontal: horizontalPad,
+          paddingTop: Math.max(verticalPad, insets.top),
+          paddingBottom: Math.max(verticalPad, insets.bottom),
         }}
       >
         <Pressable
@@ -71,7 +79,7 @@ export default function DashboardScrollSheet({
             showsVerticalScrollIndicator={!isPhoneWeb}
             {...(Platform.OS === 'web' ? { className: 'dashboard-sheet-scroll' } : {})}
             contentContainerStyle={[
-              { padding: SHEET_PAD },
+              { padding: isPhone ? 16 : SHEET_PAD },
               contentContainerStyle,
             ]}
           >

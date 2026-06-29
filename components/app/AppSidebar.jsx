@@ -22,20 +22,18 @@ import { navigateAppTab, resolveActiveAppTab } from '../../lib/screenTransition'
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useI18n } from '../../lib/i18n';
 import { getUiPreferences, setUiPreferences } from '../../lib/uiPreferences';
-import { snapshotQuestionnaireForRetake } from '../../lib/onboardingExit';
 import {
   getOnboardingState,
   isTabLockedForQuickSetup,
-  getResumeRoute,
   getQuestionnairePercent,
-  getQuestionnaireStartRoute,
   shouldShowContinueQuestionnaire,
-  shouldShowQuestionnaireContinueSoft,
   shouldShowStartQuestionnaire,
   shouldShowRetakeQuestionnaire,
-  patchOnboardingState,
-  QUICK_RESUME_ROUTE,
 } from '../../lib/onboardingProgress';
+import {
+  resolveContinueQuestionnaireRoute,
+  resolveStartQuestionnaireRoute,
+} from '../../lib/questionnaireDashboardNav';
 import QuestionnaireProgressRing from './QuestionnaireProgressRing';
 import { subscribeDashboardRefresh } from '../../lib/dashboardRefresh';
 import { useReducedMotion } from '../../lib/useReducedMotion';
@@ -88,6 +86,8 @@ const NAV_SECTION_LABEL_H = 44;
 const TOOLS_SECTION_LABEL_H = 44;
 const LOCK_ICON_SIZE = 14;
 const LOCK_SLOT_RIGHT = 10;
+const TRAILING_RING_SIZE = 18;
+const TRAILING_RING_SLOT = TRAILING_RING_SIZE + 8;
 
 const NAV_ITEMS = [
   { name: 'dashboard', labelKey: 'dashboard.title', Icon: DashboardIcon },
@@ -153,6 +153,11 @@ const SidebarNavRow = memo(function SidebarNavRow({
         : C.text;
   const a11yLabel = accessibilityLabel ?? label;
   const collapsedIconRail = showTooltip;
+  const labelRightInset = locked && !collapsedIconRail
+    ? LOCK_SLOT_RIGHT + LOCK_ICON_SIZE + 8
+    : trailing && !collapsedIconRail
+      ? TRAILING_RING_SLOT
+      : 8;
 
   return (
     <AnimatedPressable
@@ -203,7 +208,7 @@ const SidebarNavRow = memo(function SidebarNavRow({
             {
               position: 'absolute',
               left: LABEL_LEFT,
-              right: locked && !collapsedIconRail ? LOCK_SLOT_RIGHT + LOCK_ICON_SIZE + 8 : 8,
+              right: labelRightInset,
               top: 0,
               bottom: 0,
               justifyContent: 'center',
@@ -225,7 +230,11 @@ const SidebarNavRow = memo(function SidebarNavRow({
           </Text>
         </Animated.View>
       ) : (
-        <View style={{ flex: 1, marginLeft: 4, marginRight: locked ? LOCK_SLOT_RIGHT + LOCK_ICON_SIZE + 4 : 0 }}>
+        <View style={{
+          flex: 1,
+          marginLeft: 4,
+          marginRight: locked ? LOCK_SLOT_RIGHT + LOCK_ICON_SIZE + 4 : trailing ? TRAILING_RING_SLOT - 4 : 0,
+        }}>
           <Text
             numberOfLines={1}
             style={{
@@ -257,7 +266,25 @@ const SidebarNavRow = memo(function SidebarNavRow({
           <LockIcon color={C.primary} size={LOCK_ICON_SIZE} />
         </View>
       ) : null}
-      {trailing}
+      {trailing ? (
+        <View
+          pointerEvents="none"
+          accessibilityElementsHidden
+          importantForAccessibility="no"
+          style={{
+            position: 'absolute',
+            right: LOCK_SLOT_RIGHT,
+            top: 0,
+            bottom: 0,
+            justifyContent: 'center',
+            alignItems: 'center',
+            width: TRAILING_RING_SIZE + 4,
+            overflow: 'visible',
+          }}
+        >
+          {trailing}
+        </View>
+      ) : null}
     </AnimatedPressable>
   );
 });
@@ -521,14 +548,9 @@ export default function AppSidebar({ mobileOpen = false, onMobileClose }) {
   };
 
   const handleRetakeQuestionnaire = async () => {
-    await snapshotQuestionnaireForRetake();
-    await patchOnboardingState({
-      completed: false,
-      questionnaireComplete: false,
-      resumeRoute: QUICK_RESUME_ROUTE,
-    });
+    const route = await resolveStartQuestionnaireRoute();
     if (!isWide && onMobileClose) onMobileClose();
-    setTimeout(() => router.push('/(onboarding)/welcome'), isWide ? 0 : 240);
+    setTimeout(() => router.push(route), isWide ? 0 : 240);
   };
 
   const handleLanguagePress = () => {
@@ -571,15 +593,22 @@ export default function AppSidebar({ mobileOpen = false, onMobileClose }) {
     );
   };
 
-  const handleContinueQuestionnaire = () => {
-    router.push(getResumeRoute(onboardingState));
+  const handleContinueQuestionnaire = async () => {
+    const route = await resolveContinueQuestionnaireRoute();
+    if (!route) return;
+    router.push(route);
     if (!isWide && onMobileClose) onMobileClose();
   };
 
-  const handleStartQuestionnaire = () => {
-    router.push(getQuestionnaireStartRoute(onboardingState));
+  const handleStartQuestionnaire = async () => {
+    const route = await resolveStartQuestionnaireRoute();
+    router.push(route);
     if (!isWide && onMobileClose) onMobileClose();
   };
+
+  const questionnaireProgressTrailing = (
+    <QuestionnaireProgressRing percent={getQuestionnairePercent(onboardingState)} />
+  );
 
   const lockedTabDialog = (
     <ConfirmDialog
@@ -675,9 +704,7 @@ export default function AppSidebar({ mobileOpen = false, onMobileClose }) {
             labelAnimatedStyle={isWide ? labelClipStyle : undefined}
             rowCollapseAnimatedStyle={rowCollapseStyle}
             showTooltip={isWide && collapsed}
-            trailing={shouldShowQuestionnaireContinueSoft(onboardingState) ? (
-              <QuestionnaireProgressRing percent={getQuestionnairePercent(onboardingState)} />
-            ) : null}
+            trailing={questionnaireProgressTrailing}
           />
         ) : null}
 
@@ -691,6 +718,7 @@ export default function AppSidebar({ mobileOpen = false, onMobileClose }) {
             labelAnimatedStyle={isWide ? labelClipStyle : undefined}
             rowCollapseAnimatedStyle={rowCollapseStyle}
             showTooltip={isWide && collapsed}
+            trailing={questionnaireProgressTrailing}
           />
         ) : null}
 

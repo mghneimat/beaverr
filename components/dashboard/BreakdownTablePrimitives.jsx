@@ -28,6 +28,17 @@ const CARD_ROW_PAD_H = 14;
 const PILL_NAME_FLEX = 1.2;
 const PILL_SHARE_FLEX = 0.85;
 const PILL_AMOUNT_FLEX = 1.05;
+
+/**
+ * @param {{ colKey: string, selected: boolean, labelColor: string, metaColor: string, tone?: 'positive'|'danger' }} opts
+ */
+export function ledgerValueCellColor({ colKey, selected, labelColor, metaColor, tone }) {
+  if (selected) return labelColor;
+  if (tone === 'positive') return C.positive;
+  if (tone === 'danger') return C.danger;
+  if (colKey === 'amount') return C.primary;
+  return metaColor;
+}
 const PILL_SCROLL_NAME_W = 140;
 
 function pillNameColumnProps(scrollLayout) {
@@ -166,6 +177,7 @@ function ledgerCardShellStyle({ index, selected, pressed, hovered }) {
 export function LedgerCardRow({
   columns,
   cells = {},
+  cellTones = {},
   renderCell,
   index = 0,
   selected = false,
@@ -185,7 +197,7 @@ export function LedgerCardRow({
 
   const labelColor = selected ? C.pillSelectedText : C.text;
   const metaColor = selected ? 'rgba(255,255,255,0.78)' : C.muted;
-  const valueColor = selected ? C.pillSelectedText : C.primary;
+  const valueColor = selected ? C.pillSelectedText : C.text;
 
   const content = (
     <View style={{ gap: 8 }}>
@@ -201,7 +213,7 @@ export function LedgerCardRow({
             style={{
               fontSize: 15,
               fontWeight: '700',
-              color: selected ? C.pillSelectedText : C.primary,
+              color: selected ? C.pillSelectedText : C.text,
               flexShrink: 0,
               ...tabularNums,
             }}
@@ -236,7 +248,13 @@ export function LedgerCardRow({
                   style={{
                     fontSize: 14,
                     fontWeight: col.key === 'amount' ? '700' : '500',
-                    color: valueColor,
+                    color: ledgerValueCellColor({
+                      colKey: col.key,
+                      selected,
+                      labelColor,
+                      metaColor: valueColor,
+                      tone: cellTones[col.key],
+                    }),
                     textAlign: 'right',
                     ...tabularNums,
                   }}
@@ -333,7 +351,7 @@ function pillRowColors({ index, selected, pressed, hovered }) {
     bg,
     label: C.text,
     meta: C.muted,
-    amount: C.primary,
+    amount: C.text,
   };
 }
 
@@ -586,6 +604,68 @@ export function BreakdownPillRow({
       )}
     </Pressable>
     </Animated.View>
+  );
+}
+
+/** Highlighted total row — same column grid as BreakdownPillRow for aligned amount/share. */
+export function BreakdownPillTotalRow({
+  label,
+  amount,
+  share,
+  amountColMinW,
+  shareColMinW,
+  amountColor = C.text,
+  scrollLayout = false,
+}) {
+  return (
+    <View style={{
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: PILL_ROW_GAP,
+      paddingVertical: 12,
+      paddingHorizontal: 14,
+      minHeight: 52,
+      borderRadius: R.pill,
+      backgroundColor: C.bg,
+      width: '100%',
+    }}
+    >
+      <View style={{ width: PILL_ICON_SLOT, flexShrink: 0 }} />
+      <BreakdownCell {...pillNameColumnProps(scrollLayout)}>
+        <Text style={{ fontSize: 15, fontWeight: '700', color: C.text, textAlign: 'left', width: '100%' }} numberOfLines={2}>
+          {label}
+        </Text>
+      </BreakdownCell>
+      <BreakdownCell {...pillAmountColumnProps(scrollLayout, amountColMinW)}>
+        <Text style={{
+          fontSize: 15,
+          fontWeight: '700',
+          color: amountColor,
+          textAlign: 'right',
+          width: '100%',
+          ...tabularNums,
+        }}
+        numberOfLines={1}
+        >
+          {amount}
+        </Text>
+      </BreakdownCell>
+      <BreakdownCell {...pillShareColumnProps(scrollLayout, shareColMinW)}>
+        <Text style={{
+          fontSize: 13,
+          fontWeight: '500',
+          color: C.muted,
+          textAlign: 'center',
+          width: '100%',
+          ...tabularNums,
+        }}
+        numberOfLines={1}
+        >
+          {share}
+        </Text>
+      </BreakdownCell>
+      <View style={{ width: PILL_CHEVRON_SLOT, flexShrink: 0 }} />
+    </View>
   );
 }
 

@@ -169,6 +169,8 @@
     "quarterly": "Čtvrtletně",
     "annual": "Ročně",
     "frequency": "Frekvence",
+    "sectionOfTotal": "Sekce {{current}} z {{total}}",
+    "fillSectionItemsLabel": "V této sekci",
     "custom": "Vlastní",
     "optional": "volitelné",
     "datePicker": {
@@ -252,9 +254,9 @@
       "discard": "Zahodit postup",
       "discardShort": "Zahodit",
       "discardTitle": "Zahodit tento postup?",
-      "discardMessageFirstTime": "Dosavadní odpovědi budou smazány. Vrátíte se na přehled s omezeným přístupem, dokud nedokončíte nastavení.",
-      "discardMessageQuickSetup": "Postup v plném dotazníku bude vymazán. Údaje z rychlého nastavení zůstanou v přehledu, dokud nedokončíte celý dotazník.",
-      "discardMessageReturning": "Rozpracované změny budou zahozeny. Obnoví se váš naposledy odeslaný dotazník.",
+      "discardMessageFirstTime": "Uložený postup a odpovědi budou smazány. Vrátíte se na přehled.",
+      "discardMessageQuickSetup": "Uložený postup a odpovědi budou smazány. Vrátíte se na přehled.",
+      "discardMessageReturning": "Rozpracované změny budou zahozeny a obnoví se váš předchozí dotazník.",
       "discardConfirm": "Zahodit"
     },
     "leave": {
@@ -378,7 +380,7 @@
     "citizenship": {
       "title": "Jste občanem České republiky?",
       "helper": "Pomůže nám to zobrazit správný kontext zaměstnání a pobytu pro vaši domácnost.",
-      "allTitle": "Zjištění stavu občanství",
+      "allTitle": "Váš status občanství v {{country}}",
       "allHelper": "Pomůže nám to zobrazit správný kontext zaměstnání a pobytu pro vaši domácnost.",
       "memberWithAge": "{{name}} · {{age}}",
       "validationAll": "Prosím odpovězte za všechny uvedené osoby",
@@ -448,7 +450,7 @@
       },
       "goalIntents": {
         "title": "S čím vám má Beaverr pomoci?",
-        "helper": "Vyberte vše, co platí.",
+        "helper": "Vyberte vše, co platí. (Můžete vybrat více možností)",
         "illustrationA11y": "Ilustrace osoby stanovující osobní finanční cíle",
         "intentClarity": "Získat přehled",
         "intentClarityDesc": "Pochopit, kam odcházejí mé peníze",
@@ -474,6 +476,8 @@
         "ongoingTitle": "Vaše měsíční spoření",
         "ongoingHelper": "Kolik chcete odkládat každý měsíc?",
         "descriptionLabel": "Popis cíle",
+        "nameLabel": "Název cíle",
+        "namePlaceholder": "např. Nouzová rezerva",
         "descriptionPlaceholder": "např. Nákup auta",
         "amountLabel": "Cílová částka",
         "amountPlaceholder": "např. 100 000",
@@ -482,6 +486,7 @@
         "monthlyTargetPlaceholder": "např. 2 000",
         "validationTargetAmount": "Prosím zadejte cílovou částku",
         "validationTargetDate": "Prosím vyberte cílové datum",
+        "validationGoalName": "Prosím zadejte název cíle",
         "validationOngoingAmount": "Prosím zadejte měsíční cíl úspor"
       }
     },
@@ -515,7 +520,7 @@
         "validation": "Prosím zadejte příjem {{name}}"
       },
       "otherIncome": {
-        "title": "Máte nějaké další zdroje příjmů?",
+        "title": "Máte i extra zdroje příjmu?",
         "helper": "Pronájmy, dividendy, finanční podpora — cokoli pravidelného.",
         "selectHelper": "Procházejte kategorie a klepněte na zdroje příjmu, které přijímáte. Částky zadáte v dalším kroku.",
         "fillTitle": "Podrobnosti ostatních příjmů",
@@ -531,7 +536,7 @@
         "clearAll": "Vymazat vše",
         "addCustomSource": "+ Jiné",
         "otherSourceLabel": "Jiný příjem",
-        "skip": "Přeskočit — žádný další příjem",
+        "skip": "Bez extra příjmu",
         "helperRequired": "Vy ani váš partner nemáte zadaný příjem ze zaměstnání. Přidejte alespoň jeden pravidelný zdroj příjmu, abychom mohli sestavit váš rozpočet.",
         "helperRequiredSolo": "Nemáte zadaný příjem ze zaměstnání. Přidejte alespoň jeden pravidelný zdroj příjmu, abychom mohli sestavit váš rozpočet.",
         "requiredNote": "Pro pokračování je nutný alespoň jeden zdroj příjmu.",
@@ -590,7 +595,8 @@
         "helper": "Váš zůstatek ukazuje, kolik měsíců výdajů máte pokryto.",
         "illustrationA11y": "Ilustrace osoby vkládající mince do prasátka",
         "balanceLabel": "Aktuální zůstatek úspor",
-        "balancePlaceholder": "např. 50 000"
+        "balancePlaceholder": "např. 50 000",
+        "skip": "Bez úspor"
       }
     },
     "s4": {
@@ -612,7 +618,7 @@
       },
       "rentDetails": {
         "title": "Kolik platíte měsíčně za nájem?",
-        "helper": "Pokud máte energie zahrnuté v nájmu a znáte částku, zadejte pouze základní nájem — energie zadáte v dalším kroku. Pokud neznáte rozdělení (kolej, vše v ceně, atd.), zadejte celkovou částku a energie přeskočte.",
+        "helper": "Zadejte pouze základní nájem — pokud znáte výši energií, zadáte je v další části zvlášť. Pokud výši energií neznáte (kolej, vše v ceně atd.), zadejte celkovou částku a energie v další části přeskočte.",
         "amountLabel": "Měsíční nájem",
         "validation": "Prosím zadejte měsíční nájem"
       },
@@ -631,7 +637,7 @@
         "suggestionCount": "{{count}} návrhů",
         "selectPrompt": "Klepněte na energie, které platíte zvlášť.",
         "addedSoFar": "Dosud přidáno ({{count}})",
-        "skip": "Přeskočit — nevím nebo je to v nájmu",
+        "skip": "V ceně nájmu nebo neznámá částka",
         "modeTotal": "Jedna souhrnná částka",
         "modeItemized": "Rozpis po energiích",
         "modeLabel": "Jak chcete zadat energie?",
@@ -817,7 +823,11 @@
         "title": "Palivo a provozní náklady",
         "helper": "Jaký typ paliva vaše vozidlo používá a kolik přibližně utratíte měsíčně?",
         "vehicleLabel": "Vozidlo {{n}} z {{total}} — {{category}}",
+        "displayNameLabel": "Název vozidla",
+        "displayNamePlaceholder": "např. Hyundai i30",
+        "displayNameHelper": "Volitelné — zobrazí se v seznamu závazků.",
         "fuelLabel": "Typ paliva",
+        "fuelPlaceholder": "Vyberte typ paliva",
         "petrol": "Benzín",
         "diesel": "Nafta",
         "electric": "Elektřina",
@@ -834,6 +844,9 @@
         "helper": "Zadejte údaje o pojištění — přeskočte, pokud nemáte samostatné pojištění vozidla.",
         "helperMandatory": "Zadejte údaje o pojištění — povinné ručení je u osobních vozidel povinné.",
         "vehicleLabel": "Vozidlo {{n}} z {{total}} — {{category}}",
+        "displayNameLabel": "Název vozidla",
+        "displayNamePlaceholder": "např. Městské kolo",
+        "displayNameHelper": "Volitelné — zobrazí se v seznamu závazků.",
         "coverageTypeLabel": "Typ pojištění",
         "coverageTpl": "Povinné ručení",
         "coverageComprehensive": "Havarijní pojištění",
@@ -882,7 +895,12 @@
         "maintenanceDateLabel": "Datum",
         "maintenanceDatePlaceholder": "Datum (volitelné)",
         "addItem": "Přidat položku",
-        "skip": "Přeskočit — žádná plánovaná údržba"
+        "skip": "Přeskočit — žádná plánovaná údržba",
+        "vignetteLabel": "Dálniční známka",
+        "vignetteAmountLabel": "Cena známky",
+        "vignetteAmountPlaceholder": "0",
+        "vignetteValidUntilLabel": "Platnost do",
+        "vignetteHelper": "Otevřeme spořicí záložku, abyste si mohli odložit peníze před vypršením platnosti."
       }
     },
     "s6": {
@@ -1185,7 +1203,6 @@
           "foodDelivery": "Jídlo a rozvoz",
           "travelTransport": "Cestování a doprava",
           "familyKids": "Rodina a děti",
-          "personalCare": "Osobní péče",
           "telecomsUtilities": "Telekomunikace a energie",
           "homeGarden": "Domov a zahrada",
           "legalItems": "Právní položky"
@@ -1212,19 +1229,45 @@
           "alzaPlus": "Alza Plus",
           "coursera": "Coursera",
           "udemy": "Udemy",
+          "duolingo": "Duolingo",
+          "linkedinLearning": "LinkedIn Learning",
           "languageApp": "Jazyková aplikace",
           "gym": "Fitko / fitness",
           "lifeInsurance": "Životní pojištění",
           "meditationApp": "Meditační aplikace",
+          "multisport": "Multisport karta",
           "groceries": "Potraviny",
           "mealKit": "Krabičková strava",
           "foodDeliveryApp": "Rozvoz jídla",
+          "rohlikXtra": "Rohlík Xtra",
           "transitPass": "Lístek na MHD",
+          "pidLitacka": "PID Lítačka",
           "parkingPass": "Parkování",
           "kidsStreaming": "Dětské streamování",
           "hairSalon": "Kadeřnictví",
           "mobilePhone": "Mobilní telefon",
+          "o2": "O2",
+          "tMobile": "T-Mobile",
+          "vodafone": "Vodafone",
+          "tescoMobile": "Tesco Mobile",
           "homeSecurity": "Domácí zabezpečení",
+          "jablotronMonitoring": "Jablotron monitoring",
+          "oneplay": "Oneplay",
+          "seduo": "Seduo",
+          "skillmea": "Skillmea",
+          "denikN": "Deník N",
+          "respekt": "Respekt",
+          "idnesPremium": "iDNES Premium",
+          "hn": "Hospodářské noviny (HN.cz)",
+          "echoPrime": "Echo Prime",
+          "rbPremium": "Raiffeisenbank prémiový účet",
+          "kbPackage": "Balíčkový účet Komerční banky",
+          "mbankPremium": "Prémiový účet mBank",
+          "dataMailboxOrEsig": "Datová schránka / obnova e-podpisu",
+          "todoist": "Todoist",
+          "trello": "Trello",
+          "1password": "1Password",
+          "aiAssistant": "Předplatné AI asistenta",
           "osvcSocial": "OSVČ — Sociální pojištění",
           "osvcHealth": "OSVČ — Zdravotní pojištění",
           "homeInsurance": "Pojištění domácnosti",
@@ -1247,15 +1290,15 @@
       }
     },
     "s10": {
-      "eyebrow": "Sekce 10 — Ostatní náklady",
-      "heading": "Ostatní pravidelné náklady",
-      "body": "Potraviny, mobilní telefon, osobní pojištění a další pravidelné výdaje, které nepatří do dřívějších sekcí, zadáte zde. Tato sekce doplní domácí účetní knihu o vše, co platíte každý měsíc."
+      "eyebrow": "Sekce 10 — Běžné výdaje",
+      "heading": "Běžné a variabilní výdaje",
+      "body": "Potraviny, kadeřnictví, praní a další pravidelné výdaje, které se mění měsíc od měsíce, zadávejte zde — uveďte průměrnou měsíční částku, ne jednotlivé nákupy. Předplatná a fixní platby jsou v dřívějších sekcích."
     },
     "otherCosts": {
-      "chapter": "Ostatní pravidelné náklady",
+      "chapter": "Běžné a variabilní výdaje",
       "costSelection": {
-        "title": "Jaké další pravidelné náklady máte?",
-        "helper": "Klepnutím přidáte běžné náklady nebo přidejte vlastní níže.",
+        "title": "Jaké běžné nebo variabilní výdaje máte?",
+        "helper": "Klepnutím přidáte běžné položky, které pravidelně platíte, nebo přidejte vlastní níže. Uveďte typickou měsíční průměrnou částku.",
         "quickAdd": "Rychlé přidání",
         "customAdd": "Přidat vlastní náklad",
         "customLabel": "Název nákladu",
@@ -1370,7 +1413,8 @@
           "children": "Děti",
           "pets": "Domácí mazlíčci",
           "subscriptions": "Předplatné",
-          "other": "Ostatní"
+          "groceries": "Potraviny",
+          "other": "Běžné a variabilní výdaje"
         },
         "placeholder": "např. 15 000",
         "validation": "Prosím zadejte částku flexibilního rozpočtu",
@@ -1524,7 +1568,7 @@
           "childrenCosts": "Výdaje na děti",
           "pets": "Domácí mazlíčci",
           "subscriptions": "Předplatné",
-          "otherCosts": "Ostatní pravidelné náklady",
+          "otherCosts": "Běžné a variabilní výdaje",
           "debts": "Dluhy a půjčky",
           "budget": "Nastavení rozpočtu"
         },
@@ -1624,7 +1668,12 @@
     "accountSettingsScreen": {
       "helper": "Spravujte preference účtu a data.",
       "privacyTitle": "Soukromí a data",
-      "deleteAccountHelper": "Trvale smaže váš účet Beaverr, cloudová data i vše uložené na tomto zařízení.",
+      "privacyHelper": "Vymažte domácnostní data z tohoto zařízení i cloudu, nebo trvale smažte účet Beaverr.",
+      "clearSavedData": "Vymazat uložená data",
+      "clearSavedDataConfirmTitle": "Vymazat uložená data?",
+      "clearSavedDataConfirmMessage": "Tímto odstraníte postup domácnosti na tomto zařízení i v cloudu. Váš účet Beaverr zůstane aktivní.",
+      "clearSavedDataConfirmButton": "Vymazat data",
+      "clearSavedDataFailed": "Uložená data se nepodařilo vymazat. Zkuste to prosím znovu.",
       "preferencesHelper": "Upravte zemi, jazyk a měnu z registrace.",
       "saveSuccess": "Preference uloženy."
     },
@@ -1654,7 +1703,7 @@
       "alertsA11y": "Otevřít upozornění",
       "alertsCountA11y": "{{count}} aktivních upozornění",
       "profileLabel": "Profil",
-      "defaultDisplayName": "Jan Smile",
+      "defaultDisplayName": "Účet",
       "accountSettings": "Nastavení účtu",
       "appearance": "Vzhled",
       "appearanceSwitchToDark": "Přepnout na tmavý režim",
@@ -1714,13 +1763,18 @@
       "reminderUpdated": "Připomínka aktualizována",
       "cycleCalendarLocked": "Zápis dnů je dostupný jen během aktivního platebního cyklu",
       "cycleStartUpdated": "Datum začátku cyklu aktualizováno",
+      "cycleDatesUpdated": "Data cyklu aktualizována",
       "spendingSaved": "Výdaje uloženy",
       "adjustmentSaved": "Úprava přidána",
       "stashCreated": "Úschovna vytvořena",
       "stashDeleted": "Úschovna smazána",
       "stashTransferred": "Peníze přesunuty",
       "stashTransferEmpty": "Není co přesunout — zůstatek je nula",
-      "stashRenamed": "Název záložky aktualizován"
+      "stashRenamed": "Název záložky aktualizován",
+      "commitmentRenewed": "Závazek resetován na další termín splatnosti",
+      "commitmentDeleted": "Závazek odstraněn",
+      "questionnaireProgressSaved": "Postup uložen",
+      "questionnaireProgressDeleted": "Postup smazán"
     },
     "ledgerTable": {
       "selectRowA11y": "Vybrat {{label}}",
@@ -1867,6 +1921,7 @@
       "backfillPendingNote": "Doplňte zápis minulých dnů pro plně přesné tempo.",
       "backfillPendingA11y": "Doplňte zápis minulých dnů pro přesné tempo útraty.",
       "detail": "{{spentPct}} z rozpočtu cyklu utraceno · {{timePct}} období uplynulo",
+      "line": "{{summary}} · {{spentPct}} z rozpočtu cyklu utraceno · {{timePct}} období uplynulo",
       "scope": {
         "cycle": "Platební cyklus",
         "month": "Měsíc",
@@ -2158,7 +2213,7 @@
           "renewalsSoon": "{{count}} obnovení v příštích 30 dnech."
         },
         "other": {
-          "empty": "Nejsou zaznamenány jiné pravidelné náklady."
+          "empty": "Nejsou zaznamenány žádné běžné ani variabilní výdaje."
         },
         "debts": {
           "empty": "Nejsou zaznamenány žádné dluhy.",
@@ -2227,7 +2282,56 @@
       "edit": "Upravit",
       "tableNote": "Měsíční částky v {{currency}}",
       "risksTitle": "Finanční rizika",
-      "risksNote": "Výše expozice — nezahrnuto v měsíčním rozpočtu"
+      "risksNote": "Výše expozice — nezahrnuto v měsíčním rozpočtu",
+      "cycleOverview": {
+        "title": "Platební cykly",
+        "helper": "Kolik útratových období máte zaznamenáno a jak uzavřená skončila.",
+        "elapsedLabel": "Uplynulé cykly",
+        "totalCycles": "Celkem cyklů",
+        "cycleCount": "{{count}} cyklů",
+        "cycleCount_one": "{{count}} cyklus",
+        "cycleCount_few": "{{count}} cykly",
+        "activeRange": "Aktuální cyklus: {{range}}",
+        "activeBudget": "Rozpočet cyklu",
+        "activeSpent": "Utraceno zatím",
+        "activeRemaining": "Zbývá",
+        "asPlanned": "Podle plánu",
+        "savedMoney": "Ušetřené peníze",
+        "deficit": "Schodek",
+        "inProgress": "Aktuální cyklus",
+        "empty": "Zatím žádné platební cykly. Po spuštění cyklu se zde zobrazí počet.",
+        "cyclesDisabled": "Platební cykly jsou vypnuté. Zapněte je v Rozpočtu pro sledování útratových období."
+      },
+      "cycleHistory": {
+        "title": "Historie cyklů",
+        "empty": "Zatím žádné uzavřené cykly. Po ukončení platebního cyklu se zde zobrazí.",
+        "cyclesDisabled": "Platební cykly jsou vypnuté — zatím není co zobrazit.",
+        "columnPeriod": "Období",
+        "columnBudget": "Rozpočet",
+        "columnSpent": "Utraceno",
+        "columnSaved": "Ušetřeno",
+        "columnDeficit": "Schodek",
+        "editDates": "Upravit data",
+        "editDatesA11y": "Upravit data cyklu {{period}}"
+      },
+      "dailySpend": {
+        "title": "Denní útrata",
+        "helper": "Každý sloupec je jeden den. Tmavě modrá je útrata; šedá je úspora u minulých dnů nebo zbytek dnes; červená přesahuje rozpočet při přečerpání.",
+        "monthA11y": "Vyberte měsíc",
+        "empty": "V tomto měsíci zatím nejsou žádné dny.",
+        "dayA11y": "Den {{day}} — utraceno {{spent}}",
+        "tooltipDay": "Den {{day}}",
+        "tooltipDate": "{{day}}. {{month}} {{year}}",
+        "tooltipSpent": "Utraceno {{amount}}",
+        "tooltipRemaining": "Zbývá dnes {{amount}}",
+        "tooltipSaved": "Ušetřeno {{amount}}",
+        "tooltipDeficit": "Schodek {{amount}}",
+        "legendSpent": "Utraceno",
+        "legendSaved": "Ušetřeno",
+        "legendRemaining": "Zbývá dnes",
+        "legendDeficit": "Schodek",
+        "legendNotLogged": "Nezaznamenáno"
+      }
     },
     "risks": {
       "vehicleTplLiability": "{{category}} — limit povinného ručení",
@@ -2375,11 +2479,28 @@
     },
     "goalsScreen": {
       "empty": "Zatím nemáte nastavený finanční cíl.",
+      "hero": {
+        "onTrackTitle": "Cíle v tempu",
+        "onTrackValue": "{{onTrack}} z {{total}}",
+        "onTrackAll": "Všechny spořicí cíle jsou v tempu",
+        "behindPace": "{{count}} za tempem",
+        "onHold": "{{count}} pozastaveno",
+        "noSavingGoalsValue": "—",
+        "noSavingGoalsHelper": "Zatím žádné spořicí cíle",
+        "noPaceValue": "—",
+        "noPaceHelper": "Nastavte termín pro sledování tempa",
+        "debtRemainingTitle": "Zbývající dluh",
+        "debtCount": "U {{count}} dluhů",
+        "noDebtGoalsHelper": "Žádné cíle splácení dluhů",
+        "a11y": "Cíle v tempu {{onTrack}}, zbývající dluh {{debt}}"
+      },
       "emptyActive": "Zatím žádné aktivní cíle. Přidejte cíl nebo dokončete onboarding pro automatické cíle.",
       "emptyArchived": "Žádné archivované cíle.",
       "setGoal": "Nastavit cíl",
       "addGoal": "Přidat cíl",
       "addGoalA11y": "Přidat nový cíl",
+      "addDebt": "Přidat dluh",
+      "addDebtA11y": "Přidat cíl splácení dluhu",
       "gridCardA11y": "{{name}}, {{amount}}",
       "gridCardA11yOnHold": "{{name}}, pozastaveno",
       "gridCardA11yWithTarget": "{{name}}, {{current}} z {{target}}",
@@ -2387,6 +2508,7 @@
       "editA11y": "Upravit {{name}}",
       "sections": {
         "goals": "Cíle",
+        "goalsEmpty": "Zatím jste nevytvořili žádné cíle.",
         "savings": "Spořicí cíle",
         "debt": "Cíle splácení dluhů",
         "reduceCosts": "Snížit náklady"
@@ -2452,6 +2574,7 @@
       },
       "create": {
         "title": "Nový cíl",
+        "debtTitle": "Splácení dluhu",
         "kindPrompt": "Na co pracujete?",
         "savingsHelper": "Nastavte cílovou částku a volitelný termín.",
         "debtHelper": "Vyberte dluh ze svého plánu nebo přidejte nový ke sledování.",
@@ -2487,7 +2610,8 @@
         "validationName": "Zadejte název cíle.",
         "validationTarget": "Zadejte cílovou částku větší než nula.",
         "saveError": "Cíl se nepodařilo uložit. Zkuste to znovu.",
-        "closeA11y": "Zavřít nový cíl"
+        "closeA11y": "Zavřít nový cíl",
+        "closeDebtA11y": "Zavřít přidání dluhu"
       },
       "edit": {
         "title": "Upravit cíl",
@@ -2600,7 +2724,34 @@
     },
     "savingsScreen": {
       "totalBalance": "Celkem uspořených peněz",
-      "balanceHelper": "Součet všech {{count}} záložek v sekci Vaše úschovna peněz",
+      "balanceHelper": "Dnes",
+      "totalBalanceExplain": {
+        "infoA11y": "Jak se počítá celkem uspořených peněz",
+        "meaningTitle": "Co to zobrazuje",
+        "meaningBody": "Součet zůstatků ve všech záložkách v sekci Vaše úschovna peněz — prasátko, spoření a případné vlastní záložky.",
+        "calculationTitle": "Jak jsme to spočítali",
+        "formula": "Součet zůstatků všech záložek = celkem uspořeno dnes.",
+        "rows": {
+          "total": "Celkem uspořeno dnes"
+        }
+      },
+      "expectedSavings": "Očekávané úspory",
+      "expectedSavingsHelper": "Konec roku {{year}}",
+      "expectedSavingsExplain": {
+        "infoA11y": "Jak se počítají očekávané úspory",
+        "meaningTitle": "Co to zobrazuje",
+        "meaningBody": "Předpokládaný součet ve všech záložkách úschovny peněz k 31. prosinci {{year}}, pokud budete dál spořit podle plánované měsíční sazby z rozpočtu a spořicího cíle.",
+        "calculationTitle": "Jak jsme to spočítali",
+        "formula": "Aktuální součet + (plánované měsíční úspory × {{months}} zbývajících měsíců) = očekávaný součet na konci roku. Převod nevyčerpaného rozpočtu ke konci měsíce není zahrnut, protože závisí na skutečných výdajích.",
+        "noPlanWarning": "Zatím nemáte naplánované měsíční úspory — nastavte rozdělení rozpočtu nebo spořicí cíl, aby projekce dávala smysl.",
+        "cappedAtGoalWarning": "Projekce končí u vašeho spořicího cíle — můžete ho dosáhnout ještě před koncem roku.",
+        "rows": {
+          "currentTotal": "Aktuální součet uspořených peněz",
+          "monthlyPlan": "Plánované měsíční úspory",
+          "monthsRemaining": "Zbývající měsíce v roce {{year}}",
+          "expectedTotal": "Očekávaný součet na konci roku"
+        }
+      },
       "detail": {
         "back": "Zpět na spoření",
         "notFound": "Záložka nenalezena.",
@@ -2624,10 +2775,33 @@
           "empty": "Přidejte zůstatek nebo zaznamenejte pohyb, abyste viděli, kam peníze odcházejí.",
           "plannedNote": "Plánovaný měsíční odliv do propojených cílů: {{amount}} — zatím z této záložky neodešlo nic.",
           "openGoal": "Otevřít cíl {{name}}"
+        },
+        "historyChart": {
+          "title": "Historie zůstatku",
+          "series": "Zůstatek",
+          "noHistory": "Žádná historie",
+          "tooltipA11y": "{{month}}. Zůstatek: {{balance}}",
+          "headlineA11y": "Aktuální zůstatek {{balance}}"
         }
       },
+      "commitments": {
+        "dueDate": "Splatnost {{date}}",
+        "renewA11y": "Začít šetřit na další termín splatnosti pro {{name}}",
+        "deleteA11y": "Smazat závazek {{name}}",
+        "deleteTitle": "Smazat závazek?",
+        "deleteBody": "Smazáním {{name}} odstraníte propojený výdaj ze záložky Výdaje a aktualizujete rozpočet. Tuto akci nelze vrátit.",
+        "renewToast": "{{name}} resetováno na další termín splatnosti",
+        "deleteToast": "{{name}} odstraněno"
+      },
       "monthlyPlan": "Plánované měsíční úspory",
-      "monthlyPlanHelper": "Z rozdělení rozpočtu, cíle spoření a nastavení převodu.",
+      "monthlyPlanHelper": "Z rozdělení rozpočtu a spořicího cíle.",
+      "monthlyPlanRolloverBanner": {
+        "title": "+ Převod na konci měsíce",
+        "body": "Nespotřebovaný rozpočet může na konci měsíce přibýt podle útraty — není zahrnut výše.",
+        "link": "Zobrazit strategii převodu",
+        "linkA11y": "Otevřít záložku Rozpočet a zvýraznit strategii převodu na konci měsíce",
+        "a11y": "Převod na konci měsíce může přidat proměnné úspory"
+      },
       "noInflows": "Zatím nemáte plánované měsíční úspory — upravte rozpočet nebo nastavte cíl spoření.",
       "variable": "Závisí na útratě",
       "resetPolicy": "Pravidlo pro nespotřebovaný rozpočet",
@@ -2638,9 +2812,7 @@
       "looseMoneyHelper": "Odložené peníze z měsíců, kdy jste neutratili celý flexibilní rozpočet.",
       "otherGoalHelper": "Peníze odkládané na konci měsíce na tento cíl.",
       "otherGoalFallback": "Jiný cíl",
-      "projectionTitle": "Očekávané úspory",
-      "projectionHelper": "Odhadovaný zůstatek, pokud budete pokračovat v plánovaných měsíčních úsporách po dobu jednoho roku.",
-      "projectionGoalHelper": "Projekce směrem k {{target}} do {{date}} na základě plánovaných měsíčních úspor.",
+      "projectionTitle": "Projektované úspory",
       "inflow": {
         "budgetShift": "Rozdělení rozpočtu do úspor",
         "goalReserve": "Rezervace pro cíl spoření",
@@ -2653,7 +2825,48 @@
         "now": "Nyní",
         "monthsAhead": "{{months}} měsíců dopředu",
         "goalMonth": "Cíl za {{months}} měsíců",
-        "projected": "Projekce: {{amount}}"
+        "projected": "Projekce: {{amount}}",
+        "legendActual": "Skutečné úspory",
+        "legendProjected": "Projektovaný růst úspor",
+        "legendGoal": "Cíl spoření",
+        "goalReached": "Cíl dosažen {{date}} · {{amount}}",
+        "projectedEnd": "Projektovaný zůstatek: {{amount}}",
+        "tooltipActual": "Skutečné úspory",
+        "tooltipProjected": "Projektovaný růst úspor",
+        "tooltipGoalReached": "Cíl dosažen",
+        "tooltipA11y": "{{month}}. Skutečné: {{actual}}. Projekce: {{projected}}",
+        "seriesActual": "Skutečné",
+        "seriesProjected": "Projekce",
+        "headlineA11y": "Uloženo nyní {{actual}}. Projekce {{projected}}."
+      },
+      "sinkingFund": {
+        "helper": "Cíl {{target}} do {{due}} · doporučeno {{monthly}}/měs.",
+        "jarHelper": "Cíl {{target}} · doporučeno {{monthly}}/měs.",
+        "vehicleLabel": "{{category}} {{index}}",
+        "vehicleInsurance": "Pojištění — {{vehicle}}",
+        "vehicleMot": "STK — {{vehicle}}",
+        "vehicleParking": "Parkování — {{vehicle}}",
+        "vehicleVignette": "Dálniční známka — {{vehicle}}",
+        "vehicleMaintenance": "{{vehicle}} — {{item}}",
+        "maintenanceFallback": "Údržba",
+        "healthInsuranceYou": "Vaše zdravotní pojištění",
+        "healthInsuranceNamed": "Zdravotní pojištění — {{name}}",
+        "healthInsurancePartnerFallback": "Zdravotní pojištění partnera",
+        "healthInsuranceChildFallback": "Zdravotní pojištění dítěte {{index}}",
+        "petInsurance": "Pojištění — {{pet}}",
+        "petFallback": "Zvíře {{index}}",
+        "subscription": "Obnova — {{service}}",
+        "residencePermit": "{{holder}} — {{renewal}}",
+        "residencePermitRenewal": "Obnova povolení k pobytu",
+        "holderUser": "Vy",
+        "holderPartner": "Partner",
+        "holderChild": "Dítě {{index}}",
+        "wasteTax": "Poplatek za odpad",
+        "tvLicence": "Poplatek za televizi",
+        "radioLicence": "Poplatek za rozhlas",
+        "customTax": "Daň {{index}}",
+        "housingOther": "Náklad na bydlení {{index}}",
+        "childCost": "{{child}} — {{cost}}"
       }
     },
     "trackerScreen": {
@@ -2855,6 +3068,20 @@
         "closeA11y": "Zavřít úpravu data začátku",
         "saving": "Ukládám…"
       },
+      "editDates": {
+        "title": "Upravit data cyklu",
+        "helper": "Upravte začátek a konec platebního cyklu. Utraceno, ušetřeno a schodek se přepočítají podle nového období.",
+        "startLabel": "Začátek cyklu",
+        "endLabel": "Konec cyklu",
+        "validationStartDate": "Zvolte platné datum začátku.",
+        "validationStartFuture": "Datum začátku nemůže být v budoucnosti.",
+        "validationEndDate": "Zvolte platné datum konce.",
+        "validationEndBeforeStart": "Datum konce musí být ve stejný den nebo po datu začátku.",
+        "validationEndFuture": "Datum konce nemůže být v budoucnosti.",
+        "saveError": "Data cyklu se nepodařilo uložit. Zkuste to znovu.",
+        "closeA11y": "Zavřít úpravu dat cyklu",
+        "saving": "Ukládám…"
+      },
       "spendLog": {
         "title": "Zapsat výdaje",
         "inputLabel": "Utracená částka",
@@ -2919,6 +3146,11 @@
         "validationNext": "Zadejte datum začátku a rozpočet dalšího cyklu.",
         "finish": "Uzavřít cyklus",
         "finishHelper": "Další cyklus spusťte ručně, až budete připraveni.",
+        "endDateLabel": "Ukončit cyklus dne",
+        "endDateHelper": "U doplněných cyklů zvolte, kdy období skončilo — ne dnešní datum.",
+        "validationEndDate": "Zvolte platné datum konce.",
+        "validationEndBeforeStart": "Datum konce musí být ve stejný den nebo po datu začátku.",
+        "validationEndFuture": "Datum konce nemůže být v budoucnosti.",
         "saveError": "Cyklus se nepodařilo uzavřít. Zkuste to znovu.",
         "closeA11y": "Zavřít průvodce uzavřením",
         "saving": "Uzavírám…"
@@ -3113,6 +3345,8 @@
       },
       "jars": {
         "sectionTitle": "Vaše úschovna peněz",
+        "savedMoneyGroup": "Uložené peníze",
+        "commitmentsGroup": "Závazky",
         "sectionSubtitle": "Plnění na konci období",
         "footerNote": "Kasičky se plní na konci každého období, jakmile sledujete rozpočet.",
         "addNewTab": "Přidat záložku",
@@ -3421,7 +3655,7 @@
       "savingsMonthly": "Měsíční cíl spoření",
       "goalType": "S čím vám má Beaverr pomoci?",
       "saveMode": "Jak chcete šetřit?",
-      "goalDescription": "Popis cíle",
+      "goalDescription": "Název cíle",
       "goalAmount": "Cílová částka",
       "goalDate": "Cílové datum",
       "validation": {
@@ -3457,8 +3691,8 @@
       "validation": "Každé předplatné potřebuje částku"
     },
     "otherCosts": {
-      "helper": "Upravte ostatní pravidelné náklady a frekvenci plateb.",
-      "empty": "Žádné ostatní náklady nejsou zaznamenány.",
+      "helper": "Upravte běžné a variabilní výdaje — u každé položky uveďte typickou měsíční průměrnou částku.",
+      "empty": "Nejsou zaznamenány žádné běžné ani variabilní výdaje.",
       "unnamed": "Ostatní náklad",
       "validation": "Každý náklad potřebuje částku"
     },
@@ -3484,6 +3718,8 @@
       "helper": "Upravte náklady na dopravu. Ostatní údaje o vozidle z nastavení zůstávají zachovány.",
       "publicTransport": "Lístek / jízdenka MHD",
       "vehicle": "Vozidlo {{n}}",
+      "displayName": "Název vozidla",
+      "displayNamePlaceholder": "např. Hyundai i30",
       "fuel": "Palivo / nabíjení",
       "insurance": "Pojištění",
       "parking": "Parkování",
@@ -3526,7 +3762,7 @@
       "children": "Upravit náklady na děti",
       "pets": "Upravit domácí mazlíčky",
       "subscriptions": "Upravit předplatná",
-      "other": "Upravit ostatní náklady",
+      "other": "Upravit běžné výdaje",
       "debts": "Upravit dluhy",
       "budget": "Upravit rozpočet"
     }
@@ -3534,7 +3770,7 @@
   "settings": {
     "title": "Nastavení",
     "redoSetup": "Znovu nastavit",
-    "deleteAccount": "Smazat účet a data",
+    "deleteAccount": "Smazat účet",
     "deleteAccountConfirmTitle": "Smazat účet?",
     "deleteAccountConfirmMessage": "Tímto trvale smažete účet Beaverr, cloudová data i veškerý postup na tomto zařízení. Akci nelze vrátit.",
     "deleteAccountConfirmButton": "Smazat účet",

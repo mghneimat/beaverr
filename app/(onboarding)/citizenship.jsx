@@ -14,6 +14,7 @@ import {
 import { useOnboardingLayout } from '../../lib/onboardingLayout';
 import { useOnboardingMultiStep } from '../../lib/useOnboardingMultiStep';
 import { C, R, S, T } from '../../constants/onboarding-theme';
+import { getCountryDisplayName, PRE_ALPHA_COUNTRY_CODE } from '../../lib/locationConstants';
 import { InfoIcon } from '../../components/app/AppNavIcons';
 import QuestionScreen from '../../components/onboarding/QuestionScreen';
 import YesNoToggle from '../../components/onboarding/YesNoToggle';
@@ -104,13 +105,14 @@ function CitizenshipMemberRow({
 }
 
 export default function CitizenshipScreen() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const router = useRouter();
   const layout = useOnboardingLayout();
 
   useOnboardingMultiStep('citizenship', { defaultStep: 'user' });
 
   const [household, setHousehold] = useState(null);
+  const [countryName, setCountryName] = useState(() => getCountryDisplayName(PRE_ALPHA_COUNTRY_CODE, locale));
   const [draft, setDraft] = useState({ user: null, partner: null, children: [] });
   const [validationError, setValidationError] = useState('');
 
@@ -121,6 +123,7 @@ export default function CitizenshipScreen() {
         getData('beaverr_household'),
       ]);
       setHousehold(hh);
+      setCountryName(getCountryDisplayName(location?.country, locale));
       const storedChildren = location?.childrenCitizenship || [];
       setDraft({
         user: location?.isCzCitizen ?? null,
@@ -128,7 +131,7 @@ export default function CitizenshipScreen() {
         children: (hh?.children || []).map((_, i) => storedChildren[i]?.isCzCitizen ?? null),
       });
     })();
-  }, []);
+  }, [locale]);
 
   const showChildren = useMemo(
     () => shouldRevealChildrenCitizenship(draft, household),
@@ -198,7 +201,7 @@ export default function CitizenshipScreen() {
       animationKey="citizenship-all"
       chapter={t('onboarding.splashResidence.chapter')}
       illustration={<CitizenshipIdCardIllustration width={layout.illustrationWidth} />}
-      title={t('onboarding.citizenship.allTitle')}
+      title={t('onboarding.citizenship.allTitle', { country: countryName })}
       helper={t('onboarding.citizenship.allHelper')}
       onContinue={handleContinue}
       onBack={handleBack}

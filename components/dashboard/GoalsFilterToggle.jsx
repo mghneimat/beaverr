@@ -33,7 +33,11 @@ export default function GoalsFilterToggle({ value, onChange, activeLabel, archiv
       });
   }, [value, reduceMotion, selectedIndex]);
 
-  const indicatorStyle = useAnimatedStyle(() => ({
+  const indicatorMotionStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: selectedIndex.value * (PILL_WIDTH + SEGMENT_GAP) }],
+  }));
+
+  const indicatorShellStyle = {
     position: 'absolute',
     top: TRACK_PADDING,
     bottom: TRACK_PADDING,
@@ -43,8 +47,7 @@ export default function GoalsFilterToggle({ value, onChange, activeLabel, archiv
     backgroundColor: C.surface,
     borderWidth: 1,
     borderColor: C.border,
-    transform: [{ translateX: selectedIndex.value * (PILL_WIDTH + SEGMENT_GAP) }],
-  }));
+  };
 
   return (
     <View style={{ alignItems: 'center', width: '100%' }}>
@@ -63,7 +66,7 @@ export default function GoalsFilterToggle({ value, onChange, activeLabel, archiv
           position: 'relative',
         }}
       >
-        <Animated.View style={indicatorStyle} pointerEvents="none" />
+        <Animated.View style={[indicatorShellStyle, indicatorMotionStyle]} pointerEvents="none" />
         {options.map(({ key, label }) => (
           <PillToggle
             key={key}

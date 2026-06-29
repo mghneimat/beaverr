@@ -13,17 +13,13 @@ import { useReducedMotion } from '../../lib/useReducedMotion';
 import AnimatedSlideIn from '../onboarding/AnimatedSlideIn';
 import StrategyFlowPills from './StrategyFlowPills';
 
-const ICON_BOX = 40;
-const RADIO_SIZE = 22;
-const ICON_WELL_BG = C.bg;
-const ICON_WELL_BORDER = C.border;
+const RADIO_SIZE = 20;
+const RADIO_INNER = 8;
 
 /**
- * Radio-style strategy card with icon box, flow pills, and trailing selector.
+ * Radio-style strategy card — left selector, responsive flow pills.
+ * Selected state uses continue-button accent blue (C.accent).
  * @param {{
- *   icon?: string,
- *   iconBg?: string,
- *   iconBorder?: string,
  *   label: string,
  *   body: string,
  *   flowSteps?: Array<{ kind: 'event'|'jar'|'outcome', label: string }>,
@@ -34,9 +30,6 @@ const ICON_WELL_BORDER = C.border;
  * }} props
  */
 export default function StrategyOptionCard({
-  icon,
-  iconBg = ICON_WELL_BG,
-  iconBorder = ICON_WELL_BORDER,
   label,
   body,
   flowSteps,
@@ -55,21 +48,33 @@ export default function StrategyOptionCard({
       return;
     }
     selectProgress.value = withTiming(selected ? 1 : 0, {
-      duration: 320,
+      duration: 280,
       easing: DASHBOARD_MOTION_EASE,
     });
   }, [reduceMotion, selectProgress, selected]);
 
   const cardAnimStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: interpolate(selectProgress.value, [0, 1], [1, 1.004]) }],
+    transform: [{ scale: interpolate(selectProgress.value, [0, 1], [1, 1.002]) }],
   }));
 
   const hoverProps = Platform.OS === 'web'
     ? { onHoverIn: () => setHovered(true), onHoverOut: () => setHovered(false) }
     : {};
 
+  const borderColor = selected
+    ? C.accent
+    : hovered
+      ? C.accent
+      : C.border;
+
+  const backgroundColor = selected
+    ? C.infoBg
+    : hovered
+      ? C.overlayHover
+      : C.surface;
+
   return (
-    <Animated.View style={[{ marginBottom: 10 }, cardAnimStyle]}>
+    <Animated.View style={[{ width: '100%' }, cardAnimStyle]}>
       <Pressable
         onPress={onPress}
         disabled={selected}
@@ -78,88 +83,28 @@ export default function StrategyOptionCard({
         accessibilityState={{ selected, disabled: selected }}
         {...hoverProps}
         style={({ pressed }) => ({
+          width: '100%',
           paddingVertical: OPTION_CARD.paddingVertical,
           paddingHorizontal: OPTION_CARD.paddingHorizontal,
           borderRadius: R.input,
-          borderWidth: 1.5,
-          borderColor: selected
-            ? C.primary
-            : hovered
-              ? C.accent
-              : C.border,
-          backgroundColor: selected
-            ? C.navSelectedBg
-            : hovered
-              ? C.overlayHover
-              : pressed
-                ? C.bg
-                : C.surface,
+          borderWidth: selected ? 2 : 1,
+          borderColor,
+          backgroundColor: pressed && !selected ? C.bg : backgroundColor,
           ...(Platform.OS === 'web' && !selected ? { cursor: 'pointer' } : {}),
           ...(Platform.OS === 'web'
-            ? { transition: 'background-color 0.22s ease, border-color 0.22s ease' }
+            ? { transition: 'background-color 0.22s ease, border-color 0.22s ease', maxWidth: '100%' }
             : {}),
         })}
       >
         <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 12 }}>
-          {icon ? (
-            <View
-              style={{
-                width: ICON_BOX,
-                height: ICON_BOX,
-                borderRadius: ICON_BOX / 2,
-                backgroundColor: iconBg,
-                borderWidth: 1,
-                borderColor: iconBorder,
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-              }}
-            >
-              <Text
-                style={{
-                  width: ICON_BOX,
-                  fontSize: 20,
-                  lineHeight: ICON_BOX,
-                  textAlign: 'center',
-                  ...(Platform.OS === 'android' ? { includeFontPadding: false } : {}),
-                }}
-              >
-                {icon}
-              </Text>
-            </View>
-          ) : null}
-
-          <View style={{ flex: 1, minWidth: 0, paddingRight: 4 }}>
-            <Text
-              style={{
-                ...T.cardTitle,
-                fontSize: 15,
-                color: selected ? C.primary : C.text,
-                fontWeight: '600',
-                lineHeight: OPTION_CARD.labelLineHeight,
-              }}
-            >
-              {label}
-            </Text>
-            <Text style={{ ...T.caption, color: C.muted, marginTop: OPTION_CARD.subtitleMarginTop, lineHeight: OPTION_CARD.subtitleLineHeight }}>
-              {body}
-            </Text>
-            <StrategyFlowPills steps={flowSteps} />
-            <AnimatedSlideIn visible={selected && !!detailLine}>
-              <Text style={{ ...T.caption, color: C.muted, marginTop: 8, lineHeight: 18 }}>
-                {detailLine}
-              </Text>
-            </AnimatedSlideIn>
-          </View>
-
           <View
             style={{
               width: RADIO_SIZE,
               height: RADIO_SIZE,
               borderRadius: RADIO_SIZE / 2,
               borderWidth: selected ? 0 : 1.5,
-              borderColor: C.border,
-              backgroundColor: selected ? C.chipSelectedBg : 'transparent',
+              borderColor: selected ? 'transparent' : C.border,
+              backgroundColor: selected ? C.accent : 'transparent',
               alignItems: 'center',
               justifyContent: 'center',
               marginTop: 2,
@@ -167,10 +112,49 @@ export default function StrategyOptionCard({
             }}
           >
             {selected ? (
-              <Text style={{ color: C.chipSelectedText, fontSize: 12, lineHeight: 14, fontWeight: '700' }}>
-                ✓
-              </Text>
+              <View
+                style={{
+                  width: RADIO_INNER,
+                  height: RADIO_INNER,
+                  borderRadius: RADIO_INNER / 2,
+                  backgroundColor: C.surface,
+                }}
+              />
             ) : null}
+          </View>
+
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <Text
+              style={{
+                ...T.cardTitle,
+                fontSize: 15,
+                color: C.text,
+                fontWeight: '400',
+                lineHeight: OPTION_CARD.labelLineHeight,
+              }}
+            >
+              {label}
+            </Text>
+
+            <Text
+              style={{
+                ...T.caption,
+                color: C.muted,
+                marginTop: OPTION_CARD.subtitleMarginTop + 2,
+                lineHeight: OPTION_CARD.subtitleLineHeight + 2,
+                fontSize: 13,
+              }}
+            >
+              {body}
+            </Text>
+
+            <StrategyFlowPills steps={flowSteps} />
+
+            <AnimatedSlideIn visible={selected && !!detailLine}>
+              <Text style={{ ...T.caption, color: C.muted, marginTop: 8, lineHeight: 18 }}>
+                {detailLine}
+              </Text>
+            </AnimatedSlideIn>
           </View>
         </View>
       </Pressable>

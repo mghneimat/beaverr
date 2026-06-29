@@ -15,10 +15,8 @@ import {
   CardHeaderChevron,
   cardHeaderActionLabelStyle,
   cardHeaderActionStyle,
+  CARD_HEADER_ACTION_MIN_WIDTH,
 } from './CardHeaderActionButton';
-
-const MENU_WIDTH_DESKTOP = 260;
-const MENU_WIDTH_PHONE_MAX = 200;
 
 function ExportOption({ format, onPress, compact = false }) {
   const [hovered, setHovered] = useState(false);
@@ -43,7 +41,7 @@ function ExportOption({ format, onPress, compact = false }) {
         paddingHorizontal: compact ? 12 : 14,
         paddingVertical: compact ? 8 : 10,
         borderRadius: R.pill,
-        marginHorizontal: 4,
+        marginHorizontal: 2,
         backgroundColor: active ? C.overlayHover : 'transparent',
         ...(Platform.OS === 'web' ? { cursor: 'pointer' } : {}),
       }}
@@ -98,16 +96,10 @@ export default function DashboardTableExportActions({ onExportCsv, onExportXlsx,
     onPress();
   };
 
-  const menuWidth = anchor
-    ? (isPhone
-      ? Math.min(MENU_WIDTH_PHONE_MAX, Math.max(anchor.width + 16, 148))
-      : MENU_WIDTH_DESKTOP)
-    : MENU_WIDTH_DESKTOP;
+  const menuWidth = anchor?.width ?? CARD_HEADER_ACTION_MIN_WIDTH;
 
   const menuTop = anchor ? anchor.y + anchor.height + 8 : 0;
-  const menuLeft = anchor
-    ? Math.max(8, anchor.x + anchor.width - menuWidth)
-    : 0;
+  const menuLeft = anchor ? Math.max(8, anchor.x) : 8;
 
   return (
     <>
@@ -156,6 +148,8 @@ export default function DashboardTableExportActions({ onExportCsv, onExportXlsx,
                 backgroundColor: C.surface,
                 borderRadius: R.card,
                 paddingVertical: 6,
+                paddingHorizontal: 4,
+                gap: 4,
                 borderWidth: 1,
                 borderColor: C.border,
                 ...elevationShadow({ offsetY: 10, blur: 24, opacity: 0.14 }),
@@ -181,6 +175,5 @@ export default function DashboardTableExportActions({ onExportCsv, onExportXlsx,
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: Platform.OS === 'web' ? 'rgba(15, 23, 42, 0.06)' : 'rgba(0, 0, 0, 0.18)',
   },
 });

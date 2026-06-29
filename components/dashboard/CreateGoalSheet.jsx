@@ -18,66 +18,10 @@ import {
 import { resolveDebtEntryLabel } from '../../lib/goals/goalSync';
 import { notifyDashboardRefresh } from '../../lib/dashboardRefresh';
 import { parseAmount } from '../../lib/sectionEditStorage';
-import { SavingsIcon, CreditCardIcon } from '../app/AppNavIcons';
+import { CreditCardIcon } from '../app/AppNavIcons';
 import GoalDeadlineFields from './GoalDeadlineFields';
 import DashboardScrollSheet from './DashboardScrollSheet';
 import { startOfToday } from '../../lib/goals/goalFundingSchedule';
-
-function GoalKindOption({ Icon, label, subtitle, selected, onPress }) {
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityState={{ selected }}
-      style={({ pressed, hovered }) => ({
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 12,
-        paddingVertical: 14,
-        paddingHorizontal: 14,
-        borderRadius: R.input,
-        borderWidth: 1.5,
-        borderColor: selected ? C.primary : C.border,
-        backgroundColor: selected
-          ? 'rgba(30,58,95,0.04)'
-          : pressed
-            ? C.overlayPressed
-            : hovered
-              ? C.bg
-              : C.surface,
-        marginBottom: 10,
-        ...(Platform.OS === 'web' ? { cursor: 'pointer' } : {}),
-      })}
-    >
-      <View style={{
-        width: 40,
-        height: 40,
-        borderRadius: R.input,
-        backgroundColor: C.bg,
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderWidth: 1,
-        borderColor: C.border,
-      }}
-      >
-        <Icon color={selected ? C.primary : C.muted} size={18} />
-      </View>
-      <View style={{ flex: 1, minWidth: 0 }}>
-        <Text style={{
-          fontSize: 15,
-          fontWeight: selected ? '600' : '500',
-          color: selected ? C.primary : C.text,
-        }}
-        >
-          {label}
-        </Text>
-        <Text style={{ ...T.caption, color: C.muted, marginTop: 2 }}>
-          {subtitle}
-        </Text>
-      </View>
-    </Pressable>
-  );
-}
 
 function DebtSelectRow({ label, balance, currency, selected, onPress }) {
   return (
@@ -126,11 +70,16 @@ function DebtSelectRow({ label, balance, currency, selected, onPress }) {
   );
 }
 
-export default function CreateGoalSheet({ visible, onClose, financials, goals = [] }) {
+export default function CreateGoalSheet({
+  visible,
+  onClose,
+  financials,
+  goals = [],
+  /** @type {'savings'|'debt'} [createMode] — skips kind picker; savings excludes debt, debt opens payoff form only */
+  createMode = 'savings',
+}) {
   const { t } = useI18n();
   const currency = getCurrencySymbol(financials?.currencyCode);
-  const [step, setStep] = useState('kind');
-  const [kind, setKind] = useState(null);
   const [name, setName] = useState('');
   const [deadlineMode, setDeadlineMode] = useState('none');
   const [endDate, setEndDate] = useState('');
@@ -151,8 +100,6 @@ export default function CreateGoalSheet({ visible, onClose, financials, goals = 
 
   useEffect(() => {
     if (!visible) return;
-    setStep('kind');
-    setKind(null);
     setName('');
     setDeadlineMode('none');
     setEndDate('');
@@ -164,36 +111,7 @@ export default function CreateGoalSheet({ visible, onClose, financials, goals = 
     setError('');
     setSaving(false);
     setDateDropdownOpen(false);
-  }, [visible]);
-
-  const selectKind = (nextKind) => {
-    if (nextKind !== kind) {
-      setName('');
-      setDeadlineMode('none');
-      setEndDate('');
-      setTargetText('');
-      setSelectedDebtId(null);
-      setDebtName('');
-      setDebtBalanceText('');
-      setDebtMinPaymentText('');
-    }
-    setKind(nextKind);
-    setError('');
-  };
-
-  const handleContinueFromKind = () => {
-    if (!kind) {
-      setError(t('dashboard.goalsScreen.create.validationKind'));
-      return;
-    }
-    setStep('details');
-    setError('');
-  };
-
-  const handleBackToKind = () => {
-    setStep('kind');
-    setError('');
-  };
+  }, [visible, createMode]);
 
   const clearDebtSelection = () => {
     setSelectedDebtId(null);
@@ -232,6 +150,13 @@ export default function CreateGoalSheet({ visible, onClose, financials, goals = 
   };
 
   const handleSaveDebt = async () => {
+    if (deadlineMode === 'set' && !endDate.trim()) {
+      setError(t('dashboard.goalsScreen.setDeadline.validationDate'));
+      return;
+    }
+
+    const resolvedEndDate = deadlineMode === 'set' ? endDate.trim() : null;
+
     if (selectedDebtId) {
       const selected = availableDebts.find((entry) => entry.debtId === selectedDebtId);
       if (!selected) {
@@ -241,7 +166,7 @@ export default function CreateGoalSheet({ visible, onClose, financials, goals = 
 
       setSaving(true);
       try {
-        const goal = buildManualDebtGoal(selected.debt, selected.index, t);
+        const goal = buildManualDebtGoal(selected.debt, selected.index, t, resolvedEndDate);
         await appendGoal(goal);
         notifyDashboardRefresh();
         onClose();
@@ -270,6 +195,7 @@ export default function CreateGoalSheet({ visible, onClose, financials, goals = 
         creditor: debtName,
         balance,
         minPayment,
+        endDate: resolvedEndDate,
       }, t);
       notifyDashboardRefresh();
       onClose();
@@ -281,205 +207,171 @@ export default function CreateGoalSheet({ visible, onClose, financials, goals = 
   };
 
   const handleSave = () => {
-    if (kind === 'debt') {
+    if (createMode === 'debt') {
       handleSaveDebt();
       return;
     }
     handleSaveSavings();
   };
 
+  const isDebtMode = createMode === 'debt';
+  const sheetTitle = isDebtMode
+    ? t('dashboard.goalsScreen.create.debtTitle')
+    : t('dashboard.goalsScreen.create.title');
+  const sheetHelper = isDebtMode
+    ? t('dashboard.goalsScreen.create.debtHelper')
+    : t('dashboard.goalsScreen.create.savingsHelper');
+  const closeA11y = isDebtMode
+    ? t('dashboard.goalsScreen.create.closeDebtA11y')
+    : t('dashboard.goalsScreen.create.closeA11y');
+
   return (
     <DashboardScrollSheet
       visible={visible}
       onClose={onClose}
-      closeA11yLabel={t('dashboard.goalsScreen.create.closeA11y')}
+      closeA11yLabel={closeA11y}
       contentContainerStyle={dateDropdownOpen ? { paddingBottom: 240 } : undefined}
     >
-          {step === 'details' ? (
-            <Pressable
-              onPress={handleBackToKind}
-              accessibilityRole="button"
-              accessibilityLabel={t('dashboard.goalsScreen.create.backToKindA11y')}
-              style={({ pressed, hovered }) => ({
-                alignSelf: 'flex-start',
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 4,
-                marginBottom: 12,
-                paddingVertical: 4,
-                paddingHorizontal: 2,
-                opacity: pressed ? 0.7 : 1,
-                ...(Platform.OS === 'web' ? { cursor: 'pointer' } : {}),
-              })}
-            >
-              <Text style={{ ...T.caption, color: C.primary, fontWeight: '600' }}>
-                ← {t('common.back')}
-              </Text>
-            </Pressable>
-          ) : null}
           <Text style={{ ...T.cardTitle, marginBottom: 4 }}>
-            {t('dashboard.goalsScreen.create.title')}
+            {sheetTitle}
           </Text>
           <Text style={{ ...T.caption, color: C.muted, marginBottom: 16 }}>
-            {step === 'kind'
-              ? t('dashboard.goalsScreen.create.kindPrompt')
-              : kind === 'debt'
-                ? t('dashboard.goalsScreen.create.debtHelper')
-                : t('dashboard.goalsScreen.create.savingsHelper')}
+            {sheetHelper}
           </Text>
 
-          {step === 'kind' ? (
-            <View>
-              <GoalKindOption
-                Icon={SavingsIcon}
-                label={t('dashboard.goalsScreen.create.kind.savings')}
-                subtitle={t('dashboard.goalsScreen.create.kind.savingsHelper')}
-                selected={kind === 'savings'}
-                onPress={() => selectKind('savings')}
-              />
-              <GoalKindOption
-                Icon={CreditCardIcon}
-                label={t('dashboard.goalsScreen.create.kind.debt')}
-                subtitle={t('dashboard.goalsScreen.create.kind.debtHelper')}
-                selected={kind === 'debt'}
-                onPress={() => selectKind('debt')}
-              />
-              {error ? (
-                <Text style={{ ...T.caption, color: C.danger, marginBottom: 12 }}>{error}</Text>
-              ) : null}
-              <View style={{ flexDirection: 'row', gap: 12, marginTop: 8 }}>
-                <View style={{ flex: 1 }}>
-                  <OutlineButton onPress={onClose}>
-                    {t('common.cancel')}
-                  </OutlineButton>
-                </View>
-                <View style={{ flex: 1 }}>
-                  <PrimaryButton onPress={handleContinueFromKind} disabled={!kind}>
-                    {t('common.continue')}
-                  </PrimaryButton>
-                </View>
+          <View>
+            {createMode === 'savings' ? (
+              <>
+                <FormInput
+                  label={t('dashboard.goalsScreen.create.name')}
+                  value={name}
+                  onChangeText={setName}
+                  placeholder={t('dashboard.goalsScreen.create.namePlaceholder')}
+                />
+                <GoalDeadlineFields
+                  mode={deadlineMode}
+                  onModeChange={(mode) => {
+                    setDeadlineMode(mode);
+                    setError('');
+                  }}
+                  endDate={endDate}
+                  onEndDateChange={(value) => {
+                    setEndDate(value);
+                    setError('');
+                  }}
+                  minSelectableDate={minSelectableDate}
+                  onElevatedChange={setDateDropdownOpen}
+                  errorText={error && deadlineMode === 'set' ? error : undefined}
+                />
+                <FormInput
+                  label={t('dashboard.goalsScreen.create.target')}
+                  value={targetText}
+                  onChangeText={setTargetText}
+                  keyboardType="decimal-pad"
+                  placeholder="0"
+                  currency={currency}
+                />
+              </>
+            ) : (
+              <>
+                {availableDebts.length > 0 ? (
+                  <View style={{ marginBottom: 16 }}>
+                    <Text style={{ ...T.fieldLabel, marginBottom: 8 }}>
+                      {t('dashboard.goalsScreen.create.existingDebts')}
+                    </Text>
+                    {availableDebts.map(({ debt, index, debtId }) => (
+                      <DebtSelectRow
+                        key={debtId}
+                        label={resolveDebtEntryLabel(debt, t)}
+                        balance={Number(debt.balance) || 0}
+                        currency={currency}
+                        selected={selectedDebtId === debtId}
+                        onPress={() => {
+                          setSelectedDebtId(debtId);
+                          setDebtName('');
+                          setDebtBalanceText('');
+                          setDebtMinPaymentText('');
+                          setError('');
+                        }}
+                      />
+                    ))}
+                  </View>
+                ) : null}
+
+                <Text style={{ ...T.fieldLabel, marginBottom: 8 }}>
+                  {availableDebts.length > 0
+                    ? t('dashboard.goalsScreen.create.addNewDebt')
+                    : t('dashboard.goalsScreen.create.debtDetails')}
+                </Text>
+                <FormInput
+                  label={t('dashboard.goalsScreen.create.debtName')}
+                  value={debtName}
+                  onChangeText={(text) => {
+                    clearDebtSelection();
+                    setDebtName(text);
+                    setError('');
+                  }}
+                  placeholder={t('dashboard.goalsScreen.create.debtNamePlaceholder')}
+                />
+                <FormInput
+                  label={t('dashboard.goalsScreen.create.debtBalance')}
+                  value={debtBalanceText}
+                  onChangeText={(text) => {
+                    clearDebtSelection();
+                    setDebtBalanceText(text);
+                    setError('');
+                  }}
+                  placeholder="0"
+                  numeric
+                  currency={currency}
+                />
+                <FormInput
+                  label={t('dashboard.goalsScreen.create.debtMinPayment')}
+                  value={debtMinPaymentText}
+                  onChangeText={(text) => {
+                    clearDebtSelection();
+                    setDebtMinPaymentText(text);
+                    setError('');
+                  }}
+                  placeholder="0"
+                  numeric
+                  currency={currency}
+                  helperText={t('dashboard.goalsScreen.create.debtMinPaymentHelper')}
+                />
+                <GoalDeadlineFields
+                  mode={deadlineMode}
+                  onModeChange={(mode) => {
+                    setDeadlineMode(mode);
+                    setError('');
+                  }}
+                  endDate={endDate}
+                  onEndDateChange={(value) => {
+                    setEndDate(value);
+                    setError('');
+                  }}
+                  minSelectableDate={minSelectableDate}
+                  onElevatedChange={setDateDropdownOpen}
+                  errorText={error && deadlineMode === 'set' ? error : undefined}
+                />
+              </>
+            )}
+
+            {error && deadlineMode !== 'set' ? (
+              <Text style={{ ...T.caption, color: C.danger, marginBottom: 12 }}>{error}</Text>
+            ) : null}
+            <View style={{ flexDirection: 'row', gap: 12, marginTop: 8 }}>
+              <View style={{ flex: 1 }}>
+                <OutlineButton onPress={onClose} disabled={saving} destructive>
+                  {t('common.cancel')}
+                </OutlineButton>
+              </View>
+              <View style={{ flex: 1 }}>
+                <PrimaryButton onPress={handleSave} disabled={saving}>
+                  {t('common.save')}
+                </PrimaryButton>
               </View>
             </View>
-          ) : (
-            <View>
-              {kind === 'savings' ? (
-                <>
-                  <FormInput
-                    label={t('dashboard.goalsScreen.create.name')}
-                    value={name}
-                    onChangeText={setName}
-                    placeholder={t('dashboard.goalsScreen.create.namePlaceholder')}
-                  />
-                  <GoalDeadlineFields
-                    mode={deadlineMode}
-                    onModeChange={(mode) => {
-                      setDeadlineMode(mode);
-                      setError('');
-                    }}
-                    endDate={endDate}
-                    onEndDateChange={(value) => {
-                      setEndDate(value);
-                      setError('');
-                    }}
-                    minSelectableDate={minSelectableDate}
-                    onElevatedChange={setDateDropdownOpen}
-                    errorText={error && deadlineMode === 'set' ? error : undefined}
-                  />
-                  <FormInput
-                    label={t('dashboard.goalsScreen.create.target')}
-                    value={targetText}
-                    onChangeText={setTargetText}
-                    keyboardType="decimal-pad"
-                    placeholder="0"
-                    currency={currency}
-                  />
-                </>
-              ) : (
-                <>
-                  {availableDebts.length > 0 ? (
-                    <View style={{ marginBottom: 16 }}>
-                      <Text style={{ ...T.fieldLabel, marginBottom: 8 }}>
-                        {t('dashboard.goalsScreen.create.existingDebts')}
-                      </Text>
-                      {availableDebts.map(({ debt, index, debtId }) => (
-                        <DebtSelectRow
-                          key={debtId}
-                          label={resolveDebtEntryLabel(debt, t)}
-                          balance={Number(debt.balance) || 0}
-                          currency={currency}
-                          selected={selectedDebtId === debtId}
-                          onPress={() => {
-                            setSelectedDebtId(debtId);
-                            setDebtName('');
-                            setDebtBalanceText('');
-                            setDebtMinPaymentText('');
-                            setError('');
-                          }}
-                        />
-                      ))}
-                    </View>
-                  ) : null}
-
-                  <Text style={{ ...T.fieldLabel, marginBottom: 8 }}>
-                    {availableDebts.length > 0
-                      ? t('dashboard.goalsScreen.create.addNewDebt')
-                      : t('dashboard.goalsScreen.create.debtDetails')}
-                  </Text>
-                  <FormInput
-                    label={t('dashboard.goalsScreen.create.debtName')}
-                    value={debtName}
-                    onChangeText={(text) => {
-                      clearDebtSelection();
-                      setDebtName(text);
-                      setError('');
-                    }}
-                    placeholder={t('dashboard.goalsScreen.create.debtNamePlaceholder')}
-                  />
-                  <FormInput
-                    label={t('dashboard.goalsScreen.create.debtBalance')}
-                    value={debtBalanceText}
-                    onChangeText={(text) => {
-                      clearDebtSelection();
-                      setDebtBalanceText(text);
-                      setError('');
-                    }}
-                    placeholder="0"
-                    numeric
-                    currency={currency}
-                  />
-                  <FormInput
-                    label={t('dashboard.goalsScreen.create.debtMinPayment')}
-                    value={debtMinPaymentText}
-                    onChangeText={(text) => {
-                      clearDebtSelection();
-                      setDebtMinPaymentText(text);
-                      setError('');
-                    }}
-                    placeholder="0"
-                    numeric
-                    currency={currency}
-                    helperText={t('dashboard.goalsScreen.create.debtMinPaymentHelper')}
-                  />
-                </>
-              )}
-
-              {error && deadlineMode !== 'set' ? (
-                <Text style={{ ...T.caption, color: C.danger, marginBottom: 12 }}>{error}</Text>
-              ) : null}
-              <View style={{ flexDirection: 'row', gap: 12, marginTop: 8 }}>
-                <View style={{ flex: 1 }}>
-                  <OutlineButton onPress={onClose} disabled={saving}>
-                    {t('common.cancel')}
-                  </OutlineButton>
-                </View>
-                <View style={{ flex: 1 }}>
-                  <PrimaryButton onPress={handleSave} disabled={saving}>
-                    {t('common.save')}
-                  </PrimaryButton>
-                </View>
-              </View>
-            </View>
-          )}
+          </View>
     </DashboardScrollSheet>
   );
 }

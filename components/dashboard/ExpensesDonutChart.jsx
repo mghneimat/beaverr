@@ -16,6 +16,7 @@ import { donutSegmentPath, buildDonutArcMeta } from '../../lib/donutSegment';
 import { useBreakdownTableColumns } from '../../lib/dashboardLayout';
 import { formatDashboardAmount } from './formatDashboardAmount';
 import TableHorizontalScroll, { donutLegendTableMinWidth } from './TableHorizontalScroll';
+import DashboardSectionEmptyMessage from './DashboardSectionEmptyMessage';
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 
@@ -294,7 +295,7 @@ export default function ExpensesDonutChart({
           </View>
           </TableHorizontalScroll>
         ) : (
-          <Text style={{ ...T.helper }}>{emptyLabel}</Text>
+          <DashboardSectionEmptyMessage message={emptyLabel} />
         )}
       </View>
     </View>

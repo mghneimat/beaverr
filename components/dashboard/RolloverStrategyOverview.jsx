@@ -1,18 +1,15 @@
 import { useEffect, useState } from 'react';
-import { View } from 'react-native';
 import { useI18n } from '../../lib/i18n';
-import StrategySectionIntro from './StrategySectionIntro';
+import StrategyPickerSection from './StrategyPickerSection';
 import StrategyOptionCard from './StrategyOptionCard';
 
 const STRATEGIES = [
   {
     id: 'free',
-    icon: '♾️',
     labelKey: 'dashboard.budgetScreen.rollover.free',
   },
   {
     id: 'reset',
-    icon: '🔁',
     labelKey: 'dashboard.budgetScreen.rollover.reset',
   },
 ];
@@ -80,12 +77,12 @@ export default function RolloverStrategyOverview({
   };
 
   return (
-    <View accessibilityRole="radiogroup" accessibilityLabel={t('dashboard.budgetScreen.rollover.title')}>
-      <StrategySectionIntro
-        sectionLabel={t('dashboard.budgetScreen.rollover.sectionLabel')}
-        helper={t('dashboard.budgetScreen.rollover.helper')}
-      />
-      {STRATEGIES.map(({ id, icon, labelKey }) => {
+    <StrategyPickerSection
+      sectionLabel={t('dashboard.budgetScreen.rollover.sectionLabel')}
+      helper={t('dashboard.budgetScreen.rollover.helper')}
+      a11yLabel={t('dashboard.budgetScreen.rollover.title')}
+    >
+      {STRATEGIES.map(({ id, labelKey }) => {
         const selected = active === id;
         const bodyKey = `dashboard.budgetScreen.rollover.${id}Body`;
         const flowSteps = id === 'free'
@@ -99,7 +96,6 @@ export default function RolloverStrategyOverview({
         return (
           <StrategyOptionCard
             key={id}
-            icon={icon}
             label={t(labelKey)}
             body={t(bodyKey)}
             flowSteps={flowSteps}
@@ -109,6 +105,6 @@ export default function RolloverStrategyOverview({
           />
         );
       })}
-    </View>
+    </StrategyPickerSection>
   );
 }

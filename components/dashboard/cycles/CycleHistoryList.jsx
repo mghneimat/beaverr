@@ -4,6 +4,7 @@ import { useI18n } from '../../../lib/i18n';
 import { getClosedCycles } from '../../../lib/budgetCycle';
 import { C, T, tabularNums } from '../../../constants/onboarding-theme';
 import SurfaceCard from '../../ui/SurfaceCard';
+import DashboardSectionEmptyMessage from '../DashboardSectionEmptyMessage';
 import { formatCurrency } from '../../../lib/finance';
 
 function formatRange(cycle, locale) {
@@ -36,9 +37,7 @@ export default function CycleHistoryList({ cycleStore, currency, showEmpty = fal
     return (
       <SurfaceCard>
         <Text style={{ ...T.cardTitle }}>{t('dashboard.cycles.history.title')}</Text>
-        <Text style={{ ...T.caption, color: C.muted, marginTop: 4 }}>
-          {t('dashboard.cycles.history.empty')}
-        </Text>
+        <DashboardSectionEmptyMessage message={t('dashboard.cycles.history.empty')} />
       </SurfaceCard>
     );
   }

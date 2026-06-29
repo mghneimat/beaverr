@@ -157,11 +157,32 @@ export function BurnRateAnimatedAmount({
 }
 
 /** Income pill in burn-rate header — animates label + amount together and resizes smoothly. */
-export function BurnRateIncomePill({ label, amount, amountValue, currency, animationKey, isOvercommitted = false }) {
+export function BurnRateIncomePill({
+  label,
+  amount,
+  amountValue,
+  currency,
+  animationKey,
+  isOvercommitted = false,
+  tone = 'income',
+}) {
   const { display, animatedStyle: contentStyle } = useDelayedDisplay(animationKey, amount, { slide: true });
-  const pillBg = isOvercommitted ? C.dangerBg : C.heroIncomeBg;
-  const pillBorder = isOvercommitted ? C.danger : C.heroIncomeBorder;
-  const textColor = isOvercommitted ? C.danger : C.heroIncomeBadge;
+  const resolvedTone = isOvercommitted ? 'danger' : tone;
+  const pillBg = resolvedTone === 'danger'
+    ? C.dangerBg
+    : resolvedTone === 'muted'
+      ? C.surfaceTint
+      : C.heroIncomeBg;
+  const pillBorder = resolvedTone === 'danger'
+    ? C.danger
+    : resolvedTone === 'muted'
+      ? C.border
+      : C.heroIncomeBorder;
+  const textColor = resolvedTone === 'danger'
+    ? C.danger
+    : resolvedTone === 'muted'
+      ? C.muted
+      : C.heroIncomeBadge;
   const textStyle = { fontSize: 12, fontWeight: '600', color: textColor };
 
   return (
@@ -193,15 +214,20 @@ export function BurnRateIncomePill({ label, amount, amountValue, currency, anima
   );
 }
 
-export function BurnRateHorizontalLegend({ items, animationKey, amountAnimationKey }) {
+export function BurnRateHorizontalLegend({
+  items,
+  animationKey,
+  amountAnimationKey,
+  spreadEvenly = false,
+}) {
   if (!items?.length) return null;
 
   return (
     <View style={{
       flexDirection: 'row',
-      flexWrap: 'wrap',
+      flexWrap: spreadEvenly ? 'nowrap' : 'wrap',
       alignItems: 'flex-start',
-      gap: 32,
+      gap: spreadEvenly ? 0 : 32,
       rowGap: 14,
       marginTop: 12,
       width: '100%',
@@ -220,6 +246,12 @@ export function BurnRateHorizontalLegend({ items, animationKey, amountAnimationK
           hint={item.hint}
           animationKey={animationKey}
           amountAnimationKey={amountAnimationKey}
+          spreadEvenly={spreadEvenly}
+          itemAlign={
+            spreadEvenly
+              ? (index === 0 ? 'flex-start' : index === items.length - 1 ? 'flex-end' : 'center')
+              : undefined
+          }
         />
       ))}
     </View>
@@ -238,6 +270,8 @@ function BurnRateHorizontalLegendItem({
   onPress,
   hint,
   animationKey,
+  spreadEvenly = false,
+  itemAlign,
 }) {
   const reduceMotion = useReducedMotion();
   const [hovered, setHovered] = useState(false);
@@ -278,7 +312,11 @@ function BurnRateHorizontalLegendItem({
     : {};
 
   return (
-    <Animated.View style={itemEnterStyle}>
+    <Animated.View style={[
+      itemEnterStyle,
+      spreadEvenly ? { flex: 1, minWidth: 0, alignItems: itemAlign } : null,
+    ]}
+    >
       <View {...hoverProps}>
         <Pressable
           onPress={onPress}
@@ -291,10 +329,12 @@ function BurnRateHorizontalLegendItem({
             alignItems: 'center',
             gap: 8,
             paddingVertical: 8,
-            paddingHorizontal: 14,
+            paddingHorizontal: spreadEvenly ? 4 : 14,
             borderRadius: R.input,
             backgroundColor: isPressed || hovered ? C.breakdownRowHover : 'transparent',
             opacity: isPressed ? 0.92 : 1,
+            alignSelf: spreadEvenly ? 'stretch' : undefined,
+            justifyContent: spreadEvenly ? itemAlign : undefined,
             ...(Platform.OS === 'web' && onPress ? { cursor: 'pointer' } : {}),
           })}
         >

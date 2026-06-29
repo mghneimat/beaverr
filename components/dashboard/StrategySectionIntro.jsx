@@ -7,7 +7,7 @@ import { C, T } from '../../constants/onboarding-theme';
  */
 export default function StrategySectionIntro({ sectionLabel, helper, style }) {
   return (
-    <View style={[{ marginBottom: 16 }, style]}>
+    <View style={[{ marginBottom: 14 }, style]}>
       <Text
         accessibilityRole="header"
         style={{
@@ -17,7 +17,7 @@ export default function StrategySectionIntro({ sectionLabel, helper, style }) {
       >
         {sectionLabel}
       </Text>
-      <Text style={{ ...T.helper, color: C.muted, lineHeight: 20 }}>
+      <Text style={{ ...T.helper, color: C.muted, lineHeight: 22, fontSize: 14 }}>
         {helper}
       </Text>
     </View>

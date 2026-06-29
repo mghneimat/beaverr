@@ -28,6 +28,7 @@ import {
   BreakdownPillRowSlot,
 } from './BreakdownTablePrimitives';
 import TableHorizontalScroll, { breakdownPillTableMinWidth } from './TableHorizontalScroll';
+import DashboardSectionEmptyMessage from './DashboardSectionEmptyMessage';
 
 /**
  * Expandable section → line-item breakdown (Housing → Rent, Utilities, …).
@@ -134,9 +135,7 @@ export default function ExpensesCategoryBreakdown({
       ) : null}
 
       {!hasData ? (
-        <Text style={{ ...T.helper, textAlign: 'center', paddingVertical: 24, paddingHorizontal: 16 }}>
-          {emptyLabel}
-        </Text>
+        <DashboardSectionEmptyMessage message={emptyLabel} variant="centered" />
       ) : (
         <View style={{ gap: 8, overflow: 'visible', width: '100%', alignSelf: 'stretch' }}>
           <TableHorizontalScroll minWidth={breakdownPillTableMinWidth(amountColMinW, shareColMinW)}>

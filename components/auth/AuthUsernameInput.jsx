@@ -90,7 +90,7 @@ export default function AuthUsernameInput({ value, onChangeText, status, editabl
       </View>
 
       {hint && hintIsError ? <FieldError message={hint} /> : null}
-      {hint && !hintIsError && focused ? (
+      {hint && !hintIsError && (focused || status === 'available') ? (
         <Text
           accessibilityLiveRegion="polite"
           style={{

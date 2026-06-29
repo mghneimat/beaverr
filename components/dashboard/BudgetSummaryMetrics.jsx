@@ -17,7 +17,7 @@ function SummaryMetricCard({ label, value, amountValue, currency, footer, tone =
     fontSize: 20,
     lineHeight: 24,
     fontWeight: '700',
-    color: palette?.valueColor ?? C.primary,
+    color: palette?.valueColor ?? C.text,
     ...tabularNums,
   };
 

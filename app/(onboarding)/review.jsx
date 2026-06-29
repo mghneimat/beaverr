@@ -16,6 +16,7 @@ import ReviewSummaryBar from '../../components/onboarding/review/ReviewSummaryBa
 import ReviewAlertBanner from '../../components/onboarding/review/ReviewAlertBanner';
 import ReviewSectionCard from '../../components/onboarding/review/ReviewSectionCard';
 import { C, T } from '../../constants/onboarding-theme';
+import SectionCardsSkeleton from '../../components/ui/SectionCardsSkeleton';
 import {
   buildReviewFinancials,
   buildReviewAlerts,
@@ -95,12 +96,8 @@ export default function ReviewScreen() {
 
   if (loading) {
     return (
-      <View
-        accessibilityRole="progressbar"
-        accessibilityLabel={t('common.loading')}
-        style={{ flex: 1, backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center' }}
-      >
-        <Text style={{ ...T.helper }}>{t('common.loading')}</Text>
+      <View style={{ flex: 1, backgroundColor: C.bg, padding: 24, justifyContent: 'center' }}>
+        <SectionCardsSkeleton cards={3} accessibilityLabel={t('common.loading')} />
       </View>
     );
   }
@@ -127,7 +124,7 @@ export default function ReviewScreen() {
       continueLabel={t('onboarding.review.review.cta')}
       animationKey="review"
       resumeRoute="/(onboarding)/review"
-      exitPatch={{ currentStep: 'review', percentComplete: 99 }}
+      exitPatch={{ currentStep: 'review', percentComplete: 99 }}
     >
       <View>
         {alerts.map((alert) => (

@@ -1,9 +1,9 @@
 import { useMemo, useState, useEffect, useCallback } from 'react';
-import { View, Modal, Pressable } from 'react-native';
+import { View, Modal, Pressable, Platform } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
 import { useI18n } from '../../../lib/i18n';
 import { formatCurrency } from '../../../lib/finance';
-import { sumSpentInCycle, missingDaysInCycle } from '../../../lib/budgetCycle';
+import { missingDaysInCycle } from '../../../lib/budgetCycle';
 import {
   buildCoverageLimits,
   buildDefaultCoverage,
@@ -12,12 +12,19 @@ import {
   validateCoverage,
 } from '../../../lib/overspendCoverage';
 import { finalizeCycleClose } from '../../../lib/cycleClose';
-import { computeCycleCloseBalance } from '../../../lib/cyclePace';
 import { isoDateKey } from '../../../lib/dailyLog';
+import {
+  isBackfillCycle,
+  recomputeClosedCycleTotals,
+  resolveDefaultCycleCloseDate,
+  validateCycleEndDate,
+} from '../../../lib/cycleCloseDates';
+import { storedDateToIso, isoToStoredDate } from '../../../lib/cycleDates';
 import { notifyDashboardRefresh } from '../../../lib/dashboardRefresh';
 import { C, R, T, tabularNums } from '../../../constants/onboarding-theme';
 import PrimaryButton from '../../ui/PrimaryButton';
 import YesNoToggle from '../../onboarding/YesNoToggle';
+import SplitDateFields from '../../onboarding/SplitDateFields';
 import CycleCoverageEditor from './CycleCoverageEditor';
 
 export default function CloseCycleWizard({
@@ -35,25 +42,53 @@ export default function CloseCycleWizard({
   const today = isoDateKey();
   const [step, setStep] = useState(0);
   const [confirmUnset, setConfirmUnset] = useState(false);
+  const [endDate, setEndDate] = useState('');
+  const [dateDropdownOpen, setDateDropdownOpen] = useState(false);
   /** @type {[import('../../../lib/schema').OverspendCoverage[], Function]} */
   const [coverageRows, setCoverageRows] = useState([]);
   const [saving, setSaving] = useState(false);
   const [errorText, setErrorText] = useState('');
 
+  const needsCloseDateChoice = Boolean(cycle && isBackfillCycle(cycle, today));
+
+  const defaultCloseIso = useMemo(
+    () => (cycle ? resolveDefaultCycleCloseDate(cycle, dailyLogs, today) : today),
+    [cycle, dailyLogs, today],
+  );
+
+  const closedAtIso = useMemo(() => {
+    if (!needsCloseDateChoice) return today;
+    return storedDateToIso(endDate) || defaultCloseIso;
+  }, [needsCloseDateChoice, endDate, defaultCloseIso, today]);
+
   const closeBalance = useMemo(() => {
     if (!cycle) {
       return { pool: 0, spentTotal: 0, deficit: 0, surplus: 0 };
     }
-    return computeCycleCloseBalance(cycle, dailyLogs, budget, today, cycleAdjustments);
-  }, [cycle, dailyLogs, budget, today, cycleAdjustments]);
+    return recomputeClosedCycleTotals(
+      cycle,
+      dailyLogs,
+      budget,
+      closedAtIso,
+      cycleAdjustments,
+    );
+  }, [cycle, dailyLogs, budget, closedAtIso, cycleAdjustments]);
 
   const spentTotal = closeBalance.spentTotal;
   const effectivePool = closeBalance.pool;
   const deficit = closeBalance.deficit;
   const surplus = closeBalance.surplus;
   const unsetDays = useMemo(
-    () => (cycle ? missingDaysInCycle(cycle, dailyLogs) : []),
-    [cycle, dailyLogs],
+    () => (
+      cycle
+        ? missingDaysInCycle(
+          cycle,
+          dailyLogs,
+          needsCloseDateChoice ? closedAtIso : undefined,
+        )
+        : []
+    ),
+    [cycle, dailyLogs, needsCloseDateChoice, closedAtIso],
   );
 
   const coverageLimits = useMemo(
@@ -86,9 +121,24 @@ export default function CloseCycleWizard({
       setStep(0);
       setConfirmUnset(false);
       setErrorText('');
+      setEndDate(isoToStoredDate(defaultCloseIso));
       resetCoverageRows();
     }
-  }, [visible, cycle, resetCoverageRows]);
+  }, [visible, cycle, defaultCloseIso, resetCoverageRows]);
+
+  const handleDateElevatedChange = useCallback((open) => {
+    setDateDropdownOpen(open);
+  }, []);
+
+  const dateSectionStyle = dateDropdownOpen
+    ? {
+        zIndex: 200,
+        elevation: 12,
+        overflow: 'visible',
+        marginBottom: 16,
+        ...(Platform.OS === 'web' ? { position: 'relative' } : null),
+      }
+    : { overflow: 'visible', marginBottom: 16 };
 
   const reset = () => {
     setStep(0);
@@ -104,6 +154,20 @@ export default function CloseCycleWizard({
 
   const handleFinalize = async () => {
     if (!cycle) return;
+
+    if (needsCloseDateChoice) {
+      const endErr = validateCycleEndDate(cycle.startedAt, closedAtIso, today);
+      if (endErr) {
+        if (endErr === 'validationEndBeforeStart') {
+          setErrorText(t('dashboard.cycles.close.validationEndBeforeStart'));
+        } else if (endErr === 'validationEndFuture') {
+          setErrorText(t('dashboard.cycles.close.validationEndFuture'));
+        } else {
+          setErrorText(t('dashboard.cycles.close.validationEndDate'));
+        }
+        return;
+      }
+    }
 
     const normalized = normalizeCoverageForSave(coverageRows);
     const validation = validateCoverage(normalized, deficit, coverageLimits);
@@ -123,7 +187,7 @@ export default function CloseCycleWizard({
     try {
       await finalizeCycleClose({
         cycleId: cycle.id,
-        closedAt: today,
+        closedAt: closedAtIso,
         dailyLogs,
         budget: budget || {},
         income,
@@ -161,6 +225,19 @@ export default function CloseCycleWizard({
     if (step === 0 && unsetDays.length > 0 && !confirmUnset) {
       setErrorText(t('dashboard.cycles.close.unsetRequired'));
       return;
+    }
+    if (step === 0 && needsCloseDateChoice) {
+      const endErr = validateCycleEndDate(cycle.startedAt, closedAtIso, today);
+      if (endErr) {
+        if (endErr === 'validationEndBeforeStart') {
+          setErrorText(t('dashboard.cycles.close.validationEndBeforeStart'));
+        } else if (endErr === 'validationEndFuture') {
+          setErrorText(t('dashboard.cycles.close.validationEndFuture'));
+        } else {
+          setErrorText(t('dashboard.cycles.close.validationEndDate'));
+        }
+        return;
+      }
     }
     setErrorText('');
 
@@ -218,6 +295,25 @@ export default function CloseCycleWizard({
 
           {step === 0 ? (
             <>
+              {needsCloseDateChoice ? (
+                <View style={dateSectionStyle}>
+                  <Text style={{ ...T.helper, color: C.muted, marginBottom: 12 }}>
+                    {t('dashboard.cycles.close.endDateHelper')}
+                  </Text>
+                  <Text style={{ ...T.caption, color: C.muted, fontWeight: '600', marginBottom: 8 }}>
+                    {t('dashboard.cycles.close.endDateLabel')}
+                  </Text>
+                  <SplitDateFields
+                    value={endDate}
+                    onChange={(next) => {
+                      setEndDate(next);
+                      setErrorText('');
+                    }}
+                    yearPast={3}
+                    onElevatedChange={handleDateElevatedChange}
+                  />
+                </View>
+              ) : null}
               <View style={{ gap: 8, marginBottom: 16 }}>
                 <Text style={{ ...T.helper, ...tabularNums }}>
                   {t('dashboard.cycles.close.spent')}: {formatCurrency(spentTotal, currency)}

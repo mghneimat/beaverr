@@ -1,42 +1,105 @@
-import { useCallback, useState } from 'react';
-import { View, Pressable, Platform } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
+import { View, Platform } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
+import Animated, {
+  useAnimatedStyle,
+  useDerivedValue,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 import { useI18n } from '../../lib/i18n';
 import { C, R, T } from '../../constants/onboarding-theme';
+import { DASHBOARD_MOTION_DURATION, DASHBOARD_MOTION_EASE } from '../../lib/dashboardMotion';
+import { useReducedMotion } from '../../lib/useReducedMotion';
+import PillToggle from '../onboarding/PillToggle';
 import SplitDateFields from '../onboarding/SplitDateFields';
 
-function DeadlineModeChip({ label, selected, onPress }) {
+const TRACK_PADDING = 4;
+const SEGMENT_GAP = 4;
+
+function DeadlineModeToggle({ value, onChange, noneLabel, setLabel }) {
+  const reduceMotion = useReducedMotion();
+  const trackWidth = useSharedValue(0);
+  const selectedIndex = useSharedValue(value === 'set' ? 1 : 0);
+
+  useEffect(() => {
+    const next = value === 'set' ? 1 : 0;
+    selectedIndex.value = reduceMotion
+      ? next
+      : withTiming(next, {
+        duration: DASHBOARD_MOTION_DURATION,
+        easing: DASHBOARD_MOTION_EASE,
+      });
+  }, [value, reduceMotion, selectedIndex]);
+
+  const pillWidth = useDerivedValue(() => {
+    if (trackWidth.value <= 0) return 0;
+    return (trackWidth.value - TRACK_PADDING * 2 - SEGMENT_GAP) / 2;
+  });
+
+  const indicatorShellStyle = {
+    position: 'absolute',
+    top: TRACK_PADDING,
+    bottom: TRACK_PADDING,
+    left: TRACK_PADDING,
+    borderRadius: R.button,
+    backgroundColor: C.surface,
+    borderWidth: 1,
+    borderColor: C.border,
+  };
+
+  const indicatorMotionStyle = useAnimatedStyle(() => ({
+    width: pillWidth.value,
+    transform: [{ translateX: selectedIndex.value * (pillWidth.value + SEGMENT_GAP) }],
+  }));
+
   return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityState={{ selected }}
-      style={({ pressed, hovered }) => ({
-        flex: 1,
-        paddingVertical: 12,
-        borderRadius: R.pill,
-        borderWidth: selected ? 0 : 1.5,
-        borderColor: selected ? C.chipSelectedBorder : C.border,
-        backgroundColor: selected
-          ? C.chipSelectedBg
-          : pressed
-            ? C.overlayPressed
-            : hovered
-              ? C.bg
-              : C.surface,
-        alignItems: 'center',
-        ...(Platform.OS === 'web' ? { cursor: 'pointer' } : {}),
-      })}
-    >
-      <Text style={{
-        fontSize: 13,
-        color: selected ? C.chipSelectedText : C.pillUnselectedText,
-        fontWeight: selected ? '600' : '500',
+    <View
+      accessibilityRole="radiogroup"
+      onLayout={(event) => {
+        trackWidth.value = event.nativeEvent.layout.width;
       }}
-      >
-        {label}
-      </Text>
-    </Pressable>
+      style={{
+        flexDirection: 'row',
+        gap: SEGMENT_GAP,
+        width: '100%',
+        backgroundColor: C.bg,
+        borderRadius: R.pill,
+        padding: TRACK_PADDING,
+        borderWidth: 1,
+        borderColor: C.border,
+        position: 'relative',
+        marginBottom: 8,
+      }}
+    >
+      <Animated.View style={[indicatorShellStyle, indicatorMotionStyle]} pointerEvents="none" />
+      <PillToggle
+        label={noneLabel}
+        selected={value === 'none'}
+        onPress={() => onChange('none')}
+        paddingVertical={12}
+        paddingHorizontal={16}
+        fontSize={13}
+        fontWeight="500"
+        borderRadius={R.button}
+        variant="segment"
+        minHeight={40}
+        hideSelectedSurface
+      />
+      <PillToggle
+        label={setLabel}
+        selected={value === 'set'}
+        onPress={() => onChange('set')}
+        paddingVertical={12}
+        paddingHorizontal={16}
+        fontSize={13}
+        fontWeight="500"
+        borderRadius={R.button}
+        variant="segment"
+        minHeight={40}
+        hideSelectedSurface
+      />
+    </View>
   );
 }
 
@@ -74,18 +137,12 @@ export default function GoalDeadlineFields({
       <Text style={{ ...T.fieldLabel, marginBottom: 8 }}>
         {t('dashboard.goalsScreen.deadlineLabel')}
       </Text>
-      <View style={{ flexDirection: 'row', gap: 10, marginBottom: 8 }}>
-        <DeadlineModeChip
-          label={t('dashboard.goalsScreen.deadlineMode.none')}
-          selected={!hasDeadline}
-          onPress={() => onModeChange('none')}
-        />
-        <DeadlineModeChip
-          label={t('dashboard.goalsScreen.deadlineMode.set')}
-          selected={hasDeadline}
-          onPress={() => onModeChange('set')}
-        />
-      </View>
+      <DeadlineModeToggle
+        value={mode}
+        onChange={onModeChange}
+        noneLabel={t('dashboard.goalsScreen.deadlineMode.none')}
+        setLabel={t('dashboard.goalsScreen.deadlineMode.set')}
+      />
       <Text style={{ ...T.caption, color: C.muted, marginBottom: hasDeadline ? 12 : 0 }}>
         {t('dashboard.goalsScreen.deadlineMode.helper')}
       </Text>

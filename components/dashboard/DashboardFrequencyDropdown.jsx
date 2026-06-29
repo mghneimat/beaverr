@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import {
   View,
   Pressable,
@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
 import { useI18n } from '../../lib/i18n';
+import { useTheme } from '../../lib/theme/ThemeProvider';
 import { C, R } from '../../constants/onboarding-theme';
 import { isTouchWeb } from '../../lib/isMobileWebTouch';
 import { elevationShadow } from '../../lib/shadow';
@@ -17,22 +18,32 @@ export const DASHBOARD_FREQ_OPTIONS = ['daily', 'weekly', 'monthly'];
 
 const MENU_WIDTH = 168;
 
-const DROPDOWN_TONES = {
-  income: {
-    bg: C.heroIncomeBg,
-    bgHover: '#DCFCE7',
-    bgPressed: '#BBF7D0',
-    border: C.heroIncomeBorder,
-    text: C.heroIncomeBadge,
-  },
-  expense: {
-    bg: C.heroExpenseBg,
-    bgHover: '#FEE2E2',
-    bgPressed: '#FECACA',
-    border: C.heroExpenseBorder,
-    text: C.heroExpenseBadge,
-  },
-};
+/** Hero-tinted trigger pills — hover/pressed stay within card palette in dark mode. */
+function useDropdownPalette(tone) {
+  const { mode } = useTheme();
+
+  return useMemo(() => {
+    if (tone === 'income') {
+      return {
+        bg: C.heroIncomeBg,
+        bgHover: mode === 'dark' ? '#172F23' : '#DCFCE7',
+        bgPressed: mode === 'dark' ? C.heroIncomeBorder : '#BBF7D0',
+        border: C.heroIncomeBorder,
+        text: C.heroIncomeBadge,
+      };
+    }
+    if (tone === 'expense') {
+      return {
+        bg: C.heroExpenseBg,
+        bgHover: mode === 'dark' ? '#3D181C' : '#FEE2E2',
+        bgPressed: mode === 'dark' ? C.heroExpenseBorder : '#FECACA',
+        border: C.heroExpenseBorder,
+        text: C.heroExpenseBadge,
+      };
+    }
+    return null;
+  }, [mode, tone]);
+}
 
 function FrequencyMenuOption({ label, selected, onPress }) {
   const touchWeb = isTouchWeb();
@@ -98,7 +109,7 @@ export default function DashboardFrequencyDropdown({
   const [open, setOpen] = useState(false);
   const [anchor, setAnchor] = useState(null);
   const triggerRef = useRef(null);
-  const palette = tone ? DROPDOWN_TONES[tone] : null;
+  const palette = useDropdownPalette(tone);
 
   const close = () => {
     setOpen(false);
@@ -195,6 +206,8 @@ export default function DashboardFrequencyDropdown({
                 backgroundColor: C.surface,
                 borderRadius: R.card,
                 paddingVertical: 6,
+                paddingHorizontal: 4,
+                gap: 4,
                 borderWidth: 1,
                 borderColor: C.border,
                 ...elevationShadow(8),
@@ -219,6 +232,5 @@ export default function DashboardFrequencyDropdown({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(30, 58, 95, 0.12)',
   },
 });

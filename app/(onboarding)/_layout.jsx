@@ -1,9 +1,11 @@
 import React from 'react';
-import { View, ActivityIndicator, Text, Pressable } from 'react-native';
+import { View, Text, Pressable } from 'react-native';
 import { Stack } from 'expo-router';
-import { C, T } from '../../constants/onboarding-theme';
+import { C, T, S } from '../../constants/onboarding-theme';
 import { BUILD_STAMP } from '../../lib/buildStamp';
 import OnboardingScreenShell from '../../components/onboarding/OnboardingScreenShell';
+import SectionCardsSkeleton from '../../components/ui/SectionCardsSkeleton';
+import { useI18n } from '../../lib/i18n';
 
 /** Surfaces route render errors instead of a silent blank screen on mobile web. */
 export function ErrorBoundary({ error, retry }) {
@@ -52,6 +54,7 @@ export function ErrorBoundary({ error, retry }) {
 
 /** Shown while a child onboarding route chunk loads (prevents blank mobile-web transitions). */
 export function SuspenseFallback() {
+  const { t } = useI18n();
   return (
     <OnboardingScreenShell>
       <View style={{
@@ -59,9 +62,10 @@ export function SuspenseFallback() {
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: C.surface,
+        padding: S.pagePadH,
       }}
       >
-        <ActivityIndicator size="large" color={C.primary} />
+        <SectionCardsSkeleton cards={2} accessibilityLabel={t('common.loading')} />
       </View>
     </OnboardingScreenShell>
   );

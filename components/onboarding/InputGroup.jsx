@@ -9,6 +9,8 @@ export const DropdownElevateContext = createContext(null);
 
 /**
  * Groups related inputs with a shared card background.
+ * Pass errorText for the group border; set showErrorMessage only when the group
+ * itself should render the message (e.g. option lists with no field-level error).
  */
 export default function InputGroup({
   label,
@@ -16,7 +18,7 @@ export default function InputGroup({
   nested = false,
   onRemove,
   errorText,
-  showErrorMessage = true,
+  showErrorMessage = false,
   children,
   style,
 }) {
@@ -65,12 +67,12 @@ export default function InputGroup({
             </Text>
           ) : null}
           {children}
+          {showErrorMessage && errorText ? (
+            <FieldError message={errorText} />
+          ) : null}
           {onRemove ? <DeleteTextButton onPress={onRemove} /> : null}
         </View>
       </DropdownElevateContext.Provider>
-      {showErrorMessage && errorText ? (
-        <FieldError message={errorText} style={{ marginTop: 6 }} />
-      ) : null}
     </View>
   );
 }

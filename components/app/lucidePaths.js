@@ -476,6 +476,13 @@ export const CIRCLE_ALERT_NODES = [
 ];
 
 /** @type {import('./LucideStrokeIcon').LucideNode[]} */
+export const TRIANGLE_ALERT_NODES = [
+  ['path', { d: 'm21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3', key: 'triangle-alert-1' }],
+  ['path', { d: 'M12 9v4', key: 'triangle-alert-2' }],
+  ['path', { d: 'M12 17h.01', key: 'triangle-alert-3' }],
+];
+
+/** @type {import('./LucideStrokeIcon').LucideNode[]} */
 export const PAW_PRINT_NODES = [
   ['circle', { cx: '11', cy: '4', r: '2', key: 'paw-1' }],
   ['circle', { cx: '18', cy: '8', r: '2', key: 'paw-2' }],

@@ -1,13 +1,10 @@
 import { useEffect, useState } from 'react';
-import { View } from 'react-native';
-import { Text } from '@gluestack-ui/themed';
 import { useI18n } from '../../lib/i18n';
-import { C, T } from '../../constants/onboarding-theme';
 import {
   DAILY_SPENDING_STRATEGIES,
   resolveDailySpendingDestination,
 } from '../../lib/dailySpendingStrategy';
-import StrategySectionIntro from './StrategySectionIntro';
+import StrategyPickerSection from './StrategyPickerSection';
 import StrategyOptionCard from './StrategyOptionCard';
 
 /**
@@ -56,11 +53,12 @@ export default function DailySpendingStrategyOverview({
   };
 
   return (
-    <View accessibilityRole="radiogroup" accessibilityLabel={t('dashboard.budgetScreen.dailySpending.title')}>
-      <StrategySectionIntro
-        sectionLabel={t('dashboard.budgetScreen.dailySpending.sectionLabel')}
-        helper={t('dashboard.budgetScreen.dailySpending.helper')}
-      />
+    <StrategyPickerSection
+      sectionLabel={t('dashboard.budgetScreen.dailySpending.sectionLabel')}
+      helper={t('dashboard.budgetScreen.dailySpending.helper')}
+      footnote={t('dashboard.budgetScreen.dailySpending.policyNote')}
+      a11yLabel={t('dashboard.budgetScreen.dailySpending.title')}
+    >
       {DAILY_SPENDING_STRATEGIES.map(({ id }) => {
         const selected = active === id;
         return (
@@ -77,9 +75,6 @@ export default function DailySpendingStrategyOverview({
           />
         );
       })}
-      <Text style={{ ...T.caption, color: C.muted, marginTop: 4, lineHeight: 18 }}>
-        {t('dashboard.budgetScreen.dailySpending.policyNote')}
-      </Text>
-    </View>
+    </StrategyPickerSection>
   );
 }

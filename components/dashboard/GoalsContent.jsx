@@ -7,6 +7,7 @@ import { groupGoalsForUiSections } from '../../lib/goals/goalCategories';
 import { notifyDashboardRefresh } from '../../lib/dashboardRefresh';
 import TabSectionStack from './TabSectionStack';
 import AIInsightSection from './AIInsightSection';
+import GoalsPortfolioHeroCard from './GoalsPortfolioHeroCard';
 import GoalsFilterToggle from './GoalsFilterToggle';
 import GoalsFilterSlideView from './GoalsFilterSlideView';
 import GoalsFilterPanel from './GoalsFilterPanel';
@@ -23,6 +24,7 @@ export default function GoalsContent({ bundle }) {
   const goals = bundle.goals || [];
   const [filter, setFilter] = useState('active');
   const [createOpen, setCreateOpen] = useState(false);
+  const [createMode, setCreateMode] = useState('savings');
   const [editGoal, setEditGoal] = useState(null);
   const [deadlineGoal, setDeadlineGoal] = useState(null);
   const [fundingGoal, setFundingGoal] = useState(null);
@@ -109,11 +111,24 @@ export default function GoalsContent({ bundle }) {
     onArchive: handleArchive,
     onFundingPress: setFundingGoal,
     onResetPress: setResetTarget,
-    onAddGoal: () => setCreateOpen(true),
+    onAddGoal: () => {
+      setCreateMode('savings');
+      setCreateOpen(true);
+    },
+    onAddDebt: () => {
+      setCreateMode('debt');
+      setCreateOpen(true);
+    },
   };
 
   return (
     <TabSectionStack>
+      <GoalsPortfolioHeroCard
+        goals={activeGoals}
+        debts={bundle.financials?.debts}
+        currency={currency}
+      />
+
       {tabInsight ? <AIInsightSection paragraphs={tabInsight.paragraphs} /> : null}
 
       <GoalsFilterToggle
@@ -143,6 +158,7 @@ export default function GoalsContent({ bundle }) {
         onClose={() => setCreateOpen(false)}
         financials={bundle.financials}
         goals={goals}
+        createMode={createMode}
       />
       <EditGoalSheet
         visible={Boolean(editGoal)}

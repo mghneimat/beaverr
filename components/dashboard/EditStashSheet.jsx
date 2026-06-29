@@ -106,7 +106,7 @@ export default function EditStashSheet({
 
       <View style={{ flexDirection: 'row', gap: 12, marginTop: 4 }}>
         <View style={{ flex: 1 }}>
-          <OutlineButton onPress={handleClose} disabled={saving}>
+          <OutlineButton onPress={handleClose} disabled={saving} destructive>
             {t('dashboard.budgetScreen.jars.editSheet.cancel')}
           </OutlineButton>
         </View>

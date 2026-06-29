@@ -164,6 +164,9 @@ describe('onboardingProgress', () => {
   test('normalizeResumeRoute maps legacy aliases and rejects unknown routes', () => {
     expect(normalizeResumeRoute('/(onboarding)/quick-setup')).toBe('/(onboarding)/quick-housing');
     expect(normalizeResumeRoute('/(onboarding)/income')).toBe('/(onboarding)/income');
+    expect(normalizeResumeRoute('/(onboarding)/income?step=savings')).toBe('/(onboarding)/income?step=savings');
+    expect(normalizeResumeRoute('/(onboarding)/residence-permit?subject=partner&childIndex=1'))
+      .toBe('/(onboarding)/residence-permit?subject=partner&childIndex=1');
     expect(normalizeResumeRoute('/(onboarding)/missing-screen')).toBeNull();
   });
 
@@ -195,7 +198,7 @@ describe('onboardingProgress', () => {
     expect(shouldShowContinueQuestionnaire(afterDiscard)).toBe(false);
     expect(shouldShowStartQuestionnaire(afterDiscard)).toBe(true);
     expect(getSavedResumeRoute(afterDiscard)).toBeNull();
-    expect(getQuestionnaireStartRoute(afterDiscard)).toBe('/(onboarding)/welcome');
+    expect(getQuestionnaireStartRoute(afterDiscard)).toBe('/(onboarding)/setup-mode');
     expect(getQuestionnaireNavigationRoute(afterDiscard)).toBe(QUICK_RESUME_ROUTE);
     expect(getQuestionnaireNavigationRoute({
       dashboardUnlocked: true,

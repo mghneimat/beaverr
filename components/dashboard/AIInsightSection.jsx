@@ -41,7 +41,7 @@ function InsightBodyText({ paragraphs, numberOfLines, style }) {
             ...T.helper,
             fontSize: 15,
             lineHeight: BODY_LINE_HEIGHT,
-            color: C.primary,
+            color: C.text,
             marginTop: index > 0 ? 8 : 0,
           }}
           numberOfLines={numberOfLines}
@@ -196,6 +196,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: -1,
-    color: C.primary,
+    color: C.text,
   },
 });

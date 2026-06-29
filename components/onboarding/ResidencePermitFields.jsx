@@ -38,6 +38,7 @@ export default function ResidencePermitFields({
       <InputGroup
         label={t('onboarding.residencePermit.typeLabel')}
         errorText={fieldErrors.type || undefined}
+        showErrorMessage
       >
         {RESIDENCE_PERMIT_TYPES.map((type) => (
           <OptionCard
@@ -56,7 +57,6 @@ export default function ResidencePermitFields({
         <InputGroup
           label={t('onboarding.residencePermit.endDateLabel')}
           errorText={fieldErrors.endDate || undefined}
-          showErrorMessage={false}
         >
           <SplitDateFields
             value={endDate}
@@ -74,7 +74,10 @@ export default function ResidencePermitFields({
         </Text>
 
         <View style={{ marginTop: 4 }}>
-        <InputGroup label={t('onboarding.residencePermit.renewalCostLabel')}>
+        <InputGroup
+          label={t('onboarding.residencePermit.renewalCostLabel')}
+          errorText={fieldErrors.renewalCost || undefined}
+        >
           <LabeledInput
             value={renewalCost}
             onChangeText={(v) => {

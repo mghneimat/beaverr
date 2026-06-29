@@ -13,6 +13,7 @@ import LedgerPillDataTable from './LedgerPillDataTable';
 import ExpenseItemEditPanel from './ExpenseItemEditPanel';
 import { canDeleteExpenseRow, deleteExpenseRow } from '../../lib/inlineExpenseSave';
 import { formatExpenseEndDateCell, formatExpenseNextPaymentCell } from '../../lib/expenseTableCells';
+import DashboardSectionEmptyMessage from './DashboardSectionEmptyMessage';
 
 function frequencyLabel(freq, t) {
   if (!freq) return t('common.monthly');
@@ -167,13 +168,16 @@ export default function ExpensesCategoryPanel({
 
   if (!isOverview && lineItems.length === 0 && !adding) {
     return (
-      <SurfaceCard style={{ marginTop: 16, alignItems: 'center', gap: 12 }}>
-        <Text style={{ ...T.body, color: C.muted, textAlign: 'center' }}>
-          {t('dashboard.expensesScreen.subtabEmpty', { type: categoryLabel })}
-        </Text>
-        <Text style={{ ...T.helper, color: C.muted, textAlign: 'center' }}>
-          {t('dashboard.expensesScreen.emptyHint')}
-        </Text>
+      <SurfaceCard style={{ marginTop: 16 }}>
+        <DashboardSectionEmptyMessage
+          message={t('dashboard.expensesScreen.subtabEmpty', { type: categoryLabel })}
+          variant="centered"
+        />
+        <DashboardSectionEmptyMessage
+          message={t('dashboard.expensesScreen.emptyHint')}
+          variant="centered"
+          style={{ paddingTop: 0 }}
+        />
       </SurfaceCard>
     );
   }

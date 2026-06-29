@@ -12,7 +12,7 @@ const CONTENT_MAX_WIDTH = 900;
  */
 export default function AppTopNavBar({ showMobileMenu = false, onMobileMenuOpen }) {
   const insets = useSafeAreaInsets();
-  const { alertCount, household } = useHeaderToolbarData();
+  const { alertCount, household, accountFields, reload } = useHeaderToolbarData();
 
   return (
     <View
@@ -41,7 +41,12 @@ export default function AppTopNavBar({ showMobileMenu = false, onMobileMenuOpen 
 
         <View style={{ flex: 1 }} />
 
-        <TabHeaderToolbar alertCount={alertCount} household={household} />
+        <TabHeaderToolbar
+          alertCount={alertCount}
+          household={household}
+          accountFields={accountFields}
+          onRefresh={reload}
+        />
       </View>
     </View>
   );

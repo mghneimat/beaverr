@@ -15,7 +15,7 @@ import { C, R, S, T } from '../../constants/onboarding-theme';
  * @param {boolean} [props.small] - Smaller pill padding/font (for use inside cards)
  * @param {string} [props.label] - Visible label above the pill group
  * @param {object} [props.containerStyle] - Additional styles on the outer View
- * @param {'default'|'segment'} [props.variant='default'] - segment = inset track, distinct from CTAs
+ * @param {number} [props.columns] - Choice variant: equal-width grid columns (default 2)
  */
 export default function FrequencyPills({
   options,
@@ -26,6 +26,7 @@ export default function FrequencyPills({
   small = false,
   containerStyle,
   variant = 'default',
+  columns: columnsProp,
 }) {
   const { t } = useI18n();
 
@@ -36,6 +37,11 @@ export default function FrequencyPills({
 
   const groupLabel = label ?? t('common.frequency');
   const isSegment = variant === 'segment';
+  const isChoice = variant === 'choice';
+  const columns = isChoice ? (columnsProp ?? 2) : columnsProp;
+  const choiceGap = 8;
+  const choiceCellBasis =
+    columns === 3 ? '31%' : columns === 2 ? '48%' : '100%';
 
   return (
     <View style={[{ marginBottom: small ? 10 : 12 }, containerStyle]}>
@@ -48,7 +54,8 @@ export default function FrequencyPills({
         style={{
           flexDirection: 'row',
           flexWrap: isSegment ? 'nowrap' : 'wrap',
-          gap: isSegment ? 4 : 8,
+          gap: isSegment ? 4 : isChoice ? choiceGap : 8,
+          width: isChoice ? '100%' : undefined,
           ...(isSegment ? {
             backgroundColor: C.bg,
             borderRadius: R.pill,
@@ -58,21 +65,39 @@ export default function FrequencyPills({
           } : {}),
         }}
       >
-      {options.map((freq) => (
-        <PillToggle
-          key={freq}
-          label={getLabel(freq)}
-          selected={value === freq}
-          onPress={() => onChange(freq)}
-          paddingVertical={small ? 8 : 14}
-          paddingHorizontal={small ? 12 : 20}
-          fontSize={small ? 13 : 14}
-          fontWeight="500"
-          borderRadius={isSegment ? R.button : 99}
-          variant={variant}
-          minHeight={isSegment ? (small ? 36 : 40) : 44}
-        />
-      ))}
+      {options.map((freq) => {
+        const pillProps = {
+          label: getLabel(freq),
+          selected: value === freq,
+          onPress: () => onChange(freq),
+          paddingVertical: small || isChoice ? 10 : 14,
+          paddingHorizontal: small || isChoice ? 14 : 20,
+          fontSize: small || isChoice ? 13 : 14,
+          fontWeight: '500',
+          borderRadius: isSegment || isChoice ? R.button : 99,
+          variant,
+          minHeight: isSegment ? (small ? 36 : 40) : isChoice ? 40 : 44,
+          expand: isSegment || isChoice,
+        };
+
+        if (isChoice && columns) {
+          return (
+            <View
+              key={freq}
+              style={{
+                flexGrow: 1,
+                flexShrink: 0,
+                flexBasis: choiceCellBasis,
+                maxWidth: choiceCellBasis,
+              }}
+            >
+              <PillToggle {...pillProps} style={{ width: '100%', alignSelf: 'stretch' }} />
+            </View>
+          );
+        }
+
+        return <PillToggle key={freq} {...pillProps} />;
+      })}
       </View>
     </View>
   );

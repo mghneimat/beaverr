@@ -433,7 +433,7 @@ export default function LocationEdit() {
         backgroundColor: C.bg,
       }}>
         <View style={{ flex: 1 }}>
-          <OutlineButton onPress={handleCancel} disabled={saving}>
+          <OutlineButton onPress={handleCancel} disabled={saving} destructive>
             {t('common.cancel')}
           </OutlineButton>
         </View>

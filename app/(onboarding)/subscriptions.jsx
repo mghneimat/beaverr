@@ -9,12 +9,14 @@ import { getData, setData } from '../../lib/storage';
 import { getCurrencySymbol } from '../../lib/currency';
 import { toMonthly, formatCurrency } from '../../lib/finance';
 import {
-  SUBSCRIPTION_CATEGORY_ORDER,
-  SUBSCRIPTION_CATALOG,
   categoryLabelKey,
   serviceLabelKey,
   subscriptionDisplayName,
 } from '../../lib/subscriptionCatalog';
+import {
+  getSubscriptionCategoryOrderForLocation,
+  getSubscriptionsCatalogForLocation,
+} from '../../lib/countryCustomization';
 import {
   loadSubscriptionsWithMigration,
   normalizeSubscriptionRow,
@@ -24,14 +26,14 @@ import { C, S, T, R } from '../../constants/onboarding-theme';
 import QuestionScreen from '../../components/onboarding/QuestionScreen';
 import SubscriptionCategoryAccordion from '../../components/onboarding/SubscriptionCategoryAccordion';
 import AnimatedSlideIn from '../../components/onboarding/AnimatedSlideIn';
-import OnboardingPressable from '../../components/onboarding/OnboardingPressable';
-import { listRowBg } from '../../components/onboarding/pressableFeedback';
 import LabeledInput from '../../components/onboarding/LabeledInput';
 import FrequencyPills from '../../components/onboarding/FrequencyPills';
 import InputGroup from '../../components/onboarding/InputGroup';
 import YesNoToggle from '../../components/onboarding/YesNoToggle';
 import SplitDateFields from '../../components/onboarding/SplitDateFields';
 import DayOfMonthPicker from '../../components/onboarding/DayOfMonthPicker';
+import OnboardingFillSectionHeader from '../../components/onboarding/OnboardingFillSectionHeader';
+import OnboardingFillItemList from '../../components/onboarding/OnboardingFillItemList';
 import SuggestionChip from '../../components/onboarding/SuggestionChip';
 import FieldError from '../../components/onboarding/FieldError';
 import { useSectionExit } from '../../lib/finishOnboardingSection';
@@ -65,7 +67,17 @@ export default function SubscriptionsScreen() {
 
   const [currencyCode, setCurrencyCode] = useState('CZK');
   const currency = getCurrencySymbol(currencyCode);
+  const [location, setLocation] = useState(null);
   const [occupation, setOccupation] = useState(null);
+
+  const subscriptionCatalog = useMemo(
+    () => getSubscriptionsCatalogForLocation(location),
+    [location],
+  );
+  const subscriptionCategoryOrder = useMemo(
+    () => getSubscriptionCategoryOrderForLocation(location),
+    [location],
+  );
 
   const [step, setStep] = useState('select');
   const [fillCategoryIdx, setFillCategoryIdx] = useState(0);
@@ -104,6 +116,7 @@ export default function SubscriptionsScreen() {
         getData(STORAGE_MIGRATED_KEY),
       ]);
       if (loc?.currency) setCurrencyCode(loc.currency);
+      setLocation(loc || null);
       setOccupation(occ);
 
       const { subscriptions: loaded, migrated } = loadSubscriptionsWithMigration(
@@ -188,12 +201,12 @@ export default function SubscriptionsScreen() {
 
   const subFieldErrors = (subId) => fieldErrors[subId] || {};
 
-  const categoriesWithSelections = useMemo(() => SUBSCRIPTION_CATEGORY_ORDER.filter((catId) =>
+  const categoriesWithSelections = useMemo(() => subscriptionCategoryOrder.filter((catId) =>
     subscriptions.some((s) => s.category === catId || (s.category === null && fillCategoryIdx === 0)),
-  ), [subscriptions, fillCategoryIdx]);
+  ), [subscriptions, fillCategoryIdx, subscriptionCategoryOrder]);
 
   const fillCategories = useMemo(() => {
-    const cats = SUBSCRIPTION_CATEGORY_ORDER.filter((catId) =>
+    const cats = subscriptionCategoryOrder.filter((catId) =>
       subscriptions.some((s) => s.category === catId),
     );
     const uncategorized = subscriptions.filter((s) => s.category === null);
@@ -201,7 +214,7 @@ export default function SubscriptionsScreen() {
       return ['__uncategorized', ...cats];
     }
     return cats.length ? cats : (uncategorized.length ? ['__uncategorized'] : []);
-  }, [subscriptions]);
+  }, [subscriptions, subscriptionCategoryOrder]);
 
   const currentFillCategory = fillCategories[fillCategoryIdx];
   const itemsInCurrentCategory = useMemo(() => {
@@ -213,7 +226,8 @@ export default function SubscriptionsScreen() {
 
   const validateSub = (sub) => {
     if (!isSubscriptionIncluded(sub)) return null;
-    if (!sub.cost) {
+    const amount = String(sub.cost ?? '').trim();
+    if (!amount || !Number.isFinite(parseFloat(amount)) || parseFloat(amount) <= 0) {
       return { field: 'cost', message: t('onboarding.subscriptions.serviceSelection.validation') };
     }
     if (sub.category === null) {
@@ -253,6 +267,38 @@ export default function SubscriptionsScreen() {
       }
       setFillCategoryIdx(0);
       setStep('fill');
+      return;
+    }
+
+    const activeSub = itemsInCurrentCategory[activeSubIdx];
+    if (!activeSub) {
+      if (fillCategoryIdx < fillCategories.length - 1) {
+        setFillCategoryIdx((i) => i + 1);
+        setActiveSubIdx(0);
+        return;
+      }
+      await persistAndExit();
+      return;
+    }
+
+    const activeError = validateSub(activeSub);
+    if (activeError) {
+      setFieldErrors({ [activeSub.id]: { [activeError.field]: activeError.message } });
+      return;
+    }
+
+    setFieldErrors((prev) => {
+      if (!prev[activeSub.id]) return prev;
+      const next = { ...prev };
+      delete next[activeSub.id];
+      return next;
+    });
+
+    const nextIncompleteIdx = itemsInCurrentCategory.findIndex(
+      (sub, idx) => idx > activeSubIdx && validateSub(sub) !== null,
+    );
+    if (nextIncompleteIdx !== -1) {
+      setActiveSubIdx(nextIncompleteIdx);
       return;
     }
 
@@ -303,7 +349,7 @@ export default function SubscriptionsScreen() {
     leaveSection(() => navigateBack());
   };
 
-  const streamingKeys = SUBSCRIPTION_CATALOG.entertainmentStreaming.filter((k) => k !== 'other');
+  const streamingKeys = (subscriptionCatalog.entertainmentStreaming || []).filter((k) => k !== 'other');
   const streamingCount = subscriptions.filter(
     (s) => isSubscriptionIncluded(s) && streamingKeys.includes(s.serviceKey),
   ).length;
@@ -330,17 +376,17 @@ export default function SubscriptionsScreen() {
   const searchNorm = searchQuery.trim().toLowerCase();
 
   const filteredCategories = useMemo(() => {
-    if (!searchNorm) return SUBSCRIPTION_CATEGORY_ORDER;
-    return SUBSCRIPTION_CATEGORY_ORDER.filter((categoryId) => {
+    if (!searchNorm) return subscriptionCategoryOrder;
+    return subscriptionCategoryOrder.filter((categoryId) => {
       const title = categoryTitle(categoryId).toLowerCase();
       if (title.includes(searchNorm)) return true;
-      const services = SUBSCRIPTION_CATALOG[categoryId] || [];
+      const services = subscriptionCatalog[categoryId] || [];
       return services.some((serviceKey) => {
         if (serviceKey === 'other') return false;
         return serviceLabel(serviceKey).toLowerCase().includes(searchNorm);
       });
     });
-  }, [searchNorm, t]);
+  }, [searchNorm, t, subscriptionCatalog, subscriptionCategoryOrder]);
 
   useEffect(() => {
     if (!searchNorm) return;
@@ -385,7 +431,7 @@ export default function SubscriptionsScreen() {
       ) : null}
 
       {filteredCategories.map((categoryId) => {
-        const services = SUBSCRIPTION_CATALOG[categoryId] || [];
+        const services = subscriptionCatalog[categoryId] || [];
         const countLabel = t('onboarding.subscriptions.serviceSelection.suggestionCount', { count: services.filter((s) => s !== 'other').length });
         const title = categoryTitle(categoryId);
         return (
@@ -474,7 +520,7 @@ export default function SubscriptionsScreen() {
                 {t('onboarding.subscriptions.serviceSelection.pickCategoryLabel')}
               </Text>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-                {SUBSCRIPTION_CATEGORY_ORDER.map((catId) => (
+                {subscriptionCategoryOrder.map((catId) => (
                   <SuggestionChip
                     key={catId}
                     label={categoryTitle(catId)}
@@ -565,54 +611,30 @@ export default function SubscriptionsScreen() {
       : categoryTitle(currentFillCategory);
     const showSubTabs = itemsInCurrentCategory.length > 1;
     const activeSub = itemsInCurrentCategory[activeSubIdx] || itemsInCurrentCategory[0];
+    const subFieldErrorsFor = (subId) => fieldErrors[subId] || {};
 
     return (
       <View>
-        <Text style={{ ...T.helper, color: C.muted, marginBottom: 16 }}>
-          {t('onboarding.subscriptions.serviceSelection.fillCategoryProgress', {
-            category: categoryTitleFill,
-            current: fillCategoryIdx + 1,
-            total: fillCategories.length,
-          })}
-        </Text>
+        <OnboardingFillSectionHeader
+          title={categoryTitleFill}
+          current={fillCategoryIdx + 1}
+          total={fillCategories.length}
+        />
 
         {showSubTabs ? (
-          <View style={{
-            flexDirection: 'row',
-            borderRadius: R.input,
-            borderWidth: 1,
-            borderColor: C.border,
-            overflow: 'hidden',
-            marginBottom: 20,
-          }}>
-            {itemsInCurrentCategory.map((sub, idx) => (
-              <OnboardingPressable
-                key={sub.id}
-                onPress={() => {
-                  setActiveSubIdx(idx);
-                  setFieldErrors({});
-                }}
-                style={({ pressed, hovered }) => ({
-                  flex: 1,
-                  paddingVertical: 10,
-                  paddingHorizontal: 8,
-                  backgroundColor: listRowBg({ pressed, hovered, selected: activeSubIdx === idx, selectedBg: C.pillSelectedBg }),
-                  alignItems: 'center',
-                })}
-              >
-                <Text
-                  numberOfLines={1}
-                  style={{
-                    fontSize: 13,
-                    fontWeight: activeSubIdx === idx ? '600' : '500',
-                    color: activeSubIdx === idx ? C.pillSelectedText : C.pillUnselectedText,
-                  }}
-                >
-                  {subscriptionDisplayName(sub, t)}
-                </Text>
-              </OnboardingPressable>
-            ))}
-          </View>
+          <OnboardingFillItemList
+            label={t('common.fillSectionItemsLabel')}
+            items={itemsInCurrentCategory}
+            getItemKey={(sub) => sub.id}
+            getItemLabel={(sub) => subscriptionDisplayName(sub, t)}
+            activeIndex={activeSubIdx}
+            onSelectIndex={(idx) => {
+              setActiveSubIdx(idx);
+              setFieldErrors({});
+            }}
+            getItemComplete={(sub) => validateSub(sub) === null}
+            getItemHasError={(sub) => Object.keys(subFieldErrorsFor(sub.id)).length > 0}
+          />
         ) : null}
 
         {activeSub ? renderSubFillForm(activeSub) : null}

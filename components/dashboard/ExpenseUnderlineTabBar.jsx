@@ -57,7 +57,6 @@ export function TrailingActionChip({ action, fullWidth = false }) {
       <Text style={{
         ...T.pillLabel,
         fontSize: 14,
-        fontWeight: '600',
         color: textColor,
       }}>
         {action.label}
@@ -119,7 +118,7 @@ export default function ExpenseUnderlineTabBar({
               style={{
                 ...T.pillLabel,
                 fontSize: 14,
-                fontWeight: '600',
+                fontWeight: selected ? '500' : '400',
                 color: selected ? C.pillSelectedText : TAB_INACTIVE_TEXT,
               }}
             >

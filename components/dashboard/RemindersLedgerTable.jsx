@@ -35,6 +35,7 @@ import {
 import { useReducedMotion } from '../../lib/useReducedMotion';
 import { C, R, T, tabularNums } from '../../constants/onboarding-theme';
 import InCardSectionHeader from './InCardSectionHeader';
+import DashboardSectionEmptyMessage from './DashboardSectionEmptyMessage';
 import SurfaceCard from '../ui/SurfaceCard';
 import ConfirmDialog from '../ui/ConfirmDialog';
 import AnimatedCollapse from './AnimatedCollapse';
@@ -43,13 +44,10 @@ import { BreakdownCell, BreakdownExpandAllButton, BreakdownPillRowSlot, Breakdow
 import { useDashboardLayout } from '../../lib/dashboardLayout';
 import ReminderCardRow, { ReminderCardEditSummary } from './ReminderCardRow';
 
-const WARNING_CHIP = {
-  bg: '#FEF3C7',
-  border: '#FCD34D',
-  text: '#92400E',
-};
-
 const EMPTY_REMINDER_VALIDATION = { date: '', type: '' };
+
+const REMINDER_WARNING_CTA_HOVER = 'rgba(245, 158, 11, 0.14)';
+const REMINDER_WARNING_CTA_PRESSED = 'rgba(245, 158, 11, 0.22)';
 
 function MissingDatesWarningButton({ onPress, a11yLabel }) {
   return (
@@ -62,14 +60,14 @@ function MissingDatesWarningButton({ onPress, a11yLabel }) {
         paddingHorizontal: 8,
         borderRadius: 8,
         backgroundColor: pressed
-          ? WARNING_CHIP.bg
+          ? C.warningBg
           : hovered
-            ? 'rgba(254, 243, 199, 0.65)'
+            ? REMINDER_WARNING_CTA_HOVER
             : 'transparent',
         ...(Platform.OS === 'web' ? { cursor: 'pointer' } : {}),
       })}
     >
-      <Text style={{ fontSize: 16, color: '#D97706', lineHeight: 20 }}>⚠</Text>
+      <Text style={{ fontSize: 16, color: C.cycleWarning, lineHeight: 20 }}>⚠</Text>
     </Pressable>
   );
 }
@@ -83,9 +81,9 @@ export function RemindersMissingDatesBanner({ count, onGoToExpenses }) {
       paddingVertical: 10,
       paddingHorizontal: 12,
       borderRadius: R.card,
-      backgroundColor: WARNING_CHIP.bg,
+      backgroundColor: C.warningBg,
       borderWidth: 1,
-      borderColor: WARNING_CHIP.border,
+      borderColor: C.warningBorder,
       flexDirection: 'row',
       alignItems: 'center',
       gap: 12,
@@ -96,7 +94,7 @@ export function RemindersMissingDatesBanner({ count, onGoToExpenses }) {
           style={{
             marginLeft: 4,
             fontSize: 14,
-            color: '#D97706',
+            color: C.cycleWarning,
             lineHeight: 18,
             flexShrink: 0,
             ...(Platform.OS === 'android' ? { includeFontPadding: false, textAlignVertical: 'center' } : {}),
@@ -105,7 +103,7 @@ export function RemindersMissingDatesBanner({ count, onGoToExpenses }) {
           ⚠
         </Text>
         <Text
-          style={{ flex: 1, fontSize: 13, fontWeight: '500', color: WARNING_CHIP.text, lineHeight: 18 }}
+          style={{ flex: 1, fontSize: 13, fontWeight: '500', color: C.cycleWarning, lineHeight: 18 }}
           numberOfLines={3}
         >
           {t('dashboard.remindersScreen.missingDatesBanner', { count })}
@@ -120,11 +118,16 @@ export function RemindersMissingDatesBanner({ count, onGoToExpenses }) {
           paddingVertical: 4,
           paddingLeft: 8,
           paddingRight: 12,
-          opacity: pressed || hovered ? 0.72 : 1,
+          borderRadius: 6,
+          backgroundColor: pressed
+            ? REMINDER_WARNING_CTA_PRESSED
+            : hovered
+              ? REMINDER_WARNING_CTA_HOVER
+              : 'transparent',
           ...(Platform.OS === 'web' ? { cursor: 'pointer' } : {}),
         })}
       >
-        <Text style={{ fontSize: 13, fontWeight: '700', color: WARNING_CHIP.text }}>
+        <Text style={{ fontSize: 13, fontWeight: '700', color: C.cycleWarning }}>
           {t('dashboard.remindersScreen.goToExpenses')}
         </Text>
       </Pressable>
@@ -473,7 +476,7 @@ function ReminderColumnCell({
               color: chipVariant === 'on'
                 ? C.positive
                 : chipVariant === 'warning'
-                  ? '#D97706'
+                  ? C.cycleWarning
                   : REMINDERS_CELL_META,
               textAlign: 'center',
             }}
@@ -486,7 +489,7 @@ function ReminderColumnCell({
     }
 
     const chipColors = chipVariant === 'warning'
-      ? { border: '#D97706', text: '#D97706' }
+      ? { border: C.cycleWarning, text: C.cycleWarning }
       : chipVariant === 'on'
         ? { border: C.positive, text: selected ? colors.label : C.positive }
         : { border: selected ? 'rgba(255,255,255,0.45)' : C.pillUnselectedBorder, text: selected ? colors.label : REMINDERS_CELL_META };
@@ -518,7 +521,7 @@ function ReminderColumnCell({
     wrap(
       <Text
         accessible={false}
-        style={{ fontSize: 14, fontWeight: '600', color: '#D97706', lineHeight: 18 }}
+        style={{ fontSize: 14, fontWeight: '600', color: C.cycleWarning, lineHeight: 18 }}
       >
         ⚠
       </Text>,
@@ -1253,9 +1256,7 @@ export default function RemindersLedgerTable({
       ) : null}
 
       {rows.length === 0 ? (
-        <Text style={{ ...T.helper, textAlign: 'center', paddingVertical: 24, paddingHorizontal: 16 }}>
-          {emptyLabel}
-        </Text>
+        <DashboardSectionEmptyMessage message={emptyLabel} variant="centered" />
       ) : (
         <View style={{ gap: 8, width: '100%', alignSelf: 'stretch' }}>
           {!cardMode ? <RemindersColumnHeaders columns={columns} /> : null}

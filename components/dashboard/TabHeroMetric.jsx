@@ -1,29 +1,23 @@
-import { View } from 'react-native';
+import { Platform, View } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
-import { C, R, T, tabularNums } from '../../constants/onboarding-theme';
+import { C, R, S, T, tabularNums } from '../../constants/onboarding-theme';
 import SurfaceCard from '../ui/SurfaceCard';
 import InCardSectionHeader from './InCardSectionHeader';
 import SettleCrossfade from '../ui/SettleCrossfade';
+import { getHeroTabCardTone } from './dashboardCardTones';
 
-const HERO_TONES = {
-  income: {
-    cardBg: C.heroIncomeBg,
-    cardBorder: C.heroIncomeBorder,
-    valueColor: C.heroIncomeValue,
-    badgeBg: C.heroIncomeBadge,
-    badgeText: '#FFFFFF',
-  },
-  expense: {
-    cardBg: C.heroExpenseBg,
-    cardBorder: C.heroExpenseBorder,
-    valueColor: C.heroExpenseValue,
-    badgeBg: C.heroExpenseBadge,
-    badgeText: '#FFFFFF',
-  },
-};
+const FLAT_CARD_SHADOW = Platform.OS === 'web'
+  ? { boxShadow: 'none' }
+  : {
+    shadowColor: 'transparent',
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
+  };
 
 /**
  * Tab-level hero metric — tinted card with section title.
+ * Income/expense tones match Budget tab summary cards (green / red accent).
  * @param {'income'|'expense'|undefined} tone
  */
 export default function TabHeroMetric({
@@ -39,20 +33,39 @@ export default function TabHeroMetric({
   style,
   children,
 }) {
-  const palette = tone ? HERO_TONES[tone] : null;
+  const heroTone = tone === 'income' || tone === 'expense' ? getHeroTabCardTone(tone) : null;
+
+  const cardStyle = heroTone
+    ? {
+      backgroundColor: heroTone.cardStyle.backgroundColor,
+      borderRadius: R.card,
+      padding: S.cardPad,
+      ...heroTone.cardStyle,
+      ...FLAT_CARD_SHADOW,
+      ...style,
+    }
+    : {
+      ...style,
+    };
+
+  const Wrapper = heroTone ? View : SurfaceCard;
+  const wrapperProps = heroTone
+    ? { style: cardStyle }
+    : { style: cardStyle };
+
+  const titleStyle = heroTone
+    ? { ...T.fieldLabel, color: C.muted, fontWeight: '500' }
+    : undefined;
+
+  const valueColor = heroTone?.valueColor ?? C.text;
 
   return (
-    <SurfaceCard style={{
-      backgroundColor: palette?.cardBg ?? C.surface,
-      borderWidth: palette ? 1 : 0,
-      borderColor: palette?.cardBorder ?? 'transparent',
-      ...style,
-    }}
-    >
+    <Wrapper {...wrapperProps}>
       <InCardSectionHeader
         title={label}
         trailing={trailing}
-        style={{ marginBottom: frequencyCaption ? 8 : 12 }}
+        titleStyle={titleStyle}
+        style={{ marginBottom: frequencyCaption ? 8 : heroTone ? 10 : 12 }}
       />
       {frequencyCaption ? (
         <Text style={{ ...T.caption, color: C.muted, marginBottom: 12 }}>{frequencyCaption}</Text>
@@ -63,10 +76,11 @@ export default function TabHeroMetric({
             fontSize: 40,
             lineHeight: 46,
             fontWeight: '700',
-            color: palette?.valueColor ?? C.primary,
+            color: valueColor,
             letterSpacing: -0.02,
             ...tabularNums,
-          }}>
+          }}
+          >
             {value}
           </Text>
         </SettleCrossfade>
@@ -75,10 +89,11 @@ export default function TabHeroMetric({
           fontSize: 40,
           lineHeight: 46,
           fontWeight: '700',
-          color: palette?.valueColor ?? C.primary,
+          color: valueColor,
           letterSpacing: -0.02,
           ...tabularNums,
-        }}>
+        }}
+        >
           {value}
         </Text>
       )}
@@ -89,24 +104,26 @@ export default function TabHeroMetric({
           paddingVertical: 6,
           paddingHorizontal: 12,
           borderRadius: R.pill,
-          backgroundColor: palette?.badgeBg ?? C.tableHeaderBg,
-        }}>
+          backgroundColor: heroTone?.accent ?? C.tableHeaderBg,
+        }}
+        >
           <Text style={{
             ...T.caption,
             fontWeight: '600',
-            color: palette?.badgeText ?? C.muted,
-          }}>
+            color: heroTone ? C.bg : C.muted,
+          }}
+          >
             {periodLabel}
           </Text>
         </View>
       ) : null}
       {secondaryLabel ? (
-        <Text style={{ ...T.helper, color: C.muted, marginTop: 10 }}>{secondaryLabel}</Text>
+        <Text style={{ ...T.caption, color: C.muted, marginTop: 10 }}>{secondaryLabel}</Text>
       ) : null}
       {tertiaryLabel ? (
         <Text style={{ ...T.caption, color: C.muted, marginTop: 4 }}>{tertiaryLabel}</Text>
       ) : null}
       {children}
-    </SurfaceCard>
+    </Wrapper>
   );
 }
