@@ -36,6 +36,10 @@ yarn-error.*
 .env
 .env*.local
 
+# CLI tooling (machine-local, auto-regenerated)
+.vercel/
+supabase/.temp/
+
 # typescript
 *.tsbuildinfo
 
