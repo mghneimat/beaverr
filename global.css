@@ -108,3 +108,80 @@ body,
     background: transparent;
   }
 }
+
+/* AI insight card glow — glow_mode_brand_blue_v3.html (pixel-match on web) */
+@keyframes insight-glow-drift1 {
+  0%, 100% { transform: translate(-10%, 10%) scale(1); }
+  50% { transform: translate(15%, -5%) scale(1.15); }
+}
+@keyframes insight-glow-drift2 {
+  0%, 100% { transform: translate(10%, 15%) scale(1); }
+  50% { transform: translate(-10%, -10%) scale(1.1); }
+}
+@keyframes insight-glow-drift3 {
+  0%, 100% { transform: translate(0%, 20%) scale(0.9); }
+  50% { transform: translate(5%, 0%) scale(1.2); }
+}
+@keyframes insight-glow-drift4 {
+  0%, 100% { transform: translate(-8%, -8%) scale(1); }
+  50% { transform: translate(8%, 8%) scale(1.1); }
+}
+
+.insight-glow-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(40px);
+  pointer-events: none;
+}
+.insight-glow-drift1 { animation: insight-glow-drift1 6s ease-in-out infinite; }
+.insight-glow-drift2 { animation: insight-glow-drift2 7s ease-in-out infinite; }
+.insight-glow-drift3 { animation: insight-glow-drift3 5s ease-in-out infinite; }
+.insight-glow-drift4 { animation: insight-glow-drift4 6.5s ease-in-out infinite; }
+
+/* Coach chat composer — no inner focus ring on web (textarea + extensions) */
+#coach-chat-composer textarea,
+#coach-chat-composer input,
+[data-coach-chat-composer="true"] textarea,
+[data-coach-chat-composer="true"] input,
+[data-coach-chat-input="true"],
+#coach-chat-input,
+textarea#coach-chat-input {
+  outline: none !important;
+  outline-offset: 0 !important;
+  box-shadow: none !important;
+  border: none !important;
+  border-width: 0 !important;
+  -webkit-appearance: none;
+  appearance: none;
+  -webkit-focus-ring-color: transparent !important;
+  min-height: 36px;
+  resize: none;
+}
+
+#coach-chat-composer textarea::placeholder,
+#coach-chat-composer input::placeholder,
+[data-coach-chat-input="true"]::placeholder {
+  line-height: 20px;
+}
+
+#coach-chat-composer textarea:focus,
+#coach-chat-composer textarea:focus-visible,
+#coach-chat-composer input:focus,
+#coach-chat-composer input:focus-visible,
+[data-coach-chat-composer="true"] textarea:focus,
+[data-coach-chat-composer="true"] textarea:focus-visible,
+[data-coach-chat-input="true"]:focus,
+[data-coach-chat-input="true"]:focus-visible,
+#coach-chat-input:focus,
+#coach-chat-input:focus-visible,
+textarea#coach-chat-input:focus,
+textarea#coach-chat-input:focus-visible,
+#coach-chat-composer:focus-within textarea,
+#coach-chat-composer:focus-within input {
+  outline: none !important;
+  outline-offset: 0 !important;
+  box-shadow: none !important;
+  border: none !important;
+  border-width: 0 !important;
+  -webkit-focus-ring-color: transparent !important;
+}

@@ -2,18 +2,15 @@ import { useRef, useCallback, useMemo } from 'react';
 import { View } from 'react-native';
 import { buildTrackerPreviews } from '../../lib/trackerPreview';
 import { useDashboardScroll } from '../../lib/dashboardScroll';
-import { useI18n } from '../../lib/i18n';
-import { getTabInsight } from '../../lib/insights';
 import TrackerPaceSplitCard from './TrackerPaceSplitCard';
 import TrackerPeriodCard from './TrackerPeriodCard';
 import MonthEndHistoryList from './MonthEndHistoryList';
 import CycleTrackerShell from './cycles/CycleTrackerShell';
 import CycleCalendar from './cycles/CycleCalendar';
 import TabSectionStack from './TabSectionStack';
-import AIInsightSection from './AIInsightSection';
+import TabInsightCard from './TabInsightCard';
 
 export default function TrackerContent({ bundle, currency }) {
-  const { t } = useI18n();
   const scrollAnchorRef = useRef(null);
   const calendarRef = useRef(null);
   const { scrollToAnchor } = useDashboardScroll();
@@ -41,9 +38,9 @@ export default function TrackerContent({ bundle, currency }) {
     });
   }, [cyclesEnabled, budget, bundle.financials, dailyLogs]);
 
-  const tabInsight = getTabInsight('tracker', bundle.insights, t, {
-    financials: bundle.financials,
-  });
+  const insightSlot = (
+    <TabInsightCard tabKey="tracker" financials={bundle.financials} />
+  );
 
   const calendarSlot = (
     <View ref={scrollAnchorRef} collapsable={false}>
@@ -67,12 +64,12 @@ export default function TrackerContent({ bundle, currency }) {
 
   return (
     <TabSectionStack>
-      {tabInsight ? <AIInsightSection paragraphs={tabInsight.paragraphs} /> : null}
       <CycleTrackerShell
         bundle={bundle}
         currency={currency}
         onGoBackAndLog={handleGoBackAndLog}
         onLogDueDay={handleLogDueDay}
+        insightSlot={insightSlot}
         calendarSlot={calendarSlot}
         footerSlot={footerSlot}
       />

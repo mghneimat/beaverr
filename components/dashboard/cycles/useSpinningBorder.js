@@ -10,7 +10,7 @@ import { useReducedMotion } from '../../../lib/useReducedMotion';
 import { startContinuousSpin } from './cycleGradientBorderShared';
 
 /** Continuous conic spin — one clock; offset phase per tile via spinPhaseDeg on the shell. */
-export function useSpinningBorder() {
+export function useSpinningBorder(durationMs = CYCLE_BORDER_SPIN_DURATION_MS) {
   const reduceMotion = useReducedMotion();
   const rotation = useSharedValue(0);
   const spinEnabled = Platform.OS === 'web' && !reduceMotion;
@@ -21,8 +21,8 @@ export function useSpinningBorder() {
       rotation.value = 0;
       return;
     }
-    runOnUI(startContinuousSpin)(rotation, CYCLE_BORDER_SPIN_DURATION_MS);
-  }, [spinEnabled, rotation]);
+    runOnUI(startContinuousSpin)(rotation, durationMs);
+  }, [spinEnabled, rotation, durationMs]);
 
   return { spinEnabled, rotation };
 }

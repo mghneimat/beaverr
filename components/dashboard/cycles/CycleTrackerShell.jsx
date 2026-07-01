@@ -12,6 +12,7 @@ export default function CycleTrackerShell({
   currency,
   calendarSlot = null,
   footerSlot = null,
+  insightSlot = null,
   onGoBackAndLog,
   onLogDueDay,
 }) {
@@ -57,6 +58,8 @@ export default function CycleTrackerShell({
         currency={currency}
         idleDefaultBudget={activeCycle ? 0 : effectiveMonthly}
       />
+
+      {insightSlot}
 
       <CycleControlSection
         activeCycle={activeCycle}

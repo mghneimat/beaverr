@@ -1,0 +1,271 @@
+{
+  "book": [
+    {
+      "id": "sethi_csp#fixed_costs_crisis",
+      "source_id": "sethi_csp",
+      "locale": "en",
+      "topic_tags": [
+        "fixed_costs",
+        "csp",
+        "housing"
+      ],
+      "excerpt": "Conscious Spending Plan: fixed costs should ideally stay below 50–60% of take-home pay. Above 60% is structural pressure — the conversation starts with fixed costs, not discretionary cuts. Housing above 35% of take-home is the most common single cause of high-income-zero-savings patterns. Diagnosis: compute fixed costs as % of take-home first.",
+      "country_code": null
+    },
+    {
+      "id": "sethi_csp#debt_priority",
+      "source_id": "sethi_csp",
+      "locale": "en",
+      "topic_tags": [
+        "debt",
+        "apr",
+        "payoff"
+      ],
+      "excerpt": "High-interest consumer debt (typically >7% APR): pay off as fast as possible — guaranteed return beats most investments. Medium-interest (4–7%): pay minimum while continuing to invest. Low-interest (<4%): pay minimum and invest the difference. Minimum payments are always non-negotiable. For multiple debts, avalanche (highest rate first) is mathematically optimal; snowball (smallest balance) works for motivation — consistent action matters most.",
+      "country_code": null
+    },
+    {
+      "id": "sethi_csp#positive_signals",
+      "source_id": "sethi_csp",
+      "locale": "en",
+      "topic_tags": [
+        "savings",
+        "affirmation"
+      ],
+      "excerpt": "Positive signals to affirm: fixed costs below 55% of take-home; any consistent investing; emergency fund ≥3 months fixed costs; debt-to-income below 20%; savings rate above 20%; month-on-month stability in fixed costs. When multiple positives exist, affirm the picture and suggest one next-level mechanical action.",
+      "country_code": null
+    },
+    {
+      "id": "sethi_csp#anti_patterns",
+      "source_id": "sethi_csp",
+      "locale": "en",
+      "topic_tags": [
+        "tone",
+        "coaching"
+      ],
+      "excerpt": "Never name a specific discretionary purchase to cut (e.g. Netflix, eating out) — that is condescending small thinking. Never suggest someone is bad with money — behaviour follows systems. Avoid \"budget\" as restrictive verb; use plan or allocate. Never shame guilt-free spending that fits the person's values.",
+      "country_code": null
+    },
+    {
+      "id": "cfpb#dti_thresholds",
+      "source_id": "cfpb",
+      "locale": "en",
+      "topic_tags": [
+        "debt",
+        "dti",
+        "ratios"
+      ],
+      "excerpt": "DTI = total monthly debt payments ÷ gross monthly income. Below 20% excellent; 20–35% healthy; 36–43% caution (mortgage approval harder); 43–50% high risk; above 50% crisis — structural emergency. Front-end housing ratio: housing costs should not exceed 28% of gross income; above 30% is elevated, above 35% makes other goals very hard.",
+      "country_code": null
+    },
+    {
+      "id": "cfpb#emergency_fund",
+      "source_id": "cfpb",
+      "locale": "en",
+      "topic_tags": [
+        "savings",
+        "emergency",
+        "buffer"
+      ],
+      "excerpt": "Emergency fund benchmarks: 3 months of essential expenses minimum for dual-income stable households; 6 months for single-income, self-employed, or variable earners. Below 3 months = financially fragile — one income shock can cause missed payments. Named savings goals with targets are high-impact behaviour to reinforce.",
+      "country_code": null
+    },
+    {
+      "id": "cfpb#fragility",
+      "source_id": "cfpb",
+      "locale": "en",
+      "topic_tags": [
+        "fragility",
+        "shock",
+        "buffer"
+      ],
+      "excerpt": "Financial fragility: a household that looks stable but has no buffer — one emergency away from crisis. Common among employed moderate earners. Priority interventions: build emergency fund, reduce highest-burden debt, increase income margin. Do not lead with wealth-building frameworks when basic resilience is missing.",
+      "country_code": null
+    },
+    {
+      "id": "tightwad#cost_per_use",
+      "source_id": "tightwad",
+      "locale": "en",
+      "topic_tags": [
+        "frugality",
+        "spending",
+        "tight_margin"
+      ],
+      "excerpt": "Cost-per-use framework: divide purchase price by expected uses. Apply when margins are tight and user needs tactical cuts — not when finances are comfortable. High-value for tight margins; lower priority when surplus is healthy. Goal-oriented frugality: name the goal first, then cut mechanics serve the goal.",
+      "country_code": null
+    },
+    {
+      "id": "tightwad#income_vs_frugality",
+      "source_id": "tightwad",
+      "locale": "en",
+      "topic_tags": [
+        "income",
+        "frugality"
+      ],
+      "excerpt": "When someone says they will save when they earn more — statistically unlikely if they have not saved at current income. Identify what can be saved now, even small amounts, and build the habit before income rises. Frugality tactics are for tight margins; comfortable households should focus on housing, allocation, and income growth.",
+      "country_code": null
+    },
+    {
+      "id": "ymyl#fulfillment_curve",
+      "source_id": "ymyl",
+      "locale": "en",
+      "topic_tags": [
+        "values",
+        "spending",
+        "enough"
+      ],
+      "excerpt": "Fulfillment curve: spending increases life satisfaction up to a point, then more spending adds little. \"Enough\" is where spending aligns with values. Apply when spending feels misaligned or mindless — not for acute debt crisis. Conscious awareness of spending patterns often reduces unconscious spending without specific item cuts.",
+      "country_code": null
+    },
+    {
+      "id": "ymyl#gazingus_pins",
+      "source_id": "ymyl",
+      "locale": "en",
+      "topic_tags": [
+        "habits",
+        "spending"
+      ],
+      "excerpt": "Gazingus pins: habitual spending driven by social expectation or compensation, not deliberate choice. When tracker data shows repeated category spikes without goal linkage, surface the pattern as observation — not moral judgment. Three questions per purchase: Did I receive fulfilment? Was it worth life energy? Does this align with my values?",
+      "country_code": null
+    },
+    {
+      "id": "mnd#paw_formula",
+      "source_id": "millionaire_next_door",
+      "locale": "en",
+      "topic_tags": [
+        "wealth",
+        "net_worth",
+        "long_term"
+      ],
+      "excerpt": "PAW (prodigious accumulator of wealth) orientation: net worth should roughly equal age × annual income × 0.1 for median accumulators. Under 35 or irregular income: present as rough orientation, not verdict. Not for acute crisis — stabilise first. Lifestyle inflation on peak earnings is the main threat in 40s.",
+      "country_code": null
+    },
+    {
+      "id": "mnd#lifestyle_inflation",
+      "source_id": "millionaire_next_door",
+      "locale": "en",
+      "topic_tags": [
+        "income",
+        "spending",
+        "wealth"
+      ],
+      "excerpt": "High income does not guarantee wealth — spending expectations of high-status professions often consume raises. PAWs live below their means consistently; UAWs (under accumulators) upgrade lifestyle with each income bump. When income rose but savings did not, surface lifestyle inflation pattern calmly with numbers.",
+      "country_code": null
+    }
+  ],
+  "country": [
+    {
+      "id": "cz_official#permits",
+      "source_id": "cz_official",
+      "locale": "en",
+      "topic_tags": [
+        "permits",
+        "residence",
+        "immigration",
+        "moi"
+      ],
+      "excerpt": "Foreign nationals staying in the Czech Republic longer than permitted visa-free periods generally need a residence permit. The Ministry of the Interior (MOI) publishes permit types, application steps, and required documents. Permit rules depend on purpose of stay (work, study, family reunification). Check MOI before assuming tourist status covers your situation.",
+      "country_code": "CZ",
+      "metadata": {
+        "source_type": "official",
+        "title": "Residence permits — Ministry of the Interior",
+        "official_url": "https://www.mvcr.cz/mvcren/article/third-country-nationals.aspx",
+        "last_reviewed": "2026-06-30"
+      }
+    },
+    {
+      "id": "cz_official#renting",
+      "source_id": "cz_official",
+      "locale": "en",
+      "topic_tags": [
+        "renting",
+        "housing",
+        "tenant",
+        "landlord"
+      ],
+      "excerpt": "Rental agreements in the Czech Republic should be in writing. Tenants typically pay a deposit (often one to three months’ rent) and monthly utilities may be billed separately from rent. Notice periods and rent increases depend on contract type and Civil Code rules. Official consumer guidance covers deposits, handover protocols, and dispute channels.",
+      "country_code": "CZ",
+      "metadata": {
+        "source_type": "official",
+        "title": "Housing and renting — Czech Trade Inspection",
+        "official_url": "https://www.coi.cz/en/consumer-protection/housing/",
+        "last_reviewed": "2026-06-30"
+      }
+    },
+    {
+      "id": "cz_official#health_insurance",
+      "source_id": "cz_official",
+      "locale": "en",
+      "topic_tags": [
+        "health",
+        "health_insurance",
+        "vzp",
+        "coverage"
+      ],
+      "excerpt": "Health insurance is mandatory for most residents. Employees are usually insured through employer registration with a public insurer (e.g. VZP). Self-employed persons must arrange coverage themselves and pay monthly premiums. Without valid insurance, medical costs can be charged at full price. Public insurers publish premium tables and registration steps.",
+      "country_code": "CZ",
+      "metadata": {
+        "source_type": "official",
+        "title": "Public health insurance — VZP",
+        "official_url": "https://www.vzp.cz/en/individuals",
+        "last_reviewed": "2026-06-30"
+      }
+    },
+    {
+      "id": "cz_official#taxes",
+      "source_id": "cz_official",
+      "locale": "en",
+      "topic_tags": [
+        "taxes",
+        "income_tax",
+        "financni_sprava"
+      ],
+      "excerpt": "Income tax for employees is typically withheld via payroll. Self-employed persons file with the Financial Administration (Finanční správa), pay advances, and may need VAT registration above turnover thresholds. Tax residency rules affect whether worldwide income is taxed in the Czech Republic. Official portals list filing deadlines, forms, and electronic submission (Datová schránka).",
+      "country_code": "CZ",
+      "metadata": {
+        "source_type": "official",
+        "title": "Taxes — Financial Administration",
+        "official_url": "https://www.financnisprava.cz/en/taxes",
+        "last_reviewed": "2026-06-30"
+      }
+    },
+    {
+      "id": "cz_official#utilities",
+      "source_id": "cz_official",
+      "locale": "en",
+      "topic_tags": [
+        "utilities",
+        "energy",
+        "waste",
+        "municipal"
+      ],
+      "excerpt": "Household utilities often include electricity, gas, water, waste collection, and sometimes heating (central vs. individual). Waste fees are set by the municipality. Tenants should confirm which utilities are included in rent versus billed separately. Energy suppliers must provide clear contracts; switching suppliers is possible for many households.",
+      "country_code": "CZ",
+      "metadata": {
+        "source_type": "official",
+        "title": "Energy and consumer rights — ERÚ",
+        "official_url": "https://www.eru.cz/en/consumer-protection",
+        "last_reviewed": "2026-06-30"
+      }
+    },
+    {
+      "id": "cz_official#transport",
+      "source_id": "cz_official",
+      "locale": "en",
+      "topic_tags": [
+        "transport",
+        "vignette",
+        "vehicle",
+        "parking"
+      ],
+      "excerpt": "Motorway vignettes are required for vehicles using marked Czech highways unless exempt. Vignettes are sold electronically with validity tied to the vehicle registration plate. Prague and other cities operate paid parking zones with resident permits. Vehicle owners must maintain mandatory liability insurance (povinné ručení) and periodic technical inspections (STK).",
+      "country_code": "CZ",
+      "metadata": {
+        "source_type": "official",
+        "title": "Motorway vignette — eDalnice",
+        "official_url": "https://edalnice.cz/en/index.html",
+        "last_reviewed": "2026-06-30"
+      }
+    }
+  ]
+}

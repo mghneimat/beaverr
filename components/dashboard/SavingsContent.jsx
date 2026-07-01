@@ -12,7 +12,7 @@ import { removeCustomStashWithDestination, transferBetweenStashes } from '../../
 import { deleteCommitmentSource, renewCommitmentStash, loadRawSections } from '../../lib/commitmentActions';
 import { syncSinkingFundStashes } from '../../lib/sinkingStashes';
 import { emitDashboardToast } from '../../lib/dashboardToast';
-import { computeGoalGap, getTabInsight } from '../../lib/insights';
+import { computeGoalGap } from '../../lib/insights';
 import { loadGoals, saveGoals, pauseGoalsUsingStash } from '../../lib/goals';
 import {
   buildSavingsChartData,
@@ -27,7 +27,7 @@ import { InfoIcon } from '../app/AppNavIcons';
 import SurfaceCard from '../ui/SurfaceCard';
 import InCardSectionHeader from './InCardSectionHeader';
 import TabSectionStack from './TabSectionStack';
-import AIInsightSection from './AIInsightSection';
+import TabInsightCard from './TabInsightCard';
 import SavingsProjectionChart from './SavingsProjectionChart';
 import JarsBudgetGrid from './JarsBudgetGrid';
 import SavingsMonthlyPlanCard from './SavingsMonthlyPlanCard';
@@ -132,11 +132,6 @@ export default function SavingsContent({ bundle, currency }) {
   });
   const balance = getTotalSavingsBalance(bundle.financials, goalGap);
   const yearEnd = getExpectedYearEndSavings({ financials: bundle.financials, goalGap });
-  const tabInsight = getTabInsight('savings', bundle.insights, t, {
-    financials: bundle.financials,
-    savingsBalance: balance,
-    formatAmount: (monthly) => formatCurrency(monthly, currency),
-  });
   const inflows = getSavingsInflowBreakdown(bundle.financials, goalGap);
   const inc = bundle.financials.income || {};
   const budget = bundle.financials.budget || {};
@@ -345,7 +340,11 @@ export default function SavingsContent({ bundle, currency }) {
         </JarFocusGlowOutline>
       </View>
 
-      {tabInsight ? <AIInsightSection paragraphs={tabInsight.paragraphs} /> : null}
+      <TabInsightCard
+        tabKey="savings"
+        financials={bundle.financials}
+        helpers={{ savingsBalance: balance, goalGap }}
+      />
 
       <JarsBudgetGrid
         layout="savings"

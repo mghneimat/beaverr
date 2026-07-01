@@ -21,9 +21,14 @@ export const GRADIENT_GREY =
 export const GRADIENT_RED =
   'conic-gradient(from 0deg, #c02b33 0deg, #c02b33 225deg, #d1353d 255deg, #fecaca 285deg, #fca5a5 315deg, #fecaca 345deg, #c02b33 360deg)';
 
+/** AI insight card — same wedge structure as GRADIENT_GREY, brand blue */
+export const GRADIENT_INSIGHT =
+  'conic-gradient(from 0deg, #b8cce8 0deg, #b8cce8 225deg, #93c5fd 255deg, #bfdbfe 285deg, #1d4ed8 315deg, #bfdbfe 345deg, #b8cce8 360deg)';
+
 export const TILE_GRADIENTS = {
   grey: GRADIENT_GREY,
   red: GRADIENT_RED,
+  insight: GRADIENT_INSIGHT,
 };
 
 /** Button ring — same hues only, no dark navy/deep red that clip badly on pills */

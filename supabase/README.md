@@ -11,6 +11,10 @@ Migrations:
 - `migrations/20260625140000_profiles_username.sql` — unique `profiles.username` + `is_username_available` RPC (required for sign-up username check)
 - `migrations/20260626120000_delete_own_account.sql` — `delete_own_account()` RPC for account deletion from settings
 - `migrations/20260626140000_fix_delete_own_account.sql` — fixes RPC owner/grants on Supabase hosted
+- `migrations/20260630120000_advice_chat.sql` — `advice_threads`, `advice_messages`, `advice_chat_runs` for coach chat
+- `migrations/20260701100000_admin_foundation.sql` — `profiles.role`, `is_admin()`, `admin_audit_log`
+- `migrations/20260701110000_app_error_events.sql` — client error telemetry
+- `migrations/20260701120000_knowledge_cms.sql` — knowledge CMS tables + routing seed
 
 `household_data.data` stores a JSON blob of `beaverr_*` storage keys for cloud sync.
 
@@ -45,8 +49,10 @@ npx supabase functions deploy username-check
 - `advice_runs` — audit log (tokens, status, rule ids)
 - `advice_cache` — per-user cache keyed by snapshot hash + locale + model + prompt version
 - `knowledge_chunks` — curated KB excerpts (Phase 4 seed data)
+- `advice_threads` / `advice_messages` — multi-turn coach chat per tab session
+- `advice_chat_runs` — chat token audit + daily rate-limit counting
 
-RLS: authenticated users can **read** their own runs/cache; writes go through the Edge Function (service role).
+RLS: authenticated users can **read** their own runs/cache/threads/messages; writes go through the Edge Function (service role).
 
 ## Edge Function: `advice-generate`
 
@@ -81,6 +87,50 @@ See [Google locations doc](https://docs.cloud.google.com/gemini-enterprise-agent
 3. Keys → Add key → JSON → paste entire file into `GCP_SERVICE_ACCOUNT_JSON` secret
 
 `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` are injected automatically.
+
+## Edge Function: `advice-chat`
+
+- JWT required (`verify_jwt = true`)
+- Multi-turn follow-up Q&A from dashboard insight cards
+- Client sends tab snapshot + `kb_chunks` (book + country official pack); server persists threads/messages
+- Plain-text Gemini reply; official URLs returned in `sources[]` for UI links (not in model prose)
+- Limits: 1 000 chars/message, 30 messages/thread, 40 user messages/day (UTC)
+
+Deploy:
+
+```bash
+npx supabase db push
+npx supabase functions deploy advice-chat
+```
+
+Same `GCP_SERVICE_ACCOUNT_JSON` secret as `advice-generate`.
+
+## Edge Function: `admin-api`
+
+- JWT required; caller must have `profiles.role = 'admin'`
+- Single dispatch: `{ action, payload }` — stats, users, errors, knowledge CMS
+- See [docs/ADMIN-DASHBOARD.md](../docs/ADMIN-DASHBOARD.md)
+
+Deploy:
+
+```bash
+npx supabase functions deploy admin-api
+```
+
+Bootstrap first admin in SQL:
+
+```sql
+update public.profiles set role = 'admin' where id = '<your-uuid>';
+```
+
+## Edge Function: `log-error`
+
+- Accepts client error reports (auth optional)
+- Inserts into `app_error_events` via service role
+
+```bash
+npx supabase functions deploy log-error
+```
 
 ## Local eval (Vertex, same model)
 

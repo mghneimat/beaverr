@@ -23,7 +23,7 @@
 | **`fix_ratio`** | `(fixed_m + debt_m) / income_m` — matches `lib/insights.js` `fixedCostRatio` |
 | **Tier 4 debt detail** | **Opaque refs only** (`ref: "debt_1"`) — no user-typed labels in prompts |
 | **Prompt payload** | **Enum ids + numbers only** — never free-text the user typed (stash names, creditors, custom labels) |
-| **Prompt version** | **`v2`** in `lib/advice/buildLlmRequest.js` — `citations_used` only from `kb_source_ids`; never rule ids |
+| **Prompt version** | **`v3`** — coach system prompt; output `{ paragraphs: string[] }`; no citations in model output |
 | **AI consent** | **Separate toggle** (`beaverr_ai_consent`) — name **Google** as subprocessor in EN/CS copy |
 | **Cache + rate limits** | Postgres `advice_cache` + Edge middleware; per-user/per-IP limits from Phase 2 |
 | **Rate limits** | Ship with advice endpoint (not deferred to Phase 5) |
@@ -422,21 +422,19 @@ Secondary provider (e.g. Mistral EU, GPT-4o-mini on Azure EU) if Gemini outage, 
 
 ### Prompt constraints (system)
 
-- Persona: calm household budgeting coach (Beaverr brand).
-- Use **only** numbers and rule ids from the user message.
-- Do not restate local warnings verbatim; add practical next steps.
-- No investment product recommendations.
+- Persona: Beaverr financial coach (4-part prose: Good / Concern / Action / Observation).
+- Use **only** numbers and facts from the user message; never name books or frameworks.
+- Optional `kb_chunks` in payload for grounding (internal only).
 - Respond in `locale` field.
 - Output schema:
 
 ```json
 {
-  "headline": "string",
-  "bullets": ["string", "string"],
-  "focus_area": "budget|costs|debts|goals|savings",
-  "citations_used": ["source_id"]
+  "paragraphs": ["string", "string", "string", "string"]
 }
 ```
+
+Sparse data edge case: `{ "paragraphs": ["single 40–60 word paragraph"] }`.
 
 ### Cost estimates (order-of-magnitude — verify before deploy)
 
@@ -702,6 +700,18 @@ Rate-limit counters may use Postgres rows or Edge-compatible KV in the same Supa
 
 **Exit criteria:** End-to-end advice for premium test users; eval green on prompt changes; Google Cloud Gemini API EU path documented for launch.
 
+### Phase 2b — Coach chat + country official KB (2026-06-30)
+
+- [x] `advice-chat` Edge Function — multi-turn Vertex Gemini, plain-text replies
+- [x] Postgres `advice_threads` / `advice_messages` / `advice_chat_runs` + RLS
+- [x] `CoachChatDrawer` + “Ask about this” on `TabInsightCard` (same gates as insight card: auth + AI consent)
+- [x] Czech official resource pack (`docs/knowledge-country-cz.md`, `countryKnowledgeChunks.js`, router)
+- [x] `location.country_code` on advice snapshots for country routing
+- [ ] **RevenueCat premium** — deferred; hook point documented in `advice-chat` for future `premium_required`
+- [ ] Seed country chunks into Postgres `knowledge_chunks` (optional; static JS registry ships in v1)
+
+**Exit criteria:** Signed-in user with consent can ask follow-ups on any tab insight; CZ users see official source links when country chunks match.
+
 ### Phase 3 — Server-side household data
 
 - [ ] Auth + household data in Postgres
@@ -771,10 +781,13 @@ lib/
 
 supabase/functions/advice-generate/
   index.ts
+supabase/functions/advice-chat/
+  index.ts
 
 components/dashboard/
-  AdvicePanel.jsx          # warnings + narrative + disclaimer
-  AiConsentSheet.jsx       # separate AI consent
+  TabInsightCard.jsx       # insight card + Ask about this
+  CoachChatDrawer.jsx      # follow-up chat
+  AdviceSourceLinks.jsx    # official URL footer
 
 lib/locales/
   en.json                    # advice.* keys

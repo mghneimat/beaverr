@@ -132,19 +132,19 @@ Three fixtures — complete `{ snapshot, triggered_rules, locale }` payloads mat
 
 Run on every `prompt_version`, system prompt, or model change.
 
-### Mechanical assertions (hard ship gate — M1–M9 must pass on all fixtures)
+### Mechanical assertions (hard ship gate — must pass on all fixtures)
 
 | # | Assertion | How to check |
 |---|-----------|--------------|
-| M1 | Valid JSON matching §7 output schema | `parseLlmResponse.js` (production + eval) |
-| M2 | `focus_area` ∈ `budget\|costs\|debts\|goals\|savings` | Enum check |
-| M3 | `citations_used` ⊆ KB chunk ids sent. **Phase 2 (no KB):** must be `[]` | Set diff |
-| M4 | Numbers in `headline`/`bullets` ⊆ numbers in snapshot + `triggered_rules.facts` | Extract and diff |
-| M5 | No PII-shaped strings not present in input | Regex scan |
-| M6 | `bullets` length + word count under cap (tie to §7 token budget) | Word count |
-| M7 | Fixture 2: no debt reference other than `debt_1` | String check |
-| M8 | Fixture 3: no known rule id strings in output | Denylist check |
-| M9 | Language matches `locale` (CS vs EN heuristic) | Lightweight detector |
+| M1 | Valid JSON matching v3 output schema `{ paragraphs: string[] }` | `parseLlmResponse.js` |
+| M2 | Paragraph count: 4 (coach) or 1 (sparse edge case) | Length check |
+| M4 | Numbers in `paragraphs` ⊆ numbers in snapshot + `triggered_rules.facts` | Extract and diff |
+| M5 | No investment-product denylist terms | Regex scan |
+| M6 | Word count: 100–200 (4 paragraphs) or 40–60 (sparse) | Word count |
+| M7 | No book/author/framework names in output | Denylist check |
+| M8 | Fixture 2: no debt reference other than `debt_1` | String check |
+| M9 | Fixture 3: no known rule id strings in output | Denylist check |
+| M10 | Language matches `locale` (CS vs EN heuristic) | Lightweight detector |
 
 ### Qualitative assertions (LLM-as-judge — locked)
 
@@ -152,9 +152,11 @@ Run on every `prompt_version`, system prompt, or model change.
 |---|-----------|-------|
 | Q1 | Addresses triggered rule substance, not generic platitudes | `qualitative.js` — Gemini judge, temperature 0.1 |
 | Q2 | No investment products / crypto / broker picks | Judge + denylist |
-| Q3 | Calm coach tone; severity-appropriate | Judge |
+| Q3 | Knowledgeable friend tone; severity-appropriate without catastrophising | Judge |
 | Q4 | CS uses formal "vy", not "ty" | Judge + periodic human spot-check |
-| Q5 | Does not paraphrase local `messageKey` warning text verbatim | Judge |
+| Q5 | Adds practical next steps, not verbatim warning template | Judge |
+| Q6 | Four-part coach structure when 4 paragraphs | Judge |
+| Q7 | No book/author/framework names in text | Judge |
 
 ---
 

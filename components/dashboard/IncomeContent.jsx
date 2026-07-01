@@ -2,7 +2,6 @@ import { useMemo, useState, useEffect } from 'react';
 import { useLocalSearchParams } from 'expo-router';
 import { useI18n } from '../../lib/i18n';
 import { getCurrencySymbol } from '../../lib/currency';
-import { getTabInsight } from '../../lib/insights';
 import {
   INCOME_OVERVIEW_KEY,
   INCOME_PRIMARY_KEY,
@@ -13,7 +12,7 @@ import {
   resolveIncomeSectionNavigation,
 } from '../../lib/incomePanels';
 import TabHeroMetric from './TabHeroMetric';
-import AIInsightSection from './AIInsightSection';
+import TabInsightCard from './TabInsightCard';
 import ExpenseUnderlineTabBar from './ExpenseUnderlineTabBar';
 import IncomeCategoryPanel from './IncomeCategoryPanel';
 import DashboardTabPanel from './DashboardTabPanel';
@@ -33,7 +32,6 @@ export default function IncomeContent({ bundle, frequency = 'monthly', setFreque
 
   const monthlyTotal = bundle.financials.totalIncome;
   const annualTotal = monthlyTotal * 12;
-  const tabInsight = getTabInsight('income', bundle.insights, t);
   const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
 
   const overviewPanels = useMemo(
@@ -122,7 +120,7 @@ export default function IncomeContent({ bundle, frequency = 'monthly', setFreque
         })}
       />
 
-      {tabInsight ? <AIInsightSection paragraphs={tabInsight.paragraphs} /> : null}
+      <TabInsightCard tabKey="income" financials={bundle.financials} />
 
       <TabSectionStack tight>
         <ExpenseUnderlineTabBar

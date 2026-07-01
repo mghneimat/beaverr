@@ -1,23 +1,21 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View } from 'react-native';
 import { Text } from '@gluestack-ui/themed';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { useI18n } from '../../lib/i18n';
 import { getCurrencySymbol } from '../../lib/currency';
 import { effectiveSpendingBudget, formatCurrency } from '../../lib/finance';
 import { getData, setData } from '../../lib/storage';
 import { notifyDashboardRefresh } from '../../lib/dashboardRefresh';
-import { getTabInsight } from '../../lib/insights';
 import { buildLedgerCascade } from '../../lib/ledgerCascade';
 import { splitFlexibleBudget } from '../../lib/budgetSplit';
-import { navigateFromDashboard } from '../../lib/screenTransition';
 import { C, T } from '../../constants/onboarding-theme';
 import SurfaceCard from '../ui/SurfaceCard';
 import YesNoToggle from '../onboarding/YesNoToggle';
 import BudgetSplitSlider from '../onboarding/BudgetSplitSlider';
 import { getMonthlySavingsReservation } from '../../lib/incomeGoals';
 import TabHeroMetric from './TabHeroMetric';
-import AIInsightSection from './AIInsightSection';
+import TabInsightCard from './TabInsightCard';
 import InCardSectionHeader from './InCardSectionHeader';
 import BudgetSummaryMetrics from './BudgetSummaryMetrics';
 import DashboardFrequencyHeaderControls from './DashboardFrequencyHeaderControls';
@@ -31,7 +29,6 @@ import { useSectionFocusHighlight } from './useSectionFocusHighlight';
 
 export default function BudgetContent({ bundle, frequency = 'monthly', setFrequency }) {
   const { t } = useI18n();
-  const router = useRouter();
   const params = useLocalSearchParams();
   const focusSection = Array.isArray(params.focusSection)
     ? params.focusSection[0]
@@ -119,13 +116,6 @@ export default function BudgetContent({ bundle, frequency = 'monthly', setFreque
   const cascade = useMemo(
     () => buildLedgerCascade(financials, bundle.insights || {}),
     [financials, bundle.insights],
-  );
-
-  const tabInsight = useMemo(
-    () => getTabInsight('budget', bundle.insights, t, {
-      formatAmount: (monthly) => formatCurrency(monthly, currency),
-    }),
-    [bundle.insights, t, currency],
   );
 
   const spendingRatio = financials.budget?.budgetSpendingRatio != null
@@ -223,6 +213,8 @@ export default function BudgetContent({ bundle, frequency = 'monthly', setFreque
         })}
       />
 
+      <TabInsightCard tabKey="budget" financials={financials} />
+
       <BudgetSummaryMetrics
         income={cascade.income}
         committed={cascade.committed}
@@ -233,19 +225,6 @@ export default function BudgetContent({ bundle, frequency = 'monthly', setFreque
         frequency={frequency}
         daysInMonth={daysInMonth}
       />
-
-      {tabInsight ? (
-        <AIInsightSection
-          paragraphs={tabInsight.paragraphs}
-          ctaLabel={tabInsight.ctaLabel}
-          onCtaPress={
-            tabInsight.route
-              ? () => navigateFromDashboard(router, tabInsight.route)
-              : undefined
-          }
-          accessibilityLabel={tabInsight.ctaLabel}
-        />
-      ) : null}
 
       {cascade.showUnallocatedSlider ? (
         <SurfaceCard>

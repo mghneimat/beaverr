@@ -4,6 +4,8 @@ import { useRouter } from 'expo-router';
 import { useI18n } from '../../lib/i18n';
 import { clearSavedData } from '../../lib/account/clearSavedData';
 import { deleteAccountAndData } from '../../lib/account/deleteAccountAndData';
+import { revokeAiConsent } from '../../lib/advice/aiConsent';
+import { clearTabInsightCache } from '../../lib/advice/useTabInsightAi';
 import { mapDeleteAccountErrorKey } from '../../lib/auth/deleteAccount';
 import { useAuth } from '../../lib/auth/AuthProvider';
 import { clearScheduledCloudPush } from '../../lib/cloud/syncHousehold';
@@ -21,6 +23,7 @@ export default function AccountSettingsContent() {
   const { user, configured } = useAuth();
   const [clearDialogOpen, setClearDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [revokeAiDialogOpen, setRevokeAiDialogOpen] = useState(false);
   const [actionError, setActionError] = useState('');
 
   const handleConfirmClearSavedData = async () => {
@@ -48,6 +51,13 @@ export default function AccountSettingsContent() {
     router.replace('/(auth)/welcome');
   };
 
+  const handleConfirmRevokeAiConsent = async () => {
+    setRevokeAiDialogOpen(false);
+    setActionError('');
+    await revokeAiConsent();
+    clearTabInsightCache();
+  };
+
   return (
     <>
       <TabSectionStack>
@@ -67,6 +77,10 @@ export default function AccountSettingsContent() {
                 {actionError}
               </Text>
             ) : null}
+            <CardActionRow
+              label={t('dashboard.accountSettingsScreen.revokeAiConsent')}
+              onPress={() => setRevokeAiDialogOpen(true)}
+            />
             <CardActionRow
               label={t('dashboard.accountSettingsScreen.clearSavedData')}
               onPress={() => setClearDialogOpen(true)}
@@ -88,6 +102,16 @@ export default function AccountSettingsContent() {
         cancelLabel={t('common.cancel')}
         onConfirm={handleConfirmClearSavedData}
         onCancel={() => setClearDialogOpen(false)}
+      />
+
+      <ConfirmDialog
+        visible={revokeAiDialogOpen}
+        title={t('dashboard.accountSettingsScreen.revokeAiConsentConfirmTitle')}
+        message={t('dashboard.accountSettingsScreen.revokeAiConsentConfirmMessage')}
+        confirmLabel={t('dashboard.accountSettingsScreen.revokeAiConsentConfirmButton')}
+        cancelLabel={t('common.cancel')}
+        onConfirm={handleConfirmRevokeAiConsent}
+        onCancel={() => setRevokeAiDialogOpen(false)}
       />
 
       <ConfirmDialog

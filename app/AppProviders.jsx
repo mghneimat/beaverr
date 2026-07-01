@@ -1,5 +1,6 @@
 import { Stack } from 'expo-router';
 import { View } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { I18nProvider } from '../lib/i18n';
 import { AuthProvider } from '../lib/auth/AuthProvider';
 import { useTheme } from '../lib/theme';
@@ -15,6 +16,7 @@ function AppNavigation() {
       <Stack.Screen name="(auth)" />
       <Stack.Screen name="(onboarding)" />
       <Stack.Screen name="(app)" />
+      <Stack.Screen name="(admin)" />
     </Stack>
   );
 }
@@ -22,15 +24,17 @@ function AppNavigation() {
 /** Auth + i18n + router — mounted inside ThemeProvider so theme toggles re-render the tree. */
 export default function AppProviders() {
   return (
-    <I18nProvider>
-      <AuthProvider>
-        <View style={{ flex: 1 }}>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <I18nProvider>
+        <AuthProvider>
           <View style={{ flex: 1 }}>
-            <AppNavigation />
+            <View style={{ flex: 1 }}>
+              <AppNavigation />
+            </View>
+            <PillSnackbar />
           </View>
-          <PillSnackbar />
-        </View>
-      </AuthProvider>
-    </I18nProvider>
+        </AuthProvider>
+      </I18nProvider>
+    </GestureHandlerRootView>
   );
 }

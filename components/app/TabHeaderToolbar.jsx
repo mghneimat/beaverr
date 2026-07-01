@@ -15,6 +15,7 @@ import { resolveProfileMenuName } from '../../lib/profileDisplay';
 import { loadAccountRegistrationFields } from '../../lib/account/registrationProfile';
 import { getData } from '../../lib/storage';
 import { useAuth } from '../../lib/auth/AuthProvider';
+import { useAdminAccess } from '../../lib/admin/useAdminAccess';
 import { clearScheduledCloudPush } from '../../lib/cloud/syncHousehold';
 import { navigateAppTab } from '../../lib/screenTransition';
 import { C, R, T } from '../../constants/onboarding-theme';
@@ -30,6 +31,7 @@ import {
   CircleHelpIcon,
   LogOutIcon,
   ZapIcon,
+  DashboardIcon,
 } from './AppNavIcons';
 import { CardHeaderChevron } from '../dashboard/CardHeaderActionButton';
 import ConfirmDialog from '../ui/ConfirmDialog';
@@ -173,6 +175,7 @@ function ProfileMenuOption({
  */
 export default function TabHeaderToolbar({ alertCount = 0, household = null, accountFields = null, onRefresh }) {
   const { signOut, user, configured } = useAuth();
+  const isAdmin = useAdminAccess();
   const { t } = useI18n();
   const { toggleMode, isDark } = useTheme();
   const router = useRouter();
@@ -244,6 +247,11 @@ export default function TabHeaderToolbar({ alertCount = 0, household = null, acc
   const openSettingsTab = (route) => {
     closeProfileMenu();
     setTimeout(() => navigateAppTab(router, route, currentRoute), 0);
+  };
+
+  const handleOpenAdmin = () => {
+    closeProfileMenu();
+    setTimeout(() => router.push('/(admin)/stats'), 0);
   };
 
   const handleToggleAppearance = () => {
@@ -409,6 +417,14 @@ export default function TabHeaderToolbar({ alertCount = 0, household = null, acc
                 onPress={() => openSettingsTab('account-settings')}
                 selected={currentRoute === 'account-settings'}
               />
+              {Platform.OS === 'web' && isAdmin ? (
+                <ProfileMenuOption
+                  label={t('dashboard.headerToolbar.adminDashboard')}
+                  icon={DashboardIcon}
+                  onPress={handleOpenAdmin}
+                  accessibilityLabel={t('dashboard.headerToolbar.adminDashboardA11y')}
+                />
+              ) : null}
               <ProfileMenuOption
                 label={t('dashboard.headerToolbar.appearance')}
                 icon={AppearanceMenuIcon}

@@ -4,6 +4,8 @@ import { View, useWindowDimensions } from 'react-native';
 import AppSidebar from '../../components/app/AppSidebar';
 import AppTopNavBar from '../../components/app/AppTopNavBar';
 import QuestionnaireBanner from '../../components/app/QuestionnaireBanner';
+import CoachChatShell from '../../components/dashboard/CoachChatShell';
+import { CoachChatProvider } from '../../lib/advice/CoachChatContext';
 import { getData } from '../../lib/storage';
 import { isTabLockedForQuickSetup } from '../../lib/onboardingProgress';
 import { useTheme } from '../../lib/theme';
@@ -32,28 +34,31 @@ export default function AppLayout() {
   }, [segments, router]);
 
   return (
-    <View style={{ flex: 1, flexDirection: 'row', backgroundColor: C.bg }}>
-      <AppSidebar
-        mobileOpen={mobileSidebarOpen}
-        onMobileClose={() => setMobileSidebarOpen(false)}
-      />
-
-      <View style={{ flex: 1, backgroundColor: C.bg }}>
-        <AppTopNavBar
-          showMobileMenu={!isWide}
-          onMobileMenuOpen={() => setMobileSidebarOpen(true)}
+    <CoachChatProvider>
+      <View style={{ flex: 1, flexDirection: 'row', backgroundColor: C.bg }}>
+        <AppSidebar
+          mobileOpen={mobileSidebarOpen}
+          onMobileClose={() => setMobileSidebarOpen(false)}
         />
 
-        <QuestionnaireBanner />
+        <View style={{ flex: 1, backgroundColor: C.bg }}>
+          <AppTopNavBar
+            showMobileMenu={!isWide}
+            onMobileMenuOpen={() => setMobileSidebarOpen(true)}
+          />
 
-        <Stack
-          screenOptions={{
-            headerShown: false,
-            animation: 'none',
-            contentStyle: { flex: 1, backgroundColor: C.bg },
-          }}
-        />
+          <QuestionnaireBanner />
+
+          <Stack
+            screenOptions={{
+              headerShown: false,
+              animation: 'none',
+              contentStyle: { flex: 1, backgroundColor: C.bg },
+            }}
+          />
+        </View>
       </View>
-    </View>
+      <CoachChatShell />
+    </CoachChatProvider>
   );
 }

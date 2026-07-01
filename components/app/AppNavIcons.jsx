@@ -33,6 +33,7 @@ import {
   ROTATE_CW_NODES,
   ARROW_RIGHT_LEFT_NODES,
   ARROW_BIG_DOWN_DASH_NODES,
+  ARROW_UP_NODES,
   LINK_NODES,
   LINK_2_NODES,
   UNLINK_NODES,
@@ -91,6 +92,7 @@ export const LogOutIcon = lucideNavIcon(LOG_OUT_NODES);
 export const ZapIcon = lucideNavIcon(ZAP_NODES);
 export const LockIcon = lucideNavIcon(LOCK_NODES);
 export const SparklesIcon = lucideNavIcon(SPARKLES_NODES);
+export const ArrowUpIcon = lucideNavIcon(ARROW_UP_NODES);
 export const SplitIcon = lucideNavIcon(SPLIT_NODES);
 export const TriangleAlertIcon = lucideNavIcon(TRIANGLE_ALERT_NODES);
 

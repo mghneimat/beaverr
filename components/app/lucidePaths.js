@@ -292,6 +292,19 @@ export const BELL_NODES = [
 ];
 
 /** @type {import('./LucideStrokeIcon').LucideNode[]} */
+export const HISTORY_NODES = [
+  ['path', { d: 'M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8', key: 'history-1' }],
+  ['path', { d: 'M3 3v5h5', key: 'history-2' }],
+  ['path', { d: 'M12 7v5l4 2', key: 'history-3' }],
+];
+
+/** @type {import('./LucideStrokeIcon').LucideNode[]} */
+export const SEARCH_NODES = [
+  ['circle', { cx: '11', cy: '11', r: '8', key: 'search-1' }],
+  ['path', { d: 'm21 21-4.3-4.3', key: 'search-2' }],
+];
+
+/** @type {import('./LucideStrokeIcon').LucideNode[]} */
 export const ALARM_CLOCK_NODES = [
   ['circle', { cx: '12', cy: '13', r: '8', key: '3qh3uo' }],
   ['path', { d: 'M12 9v4l2 2', key: '1c83kv' }],
@@ -504,4 +517,15 @@ export const EYE_CLOSED_NODES = [
   ['path', { d: 'm20 15-1.726-2.05', key: 'eye-closed-3' }],
   ['path', { d: 'm4 15 1.726-2.05', key: 'eye-closed-4' }],
   ['path', { d: 'm9 18-.722-3.25', key: 'eye-closed-5' }],
+];
+
+/** @type {import('./LucideStrokeIcon').LucideNode[]} */
+export const X_NODES = [
+  ['path', { d: 'M18 6 6 18', key: 'x-1' }],
+  ['path', { d: 'm6 6 12 12', key: 'x-2' }],
+];
+
+/** @type {import('./LucideStrokeIcon').LucideNode[]} */
+export const MINUS_NODES = [
+  ['path', { d: 'M5 12h14', key: 'minus-1' }],
 ];

@@ -112,6 +112,7 @@ describe('getBudgetSectionInsight', () => {
 });
 
 describe('getTabInsight', () => {
+  // Deprecated in UI — TabInsightCard uses cloud advice; kept for internal/rule signals until fully removed.
   test('returns savings empty copy when balance is zero', () => {
     const insights = computeInsights(baseFinancials);
     const result = getTabInsight('savings', insights, t, {

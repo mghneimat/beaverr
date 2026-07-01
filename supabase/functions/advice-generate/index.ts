@@ -1,10 +1,15 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { buildLlmRequest } from "../_shared/buildLlmRequest.ts";
-import { DEFAULT_GEMINI_MODEL } from "../_shared/constants.ts";
+import { ADVICE_PROMPT_VERSION, DEFAULT_GEMINI_MODEL } from "../_shared/constants.ts";
+import {
+  countryCodeFromSnapshot,
+  resolvePromptVersion,
+  selectKnowledgeServer,
+} from "../_shared/selectKnowledgeServer.ts";
 import { getServiceAccountAccessToken } from "../_shared/gcpAuth.ts";
 import { geminiGenerateContent } from "../_shared/gemini.ts";
-import { parseLlmResponseJson, validateCitationsUsed } from "../_shared/parseLlmResponse.ts";
+import { parseLlmResponseJson } from "../_shared/parseLlmResponse.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -68,8 +73,10 @@ Deno.serve(async (req) => {
     snapshot?: Record<string, unknown>;
     triggered_rules?: unknown[];
     locale?: string;
+    kb_chunks?: { id: string; excerpt: string }[];
     kb_chunk_ids?: string[];
     household_id?: string;
+    tab_key?: string;
   };
 
   try {
@@ -78,20 +85,36 @@ Deno.serve(async (req) => {
     return jsonResponse({ error: "invalid_json" }, 400);
   }
 
-  const { snapshot, triggered_rules = [], locale = "en", kb_chunk_ids = [], household_id } = body;
+  const {
+    snapshot,
+    triggered_rules = [],
+    locale = "en",
+    household_id,
+    tab_key,
+  } = body;
 
   if (!snapshot || typeof snapshot !== "object") {
     return jsonResponse({ error: "missing_snapshot" }, 400);
   }
 
+  const resolvedTabKey = tab_key || (snapshot.tab_key as string | undefined) || "home";
+  const countryCode = countryCodeFromSnapshot(snapshot);
+  const promptVersion = await resolvePromptVersion(supabaseAdmin, "coach");
+
+  const kb_chunks = await selectKnowledgeServer(supabaseAdmin, {
+    triggered_rules,
+    tabKey: resolvedTabKey,
+    countryCode,
+  });
+
   if (!Array.isArray(triggered_rules) || triggered_rules.length === 0) {
-    const snapshotHash = await hashSnapshot(snapshot);
+    const snapshotHash = await hashSnapshot({ ...snapshot, tab_key: resolvedTabKey });
     await supabaseAdmin.from("advice_runs").insert({
       user_id: userId,
       household_id: household_id ?? null,
       snapshot_hash: snapshotHash,
       model: DEFAULT_GEMINI_MODEL,
-      prompt_version: "v2",
+      prompt_version: promptVersion,
       locale,
       status: "skipped",
       rule_ids: [],
@@ -99,13 +122,15 @@ Deno.serve(async (req) => {
     return jsonResponse({ status: "skipped", reason: "no_rules" });
   }
 
-  const snapshotHash = await hashSnapshot(snapshot);
+  const snapshotHash = await hashSnapshot({ ...snapshot, tab_key: resolvedTabKey });
   const model = DEFAULT_GEMINI_MODEL;
-  const { systemPrompt, userMessage, promptVersion, kbChunkIds } = buildLlmRequest({
+  const { systemPrompt, userMessage, kbChunkIds } = buildLlmRequest({
     snapshot,
     triggered_rules,
     locale,
-    kb_chunk_ids,
+    kb_chunks,
+    tab_key: resolvedTabKey,
+    promptVersion,
   });
 
   const { data: cached } = await supabaseAdmin
@@ -167,25 +192,6 @@ Deno.serve(async (req) => {
         error_message: parsed.error,
       });
       return jsonResponse({ error: "invalid_llm_response", detail: parsed.error }, 502);
-    }
-
-    const citationCheck = validateCitationsUsed(parsed.narrative, kbChunkIds);
-    if (!citationCheck.ok) {
-      await supabaseAdmin.from("advice_runs").insert({
-        user_id: userId,
-        household_id: household_id ?? null,
-        snapshot_hash: snapshotHash,
-        model,
-        prompt_version: promptVersion,
-        locale,
-        prompt_tokens: usage.promptTokens,
-        completion_tokens: usage.completionTokens,
-        rule_ids: ruleIds,
-        kb_chunk_ids: kbChunkIds,
-        status: "error",
-        error_message: citationCheck.error,
-      });
-      return jsonResponse({ error: "invalid_citations", detail: citationCheck.error }, 502);
     }
 
     const { data: runRow, error: runError } = await supabaseAdmin

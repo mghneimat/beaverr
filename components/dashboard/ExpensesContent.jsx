@@ -5,7 +5,6 @@ import { useI18n } from '../../lib/i18n';
 import { useDashboardScroll } from '../../lib/dashboardScroll';
 import { useDashboardLayout } from '../../lib/dashboardLayout';
 import { getCurrencySymbol } from '../../lib/currency';
-import { getTabInsight } from '../../lib/insights';
 import { committedMonthlyLoad } from '../../lib/finance';
 import {
   OVERVIEW_TAB_KEY,
@@ -16,7 +15,7 @@ import {
   resolveExpensePrimaryTab,
 } from '../../lib/expensePanels';
 import TabHeroMetric from './TabHeroMetric';
-import AIInsightSection from './AIInsightSection';
+import TabInsightCard from './TabInsightCard';
 import ExpenseUnderlineTabBar, { TrailingActionChip } from './ExpenseUnderlineTabBar';
 import ExpenseAddCategoryPicker from './ExpenseAddCategoryPicker';
 import ExpensesCategoryPanel from './ExpensesCategoryPanel';
@@ -48,7 +47,6 @@ export default function ExpensesContent({ bundle, frequency = 'monthly', setFreq
 
   const committedMonthly = committedMonthlyLoad(financials);
   const annualCommitted = committedMonthly * 12;
-  const tabInsight = getTabInsight('expenses', insights, t);
   const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
 
   const fixedPanels = useMemo(
@@ -215,7 +213,7 @@ export default function ExpensesContent({ bundle, frequency = 'monthly', setFreq
         })}
       />
 
-      {tabInsight ? <AIInsightSection paragraphs={tabInsight.paragraphs} /> : null}
+      <TabInsightCard tabKey="expenses" financials={financials} />
 
       <SurfaceCard>
         <InCardSectionHeader title={t('dashboard.expensesScreen.costCommitments')} />

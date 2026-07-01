@@ -16,9 +16,7 @@ import {
 import { C, T, tabularNums } from '../../constants/onboarding-theme';
 import SurfaceCard from '../ui/SurfaceCard';
 import DashboardFrequencyHeaderControls from './DashboardFrequencyHeaderControls';
-import AIInsightSection from './AIInsightSection';
-import AdviceNarrativePanel from './AdviceNarrativePanel';
-import { getTabInsight } from '../../lib/insights';
+import TabInsightCard from './TabInsightCard';
 import { SavedSoFarLabel } from './JarsPanel';
 import MetricExplainModal from './MetricExplainModal';
 import { formatDashboardAmount, resolveDashboardAmount } from './formatDashboardAmount';
@@ -44,7 +42,6 @@ export default function DashboardPlanOverview({
   const { t } = useI18n();
   const router = useRouter();
   const { isPhone } = useDashboardLayout();
-  const tabInsight = getTabInsight('home', insights, t);
   const [savedExplainOpen, setSavedExplainOpen] = useState(false);
   const cascade = buildLedgerCascade(financials, insights || {});
   const burn = buildIncomeBurnRate(cascade);
@@ -237,20 +234,7 @@ export default function DashboardPlanOverview({
             </View>
           </SurfaceCard>
 
-          {tabInsight ? (
-            <AIInsightSection
-              paragraphs={tabInsight.paragraphs}
-              ctaLabel={tabInsight.ctaLabel}
-              onCtaPress={
-                tabInsight.route
-                  ? () => navigateFromDashboard(router, tabInsight.route)
-                  : undefined
-              }
-              accessibilityLabel={tabInsight.ctaLabel}
-            />
-          ) : null}
-
-          <AdviceNarrativePanel financials={financials} />
+          <TabInsightCard tabKey="home" financials={financials} />
         </>,
       )}
 

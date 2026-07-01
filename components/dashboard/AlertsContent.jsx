@@ -3,12 +3,11 @@ import { Text } from '@gluestack-ui/themed';
 import { useRouter, useSegments } from 'expo-router';
 import { useI18n } from '../../lib/i18n';
 import { dismissAlert, snoozeAlert } from '../../lib/alerts';
-import { getTabInsight } from '../../lib/insights';
 import { navigateToAppRoute, resolveActiveAppTab } from '../../lib/screenTransition';
 import { C, R, T } from '../../constants/onboarding-theme';
 import SurfaceCard from '../ui/SurfaceCard';
 import TabSectionStack from './TabSectionStack';
-import AIInsightSection from './AIInsightSection';
+import TabInsightCard from './TabInsightCard';
 import DashboardSectionEmptyMessage from './DashboardSectionEmptyMessage';
 
 const URGENCY_COLORS = {
@@ -23,7 +22,6 @@ export default function AlertsContent({ bundle, onRefresh }) {
   const segments = useSegments();
   const currentRoute = resolveActiveAppTab(segments);
   const active = bundle.alerts.filter((a) => a.status === 'active');
-  const tabInsight = getTabInsight('alerts', bundle.insights, t, { alerts: bundle.alerts });
 
   const handleDismiss = async (id) => {
     await dismissAlert(id);
@@ -37,18 +35,29 @@ export default function AlertsContent({ bundle, onRefresh }) {
 
   if (!active.length) {
     return (
-      <SurfaceCard>
-        <DashboardSectionEmptyMessage
-          message={t('dashboard.alertsScreen.empty')}
-          variant="centered"
+      <TabSectionStack>
+        <TabInsightCard
+          tabKey="alerts"
+          financials={bundle.financials}
+          helpers={{ alerts: bundle.alerts }}
         />
-      </SurfaceCard>
+        <SurfaceCard>
+          <DashboardSectionEmptyMessage
+            message={t('dashboard.alertsScreen.empty')}
+            variant="centered"
+          />
+        </SurfaceCard>
+      </TabSectionStack>
     );
   }
 
   return (
     <TabSectionStack>
-      {tabInsight ? <AIInsightSection paragraphs={tabInsight.paragraphs} /> : null}
+      <TabInsightCard
+        tabKey="alerts"
+        financials={bundle.financials}
+        helpers={{ alerts: bundle.alerts }}
+      />
       {active.map((alert) => (
         <SurfaceCard key={alert.id}>
           <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10 }}>

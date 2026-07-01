@@ -1,12 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useI18n } from '../../lib/i18n';
 import { getCurrencySymbol } from '../../lib/currency';
-import { getTabInsight } from '../../lib/insights';
 import { replaceGoalsAfterArchive, resetGoalProgress } from '../../lib/goals/goalCrud';
 import { groupGoalsForUiSections } from '../../lib/goals/goalCategories';
 import { notifyDashboardRefresh } from '../../lib/dashboardRefresh';
 import TabSectionStack from './TabSectionStack';
-import AIInsightSection from './AIInsightSection';
+import TabInsightCard from './TabInsightCard';
 import GoalsPortfolioHeroCard from './GoalsPortfolioHeroCard';
 import GoalsFilterToggle from './GoalsFilterToggle';
 import GoalsFilterSlideView from './GoalsFilterSlideView';
@@ -32,10 +31,6 @@ export default function GoalsContent({ bundle }) {
   const [resetErrorOpen, setResetErrorOpen] = useState(false);
   const [celebrationQueue, setCelebrationQueue] = useState(bundle.pendingCelebrations || []);
   const [celebrationVisible, setCelebrationVisible] = useState(false);
-
-  const tabInsight = getTabInsight('goals', bundle.insights, t, {
-    goals,
-  });
 
   useEffect(() => {
     if ((bundle.pendingCelebrations || []).length > 0) {
@@ -129,7 +124,11 @@ export default function GoalsContent({ bundle }) {
         currency={currency}
       />
 
-      {tabInsight ? <AIInsightSection paragraphs={tabInsight.paragraphs} /> : null}
+      <TabInsightCard
+        tabKey="goals"
+        financials={bundle.financials}
+        helpers={{ goals, goalGap: bundle.insights?.goalGap }}
+      />
 
       <GoalsFilterToggle
         value={filter}

@@ -21,6 +21,7 @@ import { buildLlmRequest } from '../lib/advice/buildLlmRequest.js';
 import { geminiGenerateContent } from '../lib/advice/geminiClient.js';
 import { resolveGeminiAuth } from '../lib/advice/geminiAuth.js';
 import { DEFAULT_GEMINI_MODEL } from '../lib/advice/constants.js';
+import { selectKnowledgeChunks } from '../lib/advice/knowledgeChunkRouter.js';
 import { runMechanicalAssertions } from '../lib/advice/__evals__/assertions/mechanical.js';
 import { runQualitativeJudge } from '../lib/advice/__evals__/assertions/qualitative.js';
 
@@ -77,10 +78,14 @@ let allQualitativePass = true;
 for (const fixture of fixtures) {
   console.log(`--- ${fixture.id} ---`);
 
+  const kb_chunks = selectKnowledgeChunks(fixture.triggered_rules, fixture.snapshot?.tab_key || 'home');
+
   const { systemPrompt, userMessage, kbChunkIds } = buildLlmRequest({
     snapshot: fixture.snapshot,
     triggered_rules: fixture.triggered_rules,
     locale: fixture.locale,
+    kb_chunks,
+    tab_key: fixture.snapshot?.tab_key || 'home',
   });
 
   let rawText;
@@ -102,7 +107,7 @@ for (const fixture of fixtures) {
     continue;
   }
 
-  const mechanical = runMechanicalAssertions(fixture.id, fixture, rawText, { kbChunkIds });
+  const mechanical = runMechanicalAssertions(fixture.id, fixture, rawText);
   for (const r of mechanical.results) {
     console.log(`  ${r.pass ? 'PASS' : 'FAIL'} ${r.id} ${r.label}${r.detail ? ` (${r.detail})` : ''}`);
   }

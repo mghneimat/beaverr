@@ -6,7 +6,6 @@ import { toMonthly, formatCurrency } from '../../lib/finance';
 import { categoryMonthlyTotal, EDIT_SECTION_ROUTES } from '../../lib/householdBudget';
 import { C, R, T, tabularNums } from '../../constants/onboarding-theme';
 import ExpandCollapseIcon from '../onboarding/ExpandCollapseIcon';
-import InsightSlot from './InsightSlot';
 const SECTION_INSIGHT_KEYS = {
   income: 'income',
   housing: 'housing',
@@ -119,7 +118,6 @@ function SectionBlock({
               </Text>
             </View>
           ))}
-          <InsightSlot insight={insight} comingSoonLabel={insightLabel} />
         </View>
       ) : null}
     </View>
@@ -281,17 +279,6 @@ export default function BudgetSummaryTable({
           {t('onboarding.budget.budgetSplit.budgetLabel')}
         </Text>
         <AmountCell amount={financials.monthlyFlexible} currency={currency} color={C.positive} />
-      </View>
-
-      <View style={{ paddingHorizontal: 16, paddingBottom: 16, backgroundColor: C.infoWashBg }}>
-        <InsightSlot
-          insight={getSectionInsight('budget', insights, t)}
-          comingSoonLabel={t('dashboard.insights.slotLabel')}
-        />
-        <InsightSlot
-          insight={getSectionInsight('goals', insights, t)}
-          comingSoonLabel={t('dashboard.insights.slotLabel')}
-        />
       </View>
     </View>
   );

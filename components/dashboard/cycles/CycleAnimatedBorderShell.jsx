@@ -18,6 +18,10 @@ const NATIVE_TONE_STYLE = {
     borderColor: C.heroExpenseBorder,
     backgroundColor: C.heroExpenseBg,
   },
+  insight: {
+    borderColor: C.insightCardBorder,
+    backgroundColor: C.surface,
+  },
 };
 
 /**
@@ -31,8 +35,10 @@ export default function CycleAnimatedBorderShell({
   style,
   settleStyle,
   variant = 'card',
-  /** `cycle` crossfades green↔red; `grey` / `red` single-tone tile rings */
+  /** `cycle` crossfades green↔red; `grey` / `red` / `insight` single-tone tile rings */
   tone = 'cycle',
+  /** Overrides TILE_GRADIENTS[tone] — e.g. theme-aware insight ring */
+  gradientImage,
   /** Added to shared rotation so tiles can start at different angles */
   spinPhaseDeg = 0,
   children,
@@ -56,7 +62,7 @@ export default function CycleAnimatedBorderShell({
   const innerRadius = Math.max(borderRadius - borderWidth, 0);
   const gradientLayer = variant === 'pill' ? GRADIENT_LAYER_PILL : GRADIENT_LAYER;
   const isCycleTone = tone === 'cycle';
-  const tileGradient = TILE_GRADIENTS[tone];
+  const tileGradient = gradientImage ?? TILE_GRADIENTS[tone];
   const nativeStyle = isCycleTone
     ? (variant === 'card' ? nativeBorderStyle : nativeBorderRingStyle)
     : NATIVE_TONE_STYLE[tone];

@@ -1,8 +1,10 @@
 import {
-  ADVICE_FOCUS_AREAS,
-  ADVICE_MAX_BULLETS,
+  ADVICE_COACH_PARAGRAPHS,
   ADVICE_MAX_WORDS,
+  ADVICE_MIN_WORDS,
   ADVICE_OUTPUT_SCHEMA_KEYS,
+  ADVICE_SPARSE_MAX_WORDS,
+  ADVICE_SPARSE_MIN_WORDS,
 } from './constants.ts';
 
 function countWords(...parts: string[]) {
@@ -10,6 +12,10 @@ function countWords(...parts: string[]) {
     .join(' ')
     .split(/\s+/)
     .filter(Boolean).length;
+}
+
+export function narrativeText(narrative: { paragraphs: string[] }) {
+  return narrative.paragraphs.join(' ');
 }
 
 export function parseLlmResponseJson(raw: unknown) {
@@ -35,57 +41,33 @@ export function parseLlmResponseJson(raw: unknown) {
     }
   }
 
-  const headline = parsed.headline;
-  const bullets = parsed.bullets;
-  const focusArea = parsed.focus_area;
-  const citationsUsed = parsed.citations_used;
-
-  if (typeof headline !== 'string' || !headline.trim()) {
-    return { ok: false as const, error: 'invalid_headline' };
+  const paragraphs = parsed.paragraphs;
+  if (!Array.isArray(paragraphs) || paragraphs.length === 0) {
+    return { ok: false as const, error: 'invalid_paragraphs' };
   }
 
-  if (!Array.isArray(bullets) || bullets.length === 0) {
-    return { ok: false as const, error: 'invalid_bullets' };
+  const count = paragraphs.length;
+  if (count !== ADVICE_COACH_PARAGRAPHS && count !== 1) {
+    return { ok: false as const, error: 'invalid_paragraph_count' };
   }
 
-  if (bullets.length > ADVICE_MAX_BULLETS) {
-    return { ok: false as const, error: 'too_many_bullets' };
+  if (!paragraphs.every((p) => typeof p === 'string' && (p as string).trim())) {
+    return { ok: false as const, error: 'invalid_paragraph_item' };
   }
 
-  if (!bullets.every((b) => typeof b === 'string' && b.trim())) {
-    return { ok: false as const, error: 'invalid_bullet_item' };
-  }
+  const trimmed = (paragraphs as string[]).map((p) => p.trim());
+  const wordCount = countWords(...trimmed);
 
-  if (!ADVICE_FOCUS_AREAS.includes(focusArea as (typeof ADVICE_FOCUS_AREAS)[number])) {
-    return { ok: false as const, error: 'invalid_focus_area' };
-  }
-
-  if (!Array.isArray(citationsUsed)) {
-    return { ok: false as const, error: 'invalid_citations_used' };
-  }
-
-  const wordCount = countWords(headline, ...(bullets as string[]));
-  if (wordCount > ADVICE_MAX_WORDS) {
-    return { ok: false as const, error: 'word_count_exceeded' };
+  if (count === 1) {
+    if (wordCount < ADVICE_SPARSE_MIN_WORDS || wordCount > ADVICE_SPARSE_MAX_WORDS) {
+      return { ok: false as const, error: 'sparse_word_count_out_of_range' };
+    }
+  } else if (wordCount < ADVICE_MIN_WORDS || wordCount > ADVICE_MAX_WORDS) {
+    return { ok: false as const, error: 'word_count_out_of_range' };
   }
 
   return {
     ok: true as const,
-    narrative: {
-      headline: headline.trim(),
-      bullets: (bullets as string[]).map((b) => b.trim()),
-      focus_area: focusArea,
-      citations_used: citationsUsed,
-    },
+    narrative: { paragraphs: trimmed },
   };
-}
-
-export function validateCitationsUsed(narrative: { citations_used: unknown[] }, sentKbChunkIds: string[]) {
-  const allowed = new Set(sentKbChunkIds);
-  for (const id of narrative.citations_used) {
-    if (typeof id !== 'string' || !allowed.has(id)) {
-      return { ok: false as const, error: 'citation_not_in_kb' };
-    }
-  }
-  return { ok: true as const };
 }
