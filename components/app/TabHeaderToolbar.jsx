@@ -181,6 +181,7 @@ export default function TabHeaderToolbar({ alertCount = 0, household = null, acc
   const router = useRouter();
   const segments = useSegments();
   const currentRoute = segments[segments.length - 1];
+  const isAdminRoute = segments.includes('(admin)');
   const {
     comfortable,
     navActionSize,
@@ -252,6 +253,11 @@ export default function TabHeaderToolbar({ alertCount = 0, household = null, acc
   const handleOpenAdmin = () => {
     closeProfileMenu();
     setTimeout(() => router.push('/(admin)/stats'), 0);
+  };
+
+  const handleOpenAppDashboard = () => {
+    closeProfileMenu();
+    setTimeout(() => router.replace('/(app)/dashboard'), 0);
   };
 
   const handleToggleAppearance = () => {
@@ -418,12 +424,21 @@ export default function TabHeaderToolbar({ alertCount = 0, household = null, acc
                 selected={currentRoute === 'account-settings'}
               />
               {Platform.OS === 'web' && isAdmin ? (
-                <ProfileMenuOption
-                  label={t('dashboard.headerToolbar.adminDashboard')}
-                  icon={DashboardIcon}
-                  onPress={handleOpenAdmin}
-                  accessibilityLabel={t('dashboard.headerToolbar.adminDashboardA11y')}
-                />
+                isAdminRoute ? (
+                  <ProfileMenuOption
+                    label={t('dashboard.headerToolbar.appDashboard')}
+                    icon={DashboardIcon}
+                    onPress={handleOpenAppDashboard}
+                    accessibilityLabel={t('dashboard.headerToolbar.appDashboardA11y')}
+                  />
+                ) : (
+                  <ProfileMenuOption
+                    label={t('dashboard.headerToolbar.adminDashboard')}
+                    icon={DashboardIcon}
+                    onPress={handleOpenAdmin}
+                    accessibilityLabel={t('dashboard.headerToolbar.adminDashboardA11y')}
+                  />
+                )
               ) : null}
               <ProfileMenuOption
                 label={t('dashboard.headerToolbar.appearance')}

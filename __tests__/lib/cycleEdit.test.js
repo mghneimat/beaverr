@@ -54,7 +54,7 @@ describe('cycleEdit', () => {
     await updateActiveCycleStartDate({
       cycleId: 'c1',
       startedAt: '2026-06-16',
-      budget: { lastClosedDay: '2026-06-14', cyclesEnabled: true },
+      budget: { lastClosedDay: '2026-06-16', cyclesEnabled: true },
     });
 
     expect(setData).toHaveBeenCalledWith('beaverr_budget', expect.objectContaining({

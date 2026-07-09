@@ -1,5 +1,9 @@
 // Jest setup file — global mocks for unit tests
 
+jest.mock('@react-native-async-storage/async-storage', () =>
+  require('@react-native-async-storage/async-storage/jest/async-storage-mock'),
+);
+
 // Mock expo-router
 const mockRouter = {
   push: jest.fn(),

@@ -37,12 +37,22 @@ describe('deleteAccountAndData', () => {
     });
   });
 
-  it('deletes remote account then clears local data', async () => {
+  it('deletes remote account then clears local data and signs out', async () => {
+    const signOut = jest.fn().mockResolvedValue(undefined);
+    mockGetSupabase.mockReturnValue({
+      auth: {
+        getSession: jest.fn().mockResolvedValue({ data: { session: { user: { id: 'u1' } } } }),
+        signOut,
+      },
+    });
+
     const result = await deleteAccountAndData();
 
     expect(result.ok).toBe(true);
     expect(mockDeleteOwnSupabaseAccount).toHaveBeenCalled();
     expect(mockClearAllData).toHaveBeenCalled();
+    expect(mockRemoveData).toHaveBeenCalled();
+    expect(signOut).toHaveBeenCalled();
   });
 
   it('returns error when remote delete fails', async () => {

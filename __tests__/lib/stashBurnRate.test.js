@@ -1,4 +1,4 @@
-import { buildStashBurnRate } from '../lib/stashBurnRate';
+import { buildStashBurnRate } from '../../lib/stashBurnRate';
 
 describe('buildStashBurnRate', () => {
   const goals = [{ id: 'g1', name: 'Emergency fund' }];

@@ -1,4 +1,4 @@
-import { paginateItems, TABLE_PAGE_SIZES } from '../lib/tablePagination';
+import { paginateItems, TABLE_PAGE_SIZES } from '../../lib/tablePagination';
 
 describe('tablePagination', () => {
   const items = Array.from({ length: 23 }, (_, i) => i + 1);

@@ -12,8 +12,10 @@ import { choiceCardBg, choiceCardBorder } from '../../components/onboarding/pres
 import { C, R, S, T } from '../../constants/onboarding-theme';
 import { useI18n } from '../../lib/i18n';
 import { useOnboardingLayout } from '../../lib/onboardingLayout';
-import { patchOnboardingState } from '../../lib/onboardingProgress';
+import { getOnboardingState, patchOnboardingState } from '../../lib/onboardingProgress';
 import { navigateBack, navigateForward, ONBOARDING_ENTRY_HISTORY, resetNavHistory, useOnboardingScreen } from '../../lib/onboardingNavigation';
+import { clearQuestionnaireData } from '../../lib/onboardingExit';
+import { setHydratingFromCloud } from '../../lib/cloud/syncHousehold';
 import useLeaveToDashboardConfirm from '../../lib/useLeaveToDashboardConfirm';
 
 /**
@@ -28,6 +30,16 @@ export default function SetupModeScreen() {
   const { handleBackWithConfirm, leaveDialog } = useLeaveToDashboardConfirm('/(onboarding)/setup-mode');
 
   const handleContinue = async () => {
+    const state = await getOnboardingState();
+    if (state?.questionnaireRetakeInProgress) {
+      setHydratingFromCloud(true);
+      try {
+        await clearQuestionnaireData();
+      } finally {
+        setHydratingFromCloud(false);
+      }
+    }
+
     if (mode === 'full') {
       await resetNavHistory([
         ...ONBOARDING_ENTRY_HISTORY,

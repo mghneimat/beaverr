@@ -87,31 +87,7 @@ export default function AdminStatsScreen() {
             <StatCard label={t('admin.stats.signups7d')} value={String(stats.signups7d)} />
             <StatCard label={t('admin.stats.signups30d')} value={String(stats.signups30d)} />
             <StatCard label={t('admin.stats.households')} value={String(stats.householdsWithData)} />
-            <StatCard label={t('admin.stats.adviceRuns')} value={String(stats.adviceRuns)} />
-            <StatCard
-              label={t('admin.stats.aiSpend')}
-              value={`$${Number(stats.adviceSpendUsd ?? 0).toFixed(4)}`}
-            />
-            <StatCard label={t('admin.stats.chatRuns')} value={String(stats.chatRuns)} />
           </View>
-
-          <Text style={{ ...T.sectionTitle, color: C.text, marginTop: 8, marginBottom: 8 }}>
-            {t('admin.stats.topRules')}
-          </Text>
-          {(stats.topRules ?? []).map((row) => (
-            <Text key={row.id} style={{ color: C.textMuted, marginBottom: 4 }}>
-              {row.id}: {row.count}
-            </Text>
-          ))}
-
-          <Text style={{ ...T.sectionTitle, color: C.text, marginTop: 16, marginBottom: 8 }}>
-            {t('admin.stats.topChunks')}
-          </Text>
-          {(stats.topChunks ?? []).map((row) => (
-            <Text key={row.id} style={{ color: C.textMuted, marginBottom: 4 }}>
-              {row.id}: {row.count}
-            </Text>
-          ))}
         </>
       ) : null}
     </ScrollView>

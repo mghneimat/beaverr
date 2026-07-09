@@ -12,7 +12,7 @@ export default function SummaryContent({ bundle }) {
 
   return (
     <TabSectionStack>
-      <TabInsightCard tabKey="summary" financials={bundle.financials} />
+      <TabInsightCard tabKey="summary" financials={bundle.financials} insights={bundle.insights} />
 
       <SummaryCycleOverviewCard bundle={bundle} currency={currency} />
 

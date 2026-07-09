@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, Pressable } from 'react-native';
 import { Stack } from 'expo-router';
 import { C, T, S } from '../../constants/onboarding-theme';
@@ -6,9 +6,24 @@ import { BUILD_STAMP } from '../../lib/buildStamp';
 import OnboardingScreenShell from '../../components/onboarding/OnboardingScreenShell';
 import SectionCardsSkeleton from '../../components/ui/SectionCardsSkeleton';
 import { useI18n } from '../../lib/i18n';
+import { reportClientError } from '../../lib/admin/reportError.js';
 
 /** Surfaces route render errors instead of a silent blank screen on mobile web. */
 export function ErrorBoundary({ error, retry }) {
+  const { locale } = useI18n();
+
+  useEffect(() => {
+    if (!error) return;
+    reportClientError({
+      severity: 'blocker',
+      category: 'onboarding',
+      message: error.message || 'onboarding_route_error',
+      stack: error.stack,
+      locale,
+      context: { route: 'onboarding' },
+    });
+  }, [error, locale]);
+
   const stackPreview = error?.stack?.split('\n').slice(0, 6).join('\n') || '';
   return (
     <OnboardingScreenShell>

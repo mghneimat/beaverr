@@ -1,28 +1,26 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { handleCorsPreflight, jsonResponse } from "../_shared/cors.ts";
+import { checkRateLimit } from "../_shared/rateLimit.ts";
 
 const USERNAME_PATTERN = /^[a-z0-9_]{3,20}$/;
-
-function jsonResponse(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
-  });
-}
+const WINDOW_MS = 60_000;
+const RATE_LIMIT_PER_IP = 20;
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
-  }
+  const preflight = handleCorsPreflight(req);
+  if (preflight) return preflight;
 
   if (req.method !== "POST") {
     return jsonResponse({ error: "method_not_allowed" }, 405);
   }
+
+  const limited = checkRateLimit(
+    req,
+    { key: "username-check", max: RATE_LIMIT_PER_IP, windowMs: WINDOW_MS },
+    jsonResponse,
+  );
+  if (limited) return limited;
 
   let body: { username?: string };
   try {

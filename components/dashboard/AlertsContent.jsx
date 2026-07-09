@@ -39,6 +39,7 @@ export default function AlertsContent({ bundle, onRefresh }) {
         <TabInsightCard
           tabKey="alerts"
           financials={bundle.financials}
+          insights={bundle.insights}
           helpers={{ alerts: bundle.alerts }}
         />
         <SurfaceCard>
@@ -56,6 +57,7 @@ export default function AlertsContent({ bundle, onRefresh }) {
       <TabInsightCard
         tabKey="alerts"
         financials={bundle.financials}
+        insights={bundle.insights}
         helpers={{ alerts: bundle.alerts }}
       />
       {active.map((alert) => (

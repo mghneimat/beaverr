@@ -49,6 +49,7 @@ describe('computeRenewalSavingsPlan', () => {
 });
 
 describe('getHealthMemberBudgetLine', () => {
+  const from = new Date(2026, 5, 8);
   const base = {
     confirmed: true,
     coverage: 'private',
@@ -71,7 +72,7 @@ describe('getHealthMemberBudgetLine', () => {
   });
 
   it('amortizes prepaid renewal over months remaining, not annual frequency', () => {
-    const line = getHealthMemberBudgetLine(base);
+    const line = getHealthMemberBudgetLine(base, from);
     expect(line).toEqual({ amount: 4000, frequency: 'monthly' });
   });
 
@@ -91,7 +92,7 @@ describe('getHealthMemberBudgetLine', () => {
       budgetForSwitch: true,
       switchPremiumAmount: 12000,
       switchPremiumFrequency: 'monthly',
-    });
+    }, from);
     expect(line).toEqual({ amount: 4000, frequency: 'monthly' });
   });
 
@@ -115,6 +116,20 @@ describe('getHealthMemberBudgetLine', () => {
       frequency: 'annual',
     });
     expect(line).toEqual({ amount: 12000, frequency: 'annual' });
+  });
+
+  it('defaults missing frequency to annual (matches onboarding UI default)', () => {
+    const line = getHealthMemberBudgetLine({
+      confirmed: true,
+      coverage: 'private',
+      premium: 14000,
+    });
+    expect(line).toEqual({ amount: 14000, frequency: 'annual' });
+    expect(getHealthMemberMonthlyAmount({
+      confirmed: true,
+      coverage: 'private',
+      premium: 14000,
+    })).toBeCloseTo(14000 / 12, 5);
   });
 });
 

@@ -37,17 +37,17 @@ import {
   PARKING_FREQUENCIES,
   VEHICLE_CATEGORIES,
   buildTransportPayload,
-  buildVehiclesFromCounts,
+  hydrateTransportFormState,
   createMaintenanceItem,
   getCategoryLabelKey,
   isMandatoryVehicleInsurance,
   resolveTransportBack,
   resolveTransportContinue,
   serializeMaintenanceItems,
+  transportUiStepToSemantic,
   vehicleRequiresInsurance,
   withMaintenanceIds,
 } from '../../lib/transport/transportFlow';
-import { normalizeOnboardingStep } from '../../lib/onboardingStepAliases';
 
 const INSURANCE_CONTRACT_FIELD_MAP = {
   premium: 'insurancePremium',
@@ -122,17 +122,69 @@ export default function TransportScreen() {
   // vehicleOwnership — Vehicle ownership
   const [hasVehicle, setHasVehicle] = useState(false);
 
-  // ── Load currency from location data ──
+  // ── Load currency and saved transport draft ──
   useEffect(() => {
     (async () => {
       const loc = await getData('beaverr_location');
       const income = await getData('beaverr_income');
+      const saved = await getData('beaverr_transport');
       if (loc?.currency) setCurrencyCode(loc.currency);
       if (income?.savingsBalance != null) {
         setSavingsBalance(Number(income.savingsBalance) || 0);
       }
+
+      const hydrated = hydrateTransportFormState(saved);
+      if (!hydrated) return;
+
+      setHasVehicle(hydrated.hasVehicle);
+      setVehicleCounts(hydrated.vehicleCounts);
+      setVehicles(hydrated.vehicles);
+      setVehicleIndex(hydrated.vehicleIndex);
+      setHasPublicTransport(hydrated.hasPublicTransport);
+      setPtAmount(hydrated.ptAmount);
+      setPtFrequency(hydrated.ptFrequency);
+      setPtEndDate(hydrated.ptEndDate);
+      setPtDueDate(hydrated.ptDueDate);
+      setPtChargeDay(hydrated.ptChargeDay);
+      setStep(hydrated.step);
     })();
   }, []);
+
+  useEffect(() => {
+    if (isEditMode) return undefined;
+
+    const timer = setTimeout(async () => {
+      const transportData = buildTransportPayload({
+        hasVehicle,
+        vehicleCounts,
+        vehicles,
+        hasPublicTransport,
+        ptAmount,
+        ptFrequency,
+        ptEndDate,
+        ptDueDate,
+        ptChargeDay,
+        step,
+        vehicleIndex,
+      });
+      await setData('beaverr_transport', transportData);
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [
+    hasVehicle,
+    vehicleCounts,
+    vehicles,
+    vehicleIndex,
+    hasPublicTransport,
+    ptAmount,
+    ptFrequency,
+    ptEndDate,
+    ptDueDate,
+    ptChargeDay,
+    step,
+    isEditMode,
+  ]);
 
   // vehicleCounts — Vehicle counts per category
   const [vehicleCounts, setVehicleCounts] = useState({
@@ -240,6 +292,8 @@ export default function TransportScreen() {
       ptEndDate,
       ptDueDate,
       ptChargeDay,
+      step,
+      vehicleIndex,
     });
 
     await completeSection({
@@ -880,6 +934,7 @@ export default function TransportScreen() {
 
   return (
     <QuestionScreen
+      progressStep={transportUiStepToSemantic(step)}
       chapter={t('onboarding.transport.chapter')}
       title={stepTitles[step]}
       illustration={

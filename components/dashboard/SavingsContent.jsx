@@ -343,7 +343,8 @@ export default function SavingsContent({ bundle, currency }) {
       <TabInsightCard
         tabKey="savings"
         financials={bundle.financials}
-        helpers={{ savingsBalance: balance, goalGap }}
+        insights={bundle.insights}
+        helpers={{ savingsBalance: balance }}
       />
 
       <JarsBudgetGrid

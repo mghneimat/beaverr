@@ -361,7 +361,7 @@ Organized by domain. **All financial math must go through `lib/finance.js`** —
 |--------|----------------|
 | `dashboardData.js` | `loadDashboardBundle()` — master orchestrator |
 | `dashboardRefresh.js` | Pub/sub: `subscribeDashboardRefresh` / `notifyDashboardRefresh` |
-| `insights.js`, `aiInsights.js` | Insight text generation |
+| `insights.js` | Rule-based insight text generation (`computeInsights`, `getTabInsight`) |
 | `alerts.js`, `reminderPreferences.js`, `reminderSchedule.js` | Reminders |
 | `dashboardAlerts.js` | Action queue for dashboard home |
 
@@ -787,16 +787,21 @@ From `app.json`:
 
 | Aspect | Current state |
 |--------|---------------|
-| Data location | 100% local (browser storage or app memory) |
-| Backend / API | None in Phase 1 |
-| Auth | None |
-| Consent | `beaverr_consent` — `consent.jsx` gate before setup |
+| Data location | Local first (`lib/storage.js`); optional cloud sync to `household_data` |
+| Backend | Hosted Supabase (Postgres + RLS + Edge Functions) |
+| Auth | Supabase email/password + OAuth; JWT on protected routes |
+| Roles | `profiles.role`: `user` \| `admin`; admin via `requireAdmin` + `/(admin)` layout gate |
+| Consent | GDPR checkbox on sign-up; `beaverr_consent` for onboarding |
+| Insights | Local rules in `lib/insights.js` — no cloud LLM |
+| Telemetry | `log-error` edge function → `app_error_events` (rate-limited) |
 | Data export | User-initiated XLSX via `budgetExport.js` |
-| Data wipe | `clearAllData()` on consent revoke / retake flows |
+| Data wipe | `deleteAccountAndData()` + `clearAllData()`; RPC `delete_own_account` |
 
-**No encryption at rest.** Web data is visible in DevTools.localStorage.
+**RLS** scopes `profiles`, `households`, and `household_data` to the signed-in user / household owner. See `supabase/migrations/20260625120000_households_and_sync.sql`.
 
-**Reviewer focus:** PII (names, income, debts) sits in plain JSON locally. Future sync would need encryption, consent updates, and schema versioning.
+**Encryption at rest:** Supabase encrypts cloud data; local web storage remains visible in DevTools — treat device access as a trust boundary.
+
+**Reviewer focus:** PII (names, income, debts) in local JSON and optional cloud blob; audit notes in `docs/security-audit-notes.md`.
 
 ---
 
@@ -847,7 +852,7 @@ Items an AI reviewer should flag or account for:
 | `childrenCosts` vs `children-costs` route naming | Low | Layout registers camelCase; file is kebab-case |
 | Mixed styling (NativeWind + inline + gluestack) | Low | Consistency ongoing |
 | No state machine for onboarding | Low | Consider XState if flows grow (noted in pre-alpha review) |
-| AI insights | Low | `aiInsights.js` — template/heuristic, not LLM API |
+| Dashboard insights | Low | `lib/insights.js` — local rules from household totals, no cloud LLM |
 
 ---
 

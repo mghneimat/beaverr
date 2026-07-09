@@ -7,6 +7,7 @@ import {
   nextDay,
   previousDay,
 } from '../../lib/jarRouting';
+import { computeCyclePace } from '../../lib/cyclePace';
 import { roundMoney, divideMoney } from '../../lib/finance';
 
 describe('routeDayLeftover', () => {

@@ -34,11 +34,11 @@ describe('transferBetweenStashes', () => {
   it('moves money between custom stashes', () => {
     const first = addCustomStash({}, 'Gifts');
     const second = addCustomStash(first.budget, 'Travel');
-    first.budget.customStashes[0].balance = 400;
-    const fromRef = `stash:${first.budget.customStashes[0].id}`;
+    second.budget.customStashes[0].balance = 400;
+    const fromRef = `stash:${second.budget.customStashes[0].id}`;
     const toRef = `stash:${second.stash.id}`;
     const { budget, error } = transferBetweenStashes(
-      first.budget,
+      second.budget,
       {},
       fromRef,
       toRef,
@@ -74,10 +74,10 @@ describe('removeCustomStashWithDestination', () => {
   it('routes balance to another custom tab when deleting', () => {
     const first = addCustomStash({}, 'Gifts');
     const second = addCustomStash(first.budget, 'Travel');
-    first.budget.customStashes[0].balance = 300;
+    second.budget.customStashes[0].balance = 300;
     const { budget, error } = removeCustomStashWithDestination(
-      first.budget,
-      first.stash.id,
+      second.budget,
+      second.budget.customStashes[0].id,
       { destination: `stash:${second.stash.id}` },
     );
     expect(error).toBeNull();

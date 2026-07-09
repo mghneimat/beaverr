@@ -4,6 +4,7 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { useI18n } from '../../lib/i18n';
 import { getData, setData } from '../../lib/storage';
 import { patchOnboardingState } from '../../lib/onboardingProgress';
+import { clearQuestionnaireRetakeSnapshot } from '../../lib/onboardingExit';
 import { navigateBack, navigateForward } from '../../lib/onboardingNavigation';
 import { notifyDashboardRefresh } from '../../lib/dashboardRefresh';
 import { committedMonthlyLoad } from '../../lib/finance';
@@ -84,11 +85,13 @@ export default function ReviewScreen() {
       dashboardUnlocked: true,
       questionnaireComplete: true,
       questionnaireEverCompleted: true,
+      questionnaireRetakeInProgress: false,
       currentStep: 'review',
       percentComplete: 100,
       resumeRoute: null,
       navHistory: [],
     });
+    await clearQuestionnaireRetakeSnapshot();
 
     router.replace('/(app)/dashboard');
     notifyDashboardRefresh();

@@ -150,7 +150,6 @@ Rules:
 | Navigation | Expo Router | File-based routing; works on web and native |
 | Backend + Auth + DB | Supabase | Postgres, Auth, Row Level Security, Realtime |
 | Payments / Paywall | RevenueCat | Cross-platform subscription management |
-| AI | Google Gemini (Google Cloud API, EU) | Premium household advice narration; see `docs/AI-INTEGRATION-PLAN.md` |
 | Build + Distribution | Expo EAS | Cloud builds for iOS and Android |
 
 ### JavaScript vs TypeScript
@@ -214,10 +213,10 @@ If you believe a specific file genuinely benefits from TypeScript (e.g. a comple
           ┌──────────────────────┼───────────────────────────┐
           │                      │                           │
    ┌──────▼──────┐       ┌───────▼──────┐         ┌─────────▼────┐
-   │  Supabase   │       │  Gemini AI   │         │  RevenueCat  │
-   │  Auth + DB  │       │  AI API      │         │  Paywall     │
-   │  RLS + Edge │       │  (Insights + │         │  (Phase 5)   │
-   │  Functions  │       │   Prefill)   │         └──────────────┘
+   │  Supabase   │       │  Local rules │         │  RevenueCat  │
+   │  Auth + DB  │       │  (insights)  │         │  Paywall     │
+   │  RLS + Edge │       │  on device   │         │  (Phase 5)   │
+   │  Functions  │       │              │         └──────────────┘
    └─────────────┘       └──────────────┘
 ```
 
@@ -227,9 +226,9 @@ If you believe a specific file genuinely benefits from TypeScript (e.g. a comple
 
 **Supabase (Phase 2+):** Each user's financial data is stored in Postgres with Row Level Security. Supabase Auth handles sign-up, login, and the 30-day trial gate. No data is shared or sold.
 
-**Gemini AI (Phase 4+):** Premium household advice narration via Supabase Edge + Google Cloud Gemini API (EU). See `docs/AI-INTEGRATION-PLAN.md`. Questionnaire prefill (future) is a separate provider decision.
+**Dashboard insights:** Rule-based copy from `lib/insights.js` (`computeInsights` → `getTabInsight`) — no cloud LLM. Shown on each dashboard tab via `TabInsightCard`.
 
-**RevenueCat (Phase 5):** Manages subscriptions across iOS and Android from one API. AI Insights and push notifications are premium features.
+**RevenueCat (Phase 5):** Manages subscriptions across iOS and Android from one API. Push notifications are a premium feature.
 
 **Open Banking (Phase 6 — investigation only):** PSD2-compliant open banking APIs for CZ (e.g. Finbricks, Tink) could automate spend tracking. Do not implement in any current phase.
 
@@ -888,21 +887,13 @@ Costs screen and Income section show all entries at a selected frequency (daily 
 
 ---
 
-## AI FEATURES (Phase 4+)
+## DASHBOARD INSIGHTS (local rules)
 
-> **Canonical spec:** `docs/AI-INTEGRATION-PLAN.md` — local warnings are rule-based; LLM narrates only for **premium** users with separate AI consent.
+Per-tab insight cards use **`lib/insights.js`** — `computeInsights` derives signals from household totals; `getTabInsight` maps each tab to EN/CS copy (e.g. fixed costs as % of income). No network calls, no consent gate.
 
-### A — Questionnaire Prefill Assistant (future)
-Location-based prefill (e.g. waste tax, OSVČ minimum) via Supabase Edge Function. Provider TBD; must meet same EU GDPR bar as advice. UI shows “pre-filled by AI” badge; user can edit.
-
-### B — Personal Finance Expert (premium)
-**Google Gemini `gemini-3.1-flash-lite`** via Supabase Edge Function. Server sends compact financial snapshot + triggered rules only when rules fire. Local warnings always shown without LLM.
-
-- Narrates triggered rules with practical next steps (JSON in/out, prompt v2)
-- **Not** shown when `triggered_rules` is empty — static healthy copy instead
-- Regenerated on user Refresh or material profile change; cached in Postgres
-- **Premium + `beaverr_ai_consent` required**; production uses **Google Cloud Gemini API (EU)** + Google Cloud DPA
-- Dev/eval: Google AI Studio — `npm run advice:eval`
+- UI: `components/dashboard/TabInsightCard.jsx` on every dashboard tab
+- Data: `lib/dashboardData.js` includes `bundle.insights`
+- Questionnaire prefill assistant (future) is a separate feature decision
 
 ---
 
@@ -994,14 +985,14 @@ Migrate to Expo + NativeWind. Web still works. Supabase for persistence (anonymo
 ### 🔜 Phase 3 — Auth + 30-Day Trial + Push Notifications
 Supabase Auth (email magic link). 30-day free trial then premium gate (RevenueCat). Expo push notifications. Invite partner.
 
-### 🔜 Phase 4 — AI Insights
-Gemini API (Google Cloud, EU region). Premium personal finance expert insight card. See `docs/AI-INTEGRATION-PLAN.md`.
+### 🔜 Phase 4 — Dashboard insights (shipped — local rules)
+Rule-based insight cards on each tab via `lib/insights.js` — no cloud LLM.
 
 ### 🔜 Phase 5 — Premium + App Store
-AI Insights + push notifications = premium. Submit via Expo EAS.
+Push notifications = premium. Submit via Expo EAS.
 
-### 🔜 Phase 6 — Open Banking (Investigation)
-Investigate PSD2-compliant open banking APIs for CZ (Finbricks, Tink). No implementation commitment.
+### 🔜 Phase 6 — Open Banking (future investigation)
+PSD2-compliant open banking for CZ could automate spend tracking later. Not in scope for the current build.
 
 ---
 

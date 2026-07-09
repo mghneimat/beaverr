@@ -7,7 +7,7 @@ describe('reminderTableRows', () => {
     const rows = buildReminderTableRows(
       {
         household: { type: 'solo' },
-        subscriptions: [
+        subs: [
           {
             name: 'netflix',
             cost: 15,

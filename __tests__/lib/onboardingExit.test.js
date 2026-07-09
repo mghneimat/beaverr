@@ -1,5 +1,6 @@
 import {
   hasEverSubmittedQuestionnaire,
+  cancelQuestionnaireRetake,
   discardOnboardingProgress,
   saveOnboardingForLater,
   snapshotHasRestorableData,
@@ -65,6 +66,74 @@ describe('onboardingExit', () => {
       resumeRoute: '/(onboarding)/income',
       currentStep: 'income',
     }));
+  });
+
+  test('saveOnboardingForLater cancels pending retake at setup-mode instead of locking tabs', async () => {
+    const savedOnboarding = {
+      setupMode: 'full',
+      completed: true,
+      questionnaireComplete: true,
+      percentComplete: 100,
+    };
+    mockGetData.mockImplementation(async (key) => {
+      if (key === 'beaverr_onboarding') {
+        return {
+          questionnaireRetakeInProgress: true,
+          currentStep: 'setup-mode',
+          setupMode: null,
+          questionnaireComplete: true,
+          completed: true,
+        };
+      }
+      if (key === 'beaverr_questionnaire_snapshot') {
+        return { beaverr_onboarding: savedOnboarding };
+      }
+      return null;
+    });
+
+    await saveOnboardingForLater({ resumeRoute: '/(onboarding)/setup-mode' });
+
+    expect(mockSetData).toHaveBeenCalledWith('beaverr_onboarding', expect.objectContaining({
+      questionnaireRetakeInProgress: false,
+      questionnaireComplete: true,
+      completed: true,
+      percentComplete: 100,
+    }));
+    expect(mockRemoveData).toHaveBeenCalledWith('beaverr_questionnaire_snapshot');
+  });
+
+  test('cancelQuestionnaireRetake restores completed flags without clearing household data', async () => {
+    const savedOnboarding = {
+      setupMode: 'full',
+      completed: true,
+      questionnaireComplete: true,
+      percentComplete: 100,
+    };
+    mockGetData.mockImplementation(async (key) => {
+      if (key === 'beaverr_onboarding') {
+        return {
+          questionnaireRetakeInProgress: true,
+          currentStep: 'setup-mode',
+          setupMode: null,
+        };
+      }
+      if (key === 'beaverr_questionnaire_snapshot') {
+        return { beaverr_onboarding: savedOnboarding };
+      }
+      return null;
+    });
+
+    const cancelled = await cancelQuestionnaireRetake();
+
+    expect(cancelled).toBe(true);
+    expect(mockRemoveData).toHaveBeenCalledWith('beaverr_questionnaire_snapshot');
+    expect(mockSetData).toHaveBeenCalledWith('beaverr_onboarding', expect.objectContaining({
+      questionnaireRetakeInProgress: false,
+      questionnaireComplete: true,
+      completed: true,
+      percentComplete: 100,
+    }));
+    expect(mockRemoveData).not.toHaveBeenCalledWith('beaverr_income');
   });
 
   test('discard restores questionnaire snapshot after a prior full submit', async () => {

@@ -1,20 +1,23 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { handleCorsPreflight, jsonResponse } from "../_shared/cors.ts";
+import { checkRateLimit } from "../_shared/rateLimit.ts";
 
 const MAX_STACK_LENGTH = 4000;
 const MAX_MESSAGE_LENGTH = 2000;
+const WINDOW_MS = 60_000;
+const RATE_LIMIT_AUTHENTICATED = 60;
+const RATE_LIMIT_ANONYMOUS = 10;
 
 const VALID_SEVERITIES = new Set(["debug", "warning", "error", "blocker"]);
 const VALID_CATEGORIES = new Set([
   "auth",
   "sync",
-  "advice",
-  "chat",
   "onboarding",
   "ui",
   "unknown",
 ]);
+const ANONYMOUS_CATEGORIES = new Set(["auth", "onboarding", "ui", "unknown"]);
 
 Deno.serve(async (req) => {
   const preflight = handleCorsPreflight(req);
@@ -25,6 +28,9 @@ Deno.serve(async (req) => {
   }
 
   const authHeader = req.headers.get("Authorization");
+  const ingestKey = req.headers.get("x-log-error-key");
+  const configuredIngestKey = Deno.env.get("LOG_ERROR_INGEST_KEY");
+
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -40,6 +46,27 @@ Deno.serve(async (req) => {
     });
     const { data } = await userClient.auth.getUser();
     userId = data.user?.id ?? null;
+  }
+
+  const hasIngestKey =
+    Boolean(configuredIngestKey) &&
+    Boolean(ingestKey) &&
+    ingestKey === configuredIngestKey;
+
+  if (!userId && !hasIngestKey) {
+    const limited = checkRateLimit(
+      req,
+      { key: "log-error-anon", max: RATE_LIMIT_ANONYMOUS, windowMs: WINDOW_MS },
+      jsonResponse,
+    );
+    if (limited) return limited;
+  } else {
+    const limited = checkRateLimit(
+      req,
+      { key: "log-error-auth", max: RATE_LIMIT_AUTHENTICATED, windowMs: WINDOW_MS },
+      jsonResponse,
+    );
+    if (limited) return limited;
   }
 
   let body: {
@@ -62,9 +89,14 @@ Deno.serve(async (req) => {
   const severity = VALID_SEVERITIES.has(body.severity ?? "")
     ? body.severity!
     : "error";
-  const category = VALID_CATEGORIES.has(body.category ?? "")
+  let category = VALID_CATEGORIES.has(body.category ?? "")
     ? body.category!
     : "unknown";
+
+  if (!userId && !hasIngestKey && !ANONYMOUS_CATEGORIES.has(category)) {
+    return jsonResponse({ error: "forbidden" }, 403);
+  }
+
   const message = String(body.message ?? "unknown_error").slice(0, MAX_MESSAGE_LENGTH);
 
   if (!message.trim()) {

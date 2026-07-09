@@ -171,7 +171,11 @@ export default function InsuranceContractFields({
       <InputGroup label={t(premiumLabelKey)}>
         <LabeledInput
           value={data.premium || ''}
-          onChangeText={(v) => onUpdate({ premium: v })}
+          onChangeText={(v) => {
+            const partial = { premium: v };
+            if (v && !data.frequency) partial.frequency = 'annual';
+            onUpdate(partial);
+          }}
           numeric
           placeholder={t('onboarding.health.premiumPlaceholder')}
           large

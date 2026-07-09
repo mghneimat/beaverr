@@ -19,7 +19,7 @@ describe('getMonthlyPlannedSavings', () => {
       {
         budgetSavingsShift: 2000,
         deductSavingsGoal: true,
-        income: { goalType: 'saveMoney', saveMode: 'ongoing', savingsMonthlyTarget: 3000 },
+        income: { goalType: 'saveMoney', saveMode: 'target', savingsMonthlyTarget: 3000 },
       },
       { monthlyRequired: 1500 },
     );

@@ -10,11 +10,17 @@ describe('buildCyclePoolBreakdown', () => {
         startedAt: '2026-06-11',
       },
       budget: {
-        jarredThisMonth: 2761,
+        dayEndHistory: [{
+          date: '2026-06-12',
+          cycleId: 'c1',
+          removedFromPool: 2761,
+          toLooseMoney: 2761,
+        }],
         rolloverBalance: 0,
         dailyJarDestination: 'looseMoney',
       },
       cycleAdjustments: [],
+      asOfIso: '2026-06-15',
     });
 
     expect(breakdown).not.toBeNull();
@@ -22,7 +28,7 @@ describe('buildCyclePoolBreakdown', () => {
     expect(breakdown?.pool).toBe(12239);
     expect(breakdown?.showBanner).toBe(true);
     expect(breakdown?.lines.some((l) => l.id === 'jarred' && l.amount === -2761)).toBe(true);
-    expect(breakdown?.bannerRoute).toBe('budget');
+    expect(breakdown?.bannerRoute).toBe('savings');
     expect(breakdown?.bannerJarId).toBe('looseCash');
     expect(breakdown?.lines.find((l) => l.id === 'jarred')?.route).toBeUndefined();
   });
@@ -40,6 +46,7 @@ describe('buildCyclePoolBreakdown', () => {
         rolloverBalance: 0,
       },
       cycleAdjustments: [],
+      asOfIso: '2026-06-20',
     });
 
     expect(breakdown?.lines.find((l) => l.id === 'jarred')).toEqual({

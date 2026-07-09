@@ -2,12 +2,10 @@ import { View, Text, Pressable, ScrollView } from 'react-native';
 import { useRouter, usePathname } from 'expo-router';
 import { useI18n } from '../../lib/i18n';
 import { C, S, T } from '../../constants/onboarding-theme';
-
 const NAV_ITEMS = [
   { href: '/(admin)/stats', key: 'stats' },
   { href: '/(admin)/users', key: 'users' },
   { href: '/(admin)/errors', key: 'errors' },
-  { href: '/(admin)/knowledge', key: 'knowledge' },
 ];
 
 export default function AdminSidebar() {
@@ -31,7 +29,7 @@ export default function AdminSidebar() {
       </Text>
       <ScrollView>
         {NAV_ITEMS.map((item) => {
-          const active = pathname?.includes(item.key);
+          const active = pathname?.includes(item.pathSegment ?? item.key);
           return (
             <Pressable
               key={item.key}
@@ -51,12 +49,6 @@ export default function AdminSidebar() {
           );
         })}
       </ScrollView>
-      <Pressable
-        onPress={() => router.replace('/(app)/dashboard')}
-        style={{ marginTop: 24, paddingHorizontal: 12, paddingVertical: 10 }}
-      >
-        <Text style={{ color: C.accent }}>{t('admin.backToApp')}</Text>
-      </Pressable>
     </View>
   );
 }

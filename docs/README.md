@@ -2,6 +2,8 @@
 
 A household financial clarity tool built with Expo + React Native + NativeWind.
 
+> **Documentation:** Canonical markdown lives in this `docs/` folder. Style guide: [DOCUMENTATION-STYLE.md](./DOCUMENTATION-STYLE.md).
+
 ## What's Been Built (Increment 1)
 
 ✅ **Project Foundation**
@@ -174,3 +176,13 @@ This project follows:
 - **YAGNI** - You Aren't Gonna Need It
 
 See `beaverr-project-plan.md` for full architectural details.
+
+## Production operations
+
+| Task | How |
+|------|-----|
+| **Rollback web** | Vercel Dashboard → Deployments → select last good → Promote to Production |
+| **Tag last-good release** | `git tag v1.0.0-stable && git push origin v1.0.0-stable` before risky deploys |
+| **DB backups** | Supabase Dashboard → Database → Backups — enable PITR; run a restore drill once |
+| **Security audit log** | [`docs/security-audit-notes.md`](./security-audit-notes.md) |
+| **E2E smoke (optional)** | `npm run web` then `npx playwright test` — see [`e2e/README.md`](../e2e/README.md) |

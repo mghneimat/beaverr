@@ -140,9 +140,12 @@ describe('resolveStartQuestionnaireRoute', () => {
     await resolveStartQuestionnaireRoute();
 
     expect(snapshotQuestionnaireForRetake).toHaveBeenCalled();
+    expect(clearQuestionnaireData).not.toHaveBeenCalled();
     expect(patchOnboardingState).toHaveBeenCalledWith(expect.objectContaining({
       questionnaireEverCompleted: true,
       questionnaireRetakeInProgress: true,
+      questionnaireComplete: true,
+      completed: true,
     }));
   });
 });

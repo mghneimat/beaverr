@@ -5,6 +5,7 @@ import { useAuth } from '../../lib/auth/AuthProvider';
 import { checkAdminAccess } from '../../lib/admin/adminApi';
 import { useI18n } from '../../lib/i18n';
 import AdminSidebar from '../../components/admin/AdminSidebar';
+import AppTopNavBar from '../../components/app/AppTopNavBar';
 import { C, S, T } from '../../constants/onboarding-theme';
 
 export default function AdminLayout() {
@@ -63,6 +64,7 @@ export default function AdminLayout() {
     <View style={{ flex: 1, flexDirection: 'row', backgroundColor: C.bg }}>
       <AdminSidebar />
       <View style={{ flex: 1 }}>
+        <AppTopNavBar showMobileMenu={false} />
         <Stack screenOptions={{ headerShown: false, contentStyle: { flex: 1, backgroundColor: C.bg } }} />
       </View>
     </View>

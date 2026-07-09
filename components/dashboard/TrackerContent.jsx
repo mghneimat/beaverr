@@ -39,7 +39,7 @@ export default function TrackerContent({ bundle, currency }) {
   }, [cyclesEnabled, budget, bundle.financials, dailyLogs]);
 
   const insightSlot = (
-    <TabInsightCard tabKey="tracker" financials={bundle.financials} />
+    <TabInsightCard tabKey="tracker" financials={bundle.financials} insights={bundle.insights} />
   );
 
   const calendarSlot = (

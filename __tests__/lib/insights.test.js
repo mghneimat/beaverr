@@ -95,7 +95,7 @@ describe('getBudgetSectionInsight', () => {
     const result = getBudgetSectionInsight(insights, t, (n) => `${n} Kč`);
     expect(result).not.toBeNull();
     expect(result.lead).toContain('dashboard.insights.sections.budget');
-    expect(result.detail).toContain('Housing');
+    expect(result.detail).toContain('dashboard.insights.sections.budget.detailTopCategory');
     expect(result.route).toBe('costs');
   });
 
@@ -112,7 +112,6 @@ describe('getBudgetSectionInsight', () => {
 });
 
 describe('getTabInsight', () => {
-  // Deprecated in UI — TabInsightCard uses cloud advice; kept for internal/rule signals until fully removed.
   test('returns savings empty copy when balance is zero', () => {
     const insights = computeInsights(baseFinancials);
     const result = getTabInsight('savings', insights, t, {
@@ -128,7 +127,8 @@ describe('getTabInsight', () => {
       ...baseFinancials,
       income: {
         hasGoal: true,
-        goalType: 'ongoing_savings',
+        goalType: 'saveMoney',
+        saveMode: 'ongoing',
         savingsMonthlyTarget: 2000,
       },
     });
@@ -138,7 +138,8 @@ describe('getTabInsight', () => {
         ...baseFinancials,
         income: {
           hasGoal: true,
-          goalType: 'ongoing_savings',
+          goalType: 'saveMoney',
+          saveMode: 'ongoing',
           savingsMonthlyTarget: 2000,
         },
       },

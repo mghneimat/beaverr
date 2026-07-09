@@ -127,7 +127,8 @@ export default function GoalsContent({ bundle }) {
       <TabInsightCard
         tabKey="goals"
         financials={bundle.financials}
-        helpers={{ goals, goalGap: bundle.insights?.goalGap }}
+        insights={bundle.insights}
+        helpers={{ goals }}
       />
 
       <GoalsFilterToggle

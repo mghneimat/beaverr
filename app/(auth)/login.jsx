@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
+import { Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
+import { Text } from '@gluestack-ui/themed';
 import AuthScreenLayout from '../../components/auth/AuthScreenLayout';
 import AuthScreenCard from '../../components/auth/AuthScreenCard';
 import AuthEmailInput from '../../components/auth/AuthEmailInput';
@@ -10,6 +12,7 @@ import { useAuth } from '../../lib/auth/AuthProvider';
 import { routeAfterAuth } from '../../lib/auth/routeAfterAuth';
 import { isValidEmail } from '../../lib/auth/email';
 import { completePendingSignUpIfAny } from '../../lib/auth/pendingSignUp';
+import { C } from '../../constants/onboarding-theme';
 
 export default function LoginScreen() {
   const { t, setLocale } = useI18n();
@@ -83,6 +86,18 @@ export default function LoginScreen() {
           placeholder={t('auth.fields.passwordPlaceholder')}
           accessibilityLabel={t('auth.fields.password')}
         />
+
+        <Pressable
+          onPress={() => router.push('/(auth)/forgot-password')}
+          accessibilityRole="link"
+          accessibilityLabel={t('auth.login.forgotPasswordA11y')}
+          hitSlop={8}
+          style={{ alignSelf: 'flex-end', marginTop: -4 }}
+        >
+          <Text style={{ fontSize: 14, fontWeight: '600', color: C.accent, textDecorationLine: 'underline' }}>
+            {t('auth.login.forgotPassword')}
+          </Text>
+        </Pressable>
       </AuthScreenCard>
     </AuthScreenLayout>
   );

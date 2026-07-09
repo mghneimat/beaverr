@@ -16,6 +16,32 @@ import PillToggle from '../../components/onboarding/PillToggle';
 import AnimatedSlideIn from '../../components/onboarding/AnimatedSlideIn';
 import InsuranceContractFields from '../../components/onboarding/InsuranceContractFields';
 import { useSectionExit } from '../../lib/finishOnboardingSection';
+import { DEFAULT_PRIVATE_INSURANCE_FREQUENCY } from '../../lib/healthInsuranceBudget';
+
+function normalizeHealthMemberForForm(saved) {
+  if (!saved) return { confirmed: false };
+  return {
+    ...saved,
+    premium: saved.premium != null ? String(saved.premium) : '',
+    customFrequencyMonths: saved.customFrequencyMonths != null ? String(saved.customFrequencyMonths) : '',
+    renewalCustomMonthly: saved.renewalCustomMonthly != null ? String(saved.renewalCustomMonthly) : '',
+    switchPremiumAmount: saved.switchPremiumAmount != null ? String(saved.switchPremiumAmount) : '',
+    switchCustomFrequencyMonths: saved.switchCustomFrequencyMonths != null
+      ? String(saved.switchCustomFrequencyMonths)
+      : '',
+    frequency: saved.frequency
+      || (saved.coverage === 'private' && saved.premium ? DEFAULT_PRIVATE_INSURANCE_FREQUENCY : saved.frequency),
+  };
+}
+
+function normalizeHealthMemberForSave(member) {
+  if (!member) return member;
+  const next = { ...member };
+  if (next.coverage === 'private' && next.premium && !next.frequency) {
+    next.frequency = DEFAULT_PRIVATE_INSURANCE_FREQUENCY;
+  }
+  return next;
+}
 
 export default function HealthScreen() {
   const { t } = useI18n();
@@ -49,6 +75,7 @@ export default function HealthScreen() {
       }
       if (occ) setOccupation(occ);
 
+      const savedHealth = await getData('beaverr_health');
       setHousehold(h);
       const m = [];
       m.push({ id: 'user', label: t('onboarding.health.you'), ref: 'user' });
@@ -62,14 +89,30 @@ export default function HealthScreen() {
       }
       setMembers(m);
 
-      // Initialise member data
+      // Initialise member data from saved health records when present
       const initData = {};
-      m.forEach(member => {
-        initData[member.id] = { confirmed: false };
+      m.forEach((member) => {
+        initData[member.id] = normalizeHealthMemberForForm(savedHealth?.[member.id]);
       });
       setMemberData(initData);
     })();
-  }, []);
+  }, [t]);
+
+  useEffect(() => {
+    if (isEditMode || members.length === 0) return undefined;
+
+    const timer = setTimeout(async () => {
+      const prunedHealth = {};
+      members.forEach((member) => {
+        if (memberData[member.id]) {
+          prunedHealth[member.id] = normalizeHealthMemberForSave(memberData[member.id]);
+        }
+      });
+      await setData('beaverr_health', prunedHealth);
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [memberData, members, isEditMode]);
 
   const updateMember = (id, updates) => {
     setMemberData(prev => ({ ...prev, [id]: { ...prev[id], ...updates } }));
@@ -79,7 +122,7 @@ export default function HealthScreen() {
     const prunedHealth = {};
     members.forEach((member) => {
       if (memberData[member.id]) {
-        prunedHealth[member.id] = memberData[member.id];
+        prunedHealth[member.id] = normalizeHealthMemberForSave(memberData[member.id]);
       }
     });
     await completeSection({
@@ -162,7 +205,12 @@ export default function HealthScreen() {
       if (isPrivate) {
         updateMember(member.id, { coverage: null, skipped: false, confirmed: false });
       } else {
-        updateMember(member.id, { coverage: 'private', skipped: false, confirmed: true });
+        updateMember(member.id, {
+          coverage: 'private',
+          skipped: false,
+          confirmed: true,
+          frequency: data.frequency || DEFAULT_PRIVATE_INSURANCE_FREQUENCY,
+        });
       }
       setValidationError('');
     };

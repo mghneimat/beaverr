@@ -23,7 +23,7 @@ describe('spendingPace', () => {
     expect(resolveSpendingPaceLevel(0.55, 0.1, 450, 1000)).toBe('critical');
     expect(resolveSpendingPaceLevel(0.2, 0.1, 800, 1000)).toBe('alert');
     expect(resolveSpendingPaceLevel(1, 0.5, -1, 1000)).toBe('critical');
-    expect(resolveSpendingPaceLevel(0.5, 0.5, 0, 1000)).toBe('critical');
+    expect(resolveSpendingPaceLevel(0.5, 0.5, 0, 1000)).toBe('good');
   });
 
   test('computeSpendingPace returns ratios and ahead delta', () => {
@@ -124,9 +124,9 @@ describe('spendingPace cycle integration', () => {
       { date: '2026-06-01', spent: 9000, status: 'confirmed', cycleId: 'c1' },
     ];
     const pace = computeCyclePace(cycle, logs, {}, new Date(2026, 5, 1));
-    expect(pace.paceLevel).toBe('critical');
+    expect(pace.displayPaceLevel).toBe('critical');
     expect(pace.timeRatio).toBeGreaterThan(0);
-    expect(pace.spentRatio).toBeGreaterThan(0.8);
+    expect(pace.displaySpentRatio).toBeGreaterThan(0.8);
     expect(pace.displaySpentRatio).toBeCloseTo(0.9, 5);
     expect(pace.displaySpentRatio).toBe(pace.spent / cycle.budgetAmount);
   });

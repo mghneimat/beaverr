@@ -18,3 +18,8 @@ Strategic and visual specs live at the project root. Read both before UI work:
 - **DESIGN.md** — tokens, typography, components; canonical source `constants/onboarding-theme.js`
 
 North star: **"The Household Ledger"** — calm navy-on-paper finance UI, restrained accent use, one decision per onboarding screen.
+
+# Documentation
+
+- **Canonical source:** `docs/` — architecture, ops runbooks, onboarding specs
+- **Writing standards:** `docs/DOCUMENTATION-STYLE.md`

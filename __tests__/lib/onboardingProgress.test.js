@@ -2,6 +2,7 @@ import {
   isDashboardUnlocked,
   isQuestionnaireComplete,
   isQuickSetupIncomplete,
+  isRetakePendingAtSetupMode,
   isTabLockedForQuickSetup,
   shouldShowQuestionnaireBanners,
   shouldShowQuestionnaireEstimateWarning,
@@ -72,6 +73,19 @@ describe('onboardingProgress', () => {
     expect(isQuickSetupIncomplete({ dashboardUnlocked: true, completed: false })).toBe(true);
     expect(isQuickSetupIncomplete({ dashboardUnlocked: false, completed: false })).toBe(false);
     expect(isQuickSetupIncomplete({ dashboardUnlocked: true, completed: true })).toBe(false);
+  });
+
+  test('retake pending at setup-mode keeps tabs unlocked', () => {
+    const pendingRetake = {
+      dashboardUnlocked: true,
+      questionnaireComplete: false,
+      questionnaireRetakeInProgress: true,
+      currentStep: 'setup-mode',
+      setupMode: null,
+    };
+    expect(isRetakePendingAtSetupMode(pendingRetake)).toBe(true);
+    expect(isQuickSetupIncomplete(pendingRetake)).toBe(false);
+    expect(isTabLockedForQuickSetup(pendingRetake, 'costs')).toBe(false);
   });
 
   test('locked tab list includes reminders but not tracker', () => {

@@ -120,7 +120,7 @@ export default function IncomeContent({ bundle, frequency = 'monthly', setFreque
         })}
       />
 
-      <TabInsightCard tabKey="income" financials={bundle.financials} />
+      <TabInsightCard tabKey="income" financials={bundle.financials} insights={bundle.insights} />
 
       <TabSectionStack tight>
         <ExpenseUnderlineTabBar

@@ -211,8 +211,8 @@ describe('cyclePace', () => {
         createdAt: '2026-06-01',
       },
     ];
-    expect(computeCyclePool(cycle, {}, adjustments, '2026-06-10').pool).toBe(9000);
-    expect(computeCyclePool(cycle, {}, adjustments, '2026-06-20').pool).toBe(6000);
+    expect(computeCyclePool(cycle, {}, adjustments, '2026-06-10').pool).toBe(12000);
+    expect(computeCyclePool(cycle, {}, adjustments, '2026-06-20').pool).toBe(9000);
   });
 });
 

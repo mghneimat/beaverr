@@ -213,7 +213,12 @@ export default function BudgetContent({ bundle, frequency = 'monthly', setFreque
         })}
       />
 
-      <TabInsightCard tabKey="budget" financials={financials} />
+      <TabInsightCard
+        tabKey="budget"
+        financials={financials}
+        insights={bundle.insights}
+        helpers={{ formatAmount: (monthly) => formatCurrency(monthly, currency) }}
+      />
 
       <BudgetSummaryMetrics
         income={cascade.income}

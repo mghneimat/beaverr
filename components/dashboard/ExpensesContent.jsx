@@ -5,7 +5,7 @@ import { useI18n } from '../../lib/i18n';
 import { useDashboardScroll } from '../../lib/dashboardScroll';
 import { useDashboardLayout } from '../../lib/dashboardLayout';
 import { getCurrencySymbol } from '../../lib/currency';
-import { committedMonthlyLoad } from '../../lib/finance';
+import { committedMonthlyLoad, formatCurrency } from '../../lib/finance';
 import {
   OVERVIEW_TAB_KEY,
   buildFixedExpensePanels,
@@ -213,7 +213,12 @@ export default function ExpensesContent({ bundle, frequency = 'monthly', setFreq
         })}
       />
 
-      <TabInsightCard tabKey="expenses" financials={financials} />
+      <TabInsightCard
+        tabKey="expenses"
+        financials={financials}
+        insights={bundle.insights}
+        helpers={{ formatAmount: (monthly) => formatCurrency(monthly, currency) }}
+      />
 
       <SurfaceCard>
         <InCardSectionHeader title={t('dashboard.expensesScreen.costCommitments')} />

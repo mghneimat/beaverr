@@ -234,7 +234,7 @@ export default function DashboardPlanOverview({
             </View>
           </SurfaceCard>
 
-          <TabInsightCard tabKey="home" financials={financials} />
+          <TabInsightCard tabKey="home" financials={financials} insights={insights} />
         </>,
       )}
 

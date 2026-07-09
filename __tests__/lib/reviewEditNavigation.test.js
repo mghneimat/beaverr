@@ -42,10 +42,7 @@ describe('reviewEditNavigation', () => {
 
   it('maps app dashboard deep link for transport', () => {
     const route = buildReviewEditRoute('transport', { fromApp: true });
-    expect(route).toEqual({
-      pathname: '/(app)/costs',
-      params: { primary: 'recurring', sub: 'transport' },
-    });
+    expect(route).toBe('/(app)/edit/transport');
   });
 
   it('defines targets for all review expense sections', () => {

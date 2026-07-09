@@ -33,13 +33,16 @@
     "react-native-web": "~0.21.0",
     "react-native-worklets": "0.8.3",
     "tailwindcss": "^3.3.2",
-    "xlsx": "^0.18.5",
     "xlsx-js-style": "^1.2.0"
+  },
+  "overrides": {
+    "xlsx": "npm:@e965/xlsx@0.20.3",
+    "uuid": "^11.1.1",
+    "js-yaml": "^4.2.0"
   },
   "devDependencies": {
     "@react-native/jest-preset": "^0.85.3",
     "@types/react": "~19.2.2",
-    "google-auth-library": "^9.15.1",
     "jest": "^29.7.0",
     "typescript": "~6.0.3"
   },
@@ -51,8 +54,7 @@
     "export:web": "npx setup-skia-web && node scripts/export-web.mjs && node scripts/prepare-dist-vercel.mjs",
     "deploy:web": "npm run export:web && vercel --prod",
     "test": "jest",
-    "test:watch": "jest --watch",
-    "advice:eval": "node scripts/run-advice-evals.mjs"
+    "test:watch": "jest --watch"
   },
   "private": true
 }

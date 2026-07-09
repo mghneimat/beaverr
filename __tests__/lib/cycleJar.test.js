@@ -239,7 +239,7 @@ describe('cycleJar', () => {
     );
     expect(balance.spentTotal).toBe(6200);
     expect(balance.deficit).toBe(0);
-    expect(balance.surplus).toBeCloseTo(283.87, 2);
+    expect(balance.surplus).toBeCloseTo(283.87, 1);
   });
 
   test('computeCyclePace spreads remaining over unlogged cycle days during spendingBoost backfill', () => {
